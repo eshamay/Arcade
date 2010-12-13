@@ -1,0 +1,30 @@
+#pragma once
+#ifndef OH_H_
+#define OH_H_
+
+#include "h2o.h"
+
+namespace md_system {
+/******************************
+ * Hydroxide (H3O+)
+ * ****************************/
+class Hydroxide: public Molecule {
+
+protected:
+	VecR _oh;				// The OH bond vector
+	AtomPtr _o, _h;			// pointers to the atoms for easy access
+
+public:
+	Hydroxide ();
+	~Hydroxide ();
+	Hydroxide (const Molecule& molecule);	// copy constructor for casting from a molecule
+
+	static int numHydroxides;			// total number of waters in the system
+
+	void SetAtoms ();					// set the _oh bond vector
+	VecR MolecularAxis () { return _oh; }
+	VecR const * OH () const { return &_oh; }
+};
+
+#endif
+}

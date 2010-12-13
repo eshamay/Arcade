@@ -26,11 +26,8 @@ namespace md_system {
 				D, DW, SW
 			} Element_t;
 
-
-
 			// constructors
-			Atom (const std::string& name, const coord_t& position, const coord_t& force);
-			Atom (const coord_t& position, const coord_t& force);
+			Atom (const std::string& name, const double * position, const double * force);
 			Atom (const Atom& oldAtom);				// copy constructor for deep copies
 			virtual ~Atom ();
 
@@ -48,12 +45,12 @@ namespace md_system {
 
 			void Name (const std::string& name) { _name = name; }
 
-			void Position (const VecR& position);
+			void Position (const vector_base& position);
 			void Position (const double X, const double Y, const double Z);
 
 			void Position (coord const axis, double const value);
 
-			void Force (const VecR& force) { _force = force; }
+			void Force (const vector_base& force) { _force = force; }
 			void Force (const double X, const double Y, const double Z) { _force.Set(X, Y, Z); }
 			void Force (coord const axis, double const value) { _force.Set (axis, value); }
 
@@ -63,14 +60,14 @@ namespace md_system {
 			void Residue (const std::string& residue) { _residue = residue; }
 
 			// for setting the atom's position
-			void X (double val) { (*_position)[0] = val; }
-			void Y (double val) { (*_position)[1] = val; }
-			void Z (double val) { (*_position)[2] = val; }
+			void X (double val) { _position[0] = val; }
+			void Y (double val) { _position[1] = val; }
+			void Z (double val) { _position[2] = val; }
 
 			void MolID (const int mol) { _molid = mol; }	// sets the ID of the molecule containing this atom
 			void ParentMolecule (const MolPtr mol) { _pmolecule = mol;  }	// sets a pointer to the molecule that contains the atom
 
-			void Shift (const VecR& shift)			// shift the atom's position
+			void Shift (vector_base& shift)			// shift the atom's position
 			{ _position += shift; }
 
 			// Output
@@ -81,9 +78,8 @@ namespace md_system {
 			int ID () const 		{ return _ID; }
 			const std::string& Residue () const { return _residue; }
 
-			const VecR& Position () const	{ return _position; }
-
-			const VecR& Force () const		{ return _force; }
+			const vector_map& Position () const	{ return _position; }
+			const vector_map& Force () const		{ return _force; }
 
 			double X () const 		{ return _position.x(); }
 			double Y () const		{ return _position.y(); }
@@ -94,35 +90,13 @@ namespace md_system {
 			void Print () const;
 
 
-			static AtomPtr FindByElement (const Atom_ptr_vec& apv, Element_t elmt) {
-				Atom_it a = std::find_if (apv.begin(), apv.end(), member_functional::mem_fun_eq(&Atom::Element,elmt));
-				return *a;
-			}
-
-			static AtomPtr FindByID (const Atom_ptr_vec& apv, int id) {
-				Atom_it a = std::find_if (apv.begin(), apv.end(), member_functional::mem_fun_eq(&Atom::ID,id));
-				return *a;
-			}
-
-			static bool element_eq (const AtomPtr& first, const AtomPtr& second) {
-				return first->Element() == second->Element();
-			}
+			static AtomPtr FindByElement (const Atom_ptr_vec& apv, Element_t elmt);
+			static AtomPtr FindByID (const Atom_ptr_vec& apv, int id);
+			static bool element_eq (const AtomPtr& first, const AtomPtr& second);
 
 			// tests if the combination of atoms supplied matches the element pair supplied
-
-			// some predicates
-			static bool ElementCombo (const AtomPtr& ai, const AtomPtr& aj, const Element_t element_a, const Element_t element_b) {
-				return 
-					((ai->Element() == element_a && aj->Element() == element_b)
-					 ||
-					 (ai->Element() == element_b && aj->Element() == element_a));
-			}
-
-			static void KeepByElement (Atom_ptr_vec& u, const Element_t& elmt) {
-				u.erase(
-						remove_if(u.begin(), u.end(), std::not1(member_functional::ptr_mem_fun_eq<Atom,Atom::Element_t>(&Atom::Element, elmt))), u.end());
-				return;
-			}
+			static bool ElementCombo (const AtomPtr& ai, const AtomPtr& aj, const Element_t element_a, const Element_t element_b);
+			static void KeepByElement (Atom_ptr_vec& u, const Element_t& elmt);
 
 			// conversion routines
 			static std::string Element2String (Element_t);
@@ -130,20 +104,19 @@ namespace md_system {
 
 		protected:
 			std::string			_name,				// human-readable identifier
-				_residue; 		// name of the parent-molecule 
+											_residue;			// name of the parent-molecule 
 
+			int    _ID;							// some numerical identifier in case the atom is in an ordered list
+			int	   _molid;					// the molecule that contains this atom
 
-			int    _ID;	// some numerical identifier in case the atom is in an ordered list
-			int	   _molid;			   // the molecule that contains this atom
-
-			MolPtr _pmolecule;
+			MolPtr _pmolecule;		// parent molecule in which the atom is attached
 
 			double _mass, _charge;
 
 			Element_t _element;			// the actual element based on the atom name - always upper-case and max length of two letters
 
-			coord_t& _position;				// Particle position
-			coord_t& _force; // the external force on the atom at any given point in time
+			vector_map _position;				// Particle position
+			vector_map _force;					// the external force on the atom at any given point in time
 
 	};	// class Atom
 

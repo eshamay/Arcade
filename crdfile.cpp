@@ -20,7 +20,7 @@ namespace md_files {
 
 		if (_periodic) {
 			// process the next frame's header line (grab the box dimensions)
-			fscanf (_file, " %lf %lf %lf ", &_dims[0], &_dims[1], &_dims[2]);
+			fscanf (_file, " %lf %lf %lf ", &_dimensions[0], &_dimensions[1], &_dimensions[2]);
 		}
 
 		++_frame;

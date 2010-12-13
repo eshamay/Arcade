@@ -1,12 +1,12 @@
-#include "crdfile.h"
+#include "ambersystem.h"
 
 int main () {
 
-	md_files::CRDFile crd ("mdcrd", 2703);
+	md_files::AmberSystem sys ("prmtop", "mdcrd");
 
 	for (int i = 0; i < 10; i++) {
-		crd(2702).Print();
-		crd.LoadNext();
+		sys.Molecules(5)->Print();
+		sys.LoadNext();
 	}
 	
 	return 0;

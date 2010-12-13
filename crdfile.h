@@ -1,12 +1,12 @@
 #ifndef CRDFILE_H_
 #define CRDFILE_H_
 
-#include "mdfiles.h"
+#include "mdsystem.h"
 
 // Class for parsing coordinate files from Amber molecular dynamics trajectories
 
 namespace md_files {
-	class CRDFile : public CoordinateFile {
+	class CRDFile : public md_system::CoordinateFile {
 
 		public:
 
@@ -16,10 +16,10 @@ namespace md_files {
 			// Various control functions
 			void LoadNext ();
 
-			const VecR& Dimensions () const { return _dims; }
+			const VecR& Dimensions () const { return _dimensions; }
 
 		protected:
-			VecR			_dims;		// Dimensions of the system (box size)
+			VecR			_dimensions;		// Dimensions of the system (box size)
 			bool			_periodic;	// are periodic boundaries being used
 	};
 
