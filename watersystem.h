@@ -200,8 +200,15 @@ namespace md_system {
 			{
 				try {
 					config_file = new libconfig::Config();
-					printf ("\nUsing configuration file: \"%s\"\n", configuration_filename.c_str());
-					config_file->readFile(configuration_filename.c_str());
+					printf ("\nLoading configuration file: \"%s\"\n", configuration_filename.c_str());
+
+					// load the configuration file
+					try {
+						config_file->readFile(configuration_filename.c_str());
+					} catch (const libconfig::FileIOException fioex) {
+						std::cerr << "WaterSystem<T>::c-tor\n*** Couldn't find the configuration file (" << configuration_filename.c_str() << ")***" << std::endl;
+						exit(EXIT_FAILURE);
+					}
 
 					posmin = SystemParameterLookup("analysis.position-range")[0];
 					posmax = SystemParameterLookup("analysis.position-range")[1];

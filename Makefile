@@ -7,10 +7,11 @@ CPPFLAGS    = -Wall -ftemplate-depth-100 $(OPTIMIZE)
 
 LIBS		= -L$(HOME)/share/lib -lconfig++ #-L$(MPI_HOME)/lib -L$(ATLAS)/lib 
 
-MOLECULES = h2o.o oh.o h.o h3o.o hno3.o so2.o ctc.o alkane.o decane.o
-MDSYSTEM = utility.o atom.o molecule.o $(MOLECULES) moleculefactory.o mdsystem.o
-AMBERSYSTEM = $(MDSYSTEM) crdfile.o topfile.o ambersystem.o
-TEST = $(AMBERSYSTEM) test.o
+MOLECULES = $(MDSRC)/h2o.o $(MDSRC)/oh.o $(MDSRC)/h.o $(MDSRC)/h3o.o $(MDSRC)/hno3.o $(MDSRC)/so2.o $(MDSRC)/ctc.o $(MDSRC)/alkane.o $(MDSRC)/decane.o
+MDSYSTEM = $(MDSRC)/utility.o $(MDSRC)/atom.o $(MDSRC)/molecule.o $(MOLECULES) $(MDSRC)/moleculefactory.o $(MDSRC)/mdsystem.o
+AMBERSYSTEM = $(MDSYSTEM) $(MDSRC)/crdfile.o $(MDSRC)/topfile.o $(MDSRC)/ambersystem.o
+ANALYZER = $(AMBERSYSTEM) $(MDSRC)/dataoutput.o
+TEST = $(ANALYZER) test.o
 
 test: $(TEST)
 	$(CXX) $(TEST) $(LIBS)

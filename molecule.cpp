@@ -228,12 +228,18 @@ namespace md_system {
 
 	void Molecule::Print () const {
 
-		printf ("Residue = %s  (%d)\tmass = % .3f\t%zu wannier centers\n", _name.c_str(), _ID, _mass, _wanniers.size());
+		printf ("Residue = %s  (%d)\tmass = % .3f", _name.c_str(), _ID, _mass);
+		if (_wanniers.size())
+			printf ("\t%zu wannier centers", _wanniers.size());
+		printf ("\n");
 		std::for_each (this->begin(), this->end(), std::mem_fun(&Atom::Print));
 
-		printf ("Wannier) ");
-		std::for_each (this->_wanniers.begin(), this->_wanniers.end(), std::mem_fun_ref(&VecR::Print));
-		//printf ("wan)\t%d\n", _wanniers.size());
+		if (_wanniers.size()) {
+			printf ("Wannier) ");
+			std::for_each (this->_wanniers.begin(), this->_wanniers.end(), std::mem_fun_ref(&VecR::Print));
+			//printf ("wan)\t%d\n", _wanniers.size());
+		}
+		printf ("\n");
 
 		return;
 	}
