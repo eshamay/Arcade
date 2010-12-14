@@ -1,105 +1,97 @@
 #ifndef __RDF_ANALYSIS_H
 #define __RDF_ANALYSIS_H
 
-#include "../analysis.h"
+#include "analysis.h"
+#include "threading.h"
+
 
 namespace md_analysis {
 
 	template <class T>
 		class rdf_analysis : public AnalysisSet< Analyzer<T> > {
 			public:
-			typedef Analyzer<T> system_t;
+				typedef Analyzer<T> system_t;
 				rdf_analysis () :
 					AnalysisSet<system_t> (
-						std::string("RDF Analysis"),
-						std::string("rdf.dat")) { }
+							std::string("RDF Analysis"),
+							std::string("rdf.dat")) { }
 
-				virtual ~rdf_analysis () {
-					//delete so2;
-				}
+				virtual ~rdf_analysis () { }
+
 				void Setup (system_t& t);
 				void Analysis (system_t& t);
 				void DataOutput (system_t& t);
 
 			protected:
-				typedef std::pair<Atom::Element_t, Atom::Element_t>	element_pair_t;
-				// a map of atom types/elements pairs to histograms - 1 histogram for each atom type pair to be analyzed
-				typedef std::map<element_pair_t, histogram_utilities::Histogram1D<double> >	element_histogram_map_t;
-				element_histogram_map_t histograms;
-				// holds the list of element pairs to be analyzed
-				typedef std::list<element_pair_t> element_pair_list;
-				element_pair_list	element_pairs;
-				//SulfurDioxide * so2;
-				
+				std::vector<boost::thread>	_threads;
+				std::vector<int>					_histogram;
+
+				double min, max, res;
+
+				Atom::Element_t		elmt1, elmt2;
 		};
 
 	template <typename T>
-	void rdf_analysis<T>::Setup(system_t& t) {
-		// get the rdf parameters from the configuration file
-		double minimum = t.SystemParameterLookup("analysis.rdf.minimum");
-		double maximum = t.SystemParameterLookup("analysis.rdf.maximum");
-		double resolution = t.SystemParameterLookup("analysis.rdf.resolution");
+		void rdf_analysis<T>::Setup(system_t& t) {
+			// get the rdf parameters from the configuration file
+			min = t.SystemParameterLookup("analysis.rdf.minimum");
+			max = t.SystemParameterLookup("analysis.rdf.maximum");
+			res = t.SystemParameterLookup("analysis.rdf.resolution");
 
-		// form all the histograms and the mapping between element pairs with the histograms to be used for rdf binning
-		libconfig::Setting &atompairs = t.SystemParameterLookup("analysis.rdf.atom-pairs");
-		for (int i = 0; i < atompairs.getLength(); i++) {
-			// grab all the atom name-pairs from the configuration file and form the list of element pairs to be RDF'ed
-			element_pair_t ep = std::make_pair(Atom::String2Element(atompairs[i][0]), Atom::String2Element(atompairs[i][1]));
-			element_pairs.push_back (ep);
-			// secondly insert the new mapping into our collection
-			histograms.insert (std::make_pair(ep, histogram_utilities::Histogram1D<double>(minimum, maximum, resolution)));
-		}
+			_histogram.resize ((int)((max-min)/res), 0);
 
-		// load all the atoms to work with for the duration of the analysis
-		t.LoadAll();
+			// form all the histograms and the mapping between element pairs with the histograms to be used for rdf binning
+			libconfig::Setting &atompairs = t.SystemParameterLookup("analysis.rdf.atom-pairs");
+			elmt1 = Atom::String2Element (atompairs[0][0]);
+			elmt2 = Atom::String2Element (atompairs[0][1]);
 
-		/*
-		// grab the so2 of interest - for now!
-		int id = t.SystemParameterLookup ("analysis.reference-molecule-id");
-		MolPtr mol = Molecule::FindByID (t.sys_mols, id);
-		so2 = new SulfurDioxide(mol);
-		so2->SetAtoms();
-		*/
-	} // rdf analysis setup
+
+			// load all the atoms to work with for the duration of the analysis
+			t.LoadAll();
+
+		} // rdf analysis setup
 
 	template <typename T>
-	void rdf_analysis<T>::Analysis(system_t& t) {
-		double atomic_distance;
-		// go through each atom pair and 
-		for (Atom_it it = t.sys_atoms.begin(); it != t.sys_atoms.end() - 1; it++) {
-			for (Atom_it jt = it+1; jt != t.sys_atoms.end(); jt++) {
-				// first check if the pair of atoms is one of the pairs to analyze - is the pair in the list of pairs?
-				element_pair_t ep = std::make_pair((*it)->Element(), (*jt)->Element());
-				element_pair_list::iterator epl_it = pair_utility::PairListMember (ep, element_pairs.begin(), element_pairs.end());
+		void rdf_analysis<T>::Analysis(system_t& t) {
+			/*
+			double atomic_distance;
+			// go through each atom pair and 
+			for (Atom_it it = t.sys_atoms.begin(); it != t.sys_atoms.end() - 1; it++) {
+				for (Atom_it jt = it+1; jt != t.sys_atoms.end(); jt++) {
+					// first check if the pair of atoms is one of the pairs to analyze - is the pair in the list of pairs?
+					element_pair_t ep = std::make_pair((*it)->Element(), (*jt)->Element());
+					element_pair_list::iterator epl_it = pair_utility::PairListMember (ep, element_pairs.begin(), element_pairs.end());
 
-				if (epl_it == element_pairs.end()) continue;	// if the pair isn't in the list, then don't bin it!
+					if (epl_it == element_pairs.end()) continue;	// if the pair isn't in the list, then don't bin it!
 
-				// for each pair in the list, bin the distance between the atoms into the proper histogram
-				atomic_distance = MDSystem::Distance(*it, *jt).norm();
-				histograms.find(ep)->second(atomic_distance);
+					// for each pair in the list, bin the distance between the atoms into the proper histogram
+					atomic_distance = MDSystem::Distance(*it, *jt).norm();
+					histograms.find(ep)->second(atomic_distance);
+				}
 			}
-		}
+			*/
 
-		/*
-		// specific analysis to bag only the O1 and O2 rdfs for so2
-		t.LoadWaters();
-		Atom::KeepByElement (t.int_atoms, Atom::H);
-		AtomPtr o1 = so2->O1();
-		AtomPtr o2 = so2->O2();
-		for (Atom_it it = t.int_atoms.begin(); it != t.int_atoms.end(); it++) {
-				atomic_distance = MDSystem::Distance(*it, o1).norm();
-				histograms.begin()->second(atomic_distance);
-				atomic_distance = MDSystem::Distance(*it, o2).norm();
-				histograms.begin()->second(atomic_distance);
-		}
-		*/
+			/*
+			// specific analysis to bag only the O1 and O2 rdfs for so2
+			t.LoadWaters();
+			Atom::KeepByElement (t.int_atoms, Atom::H);
+			AtomPtr o1 = so2->O1();
+			AtomPtr o2 = so2->O2();
+			for (Atom_it it = t.int_atoms.begin(); it != t.int_atoms.end(); it++) {
+			atomic_distance = MDSystem::Distance(*it, o1).norm();
+			histograms.begin()->second(atomic_distance);
+			atomic_distance = MDSystem::Distance(*it, o2).norm();
+			histograms.begin()->second(atomic_distance);
+			}
+			*/
 
-	}	// rdf analysis analysis
+		}	// rdf analysis analysis
 
 
 
 	template <typename T>
 		void rdf_analysis<T>::DataOutput(system_t& t) {
+			/*
 			rewind (t.Output());
 
 			double minimum = t.SystemParameterLookup("analysis.rdf.minimum");
@@ -127,6 +119,7 @@ namespace md_analysis {
 
 			fflush(t.Output());
 			return;
+			*/
 		}	// rdf analysis data output
 
 } // namespace md_analysis
