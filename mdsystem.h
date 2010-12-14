@@ -10,6 +10,10 @@
 
 namespace md_system {
 
+	const double WANNIER_BOND = 0.7;
+
+
+
 	class CoordinateFile {
 
 		public:
@@ -45,10 +49,10 @@ namespace md_system {
 			int Frame () 	const { return _frame; }
 
 		protected:
-			FILE *_file;				// the XYZ file listing all the atom coordinates
+			FILE				*_file;				// the XYZ file listing all the atom coordinates
 			std::string _path;
 
-			int				_size;		// number of coordinates to parse in each frame
+			int				_size;				// number of coordinates to parse in each frame (e.g. number of atoms in the system)
 
 			std::vector<double>								_coords;				// array of atomic coordinates
 			//coord_set_t												_vectors;				// set of vectors representing positions

@@ -186,19 +186,18 @@ namespace md_system {
 
 		protected:
 			Atom_ptr_vec	_atoms;				// the list of the atoms in the molecule
-			VecR_vec		_wanniers;			// the wannier centers in the molecule
-			VecR			_dipole;			// the molecular dipole
-			VecR			_x, _y, _z;			// molecular frame axes
-
+			VecR_vec			_wanniers;			// the wannier centers in the molecule
+			VecR					_dipole;			// the molecular dipole
+			VecR					_x, _y, _z;			// molecular frame axes
 
 			// this is broken last I checked - not updated with coordinate updates
 			VecR			_centerofmass;		// calculate by 1/M * Sum(m[i]*r[i])	where M = total mass, m[i] and r[i] are atom mass and pos
 
 			double			_mass;				// Total molecular mass
 			double			_charge;
-			std::string		_name;				// some text ID or name for the molecule
-			int				_ID;				// A numerical ID for the molecule
-			Molecule_t		_moltype;		// an enumerated way to compare different types of molecule
+			std::string	_name;				// some text ID or name for the molecule
+			int					_ID;				// A numerical ID for the molecule
+			Molecule_t	_moltype;		// an enumerated way to compare different types of molecule
 
 			double			_eulerangles[3];	// the three euler angles theta, phi, chi
 			MatR			_DCM;				// the direction cosine matrix for rotating the molecule to the lab frame

@@ -9,7 +9,7 @@ namespace md_system {
 		_size(c_size),
 		_coords (_size*3, 0.0),
 		_frame(0),
-		_eof(false)	{
+		_eof(false) {
 
 			_file = fopen64 (path.c_str(), "r");
 			if (_file == (FILE *)NULL)
