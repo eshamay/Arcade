@@ -1,7 +1,14 @@
-#include <boost/thread/thread.hpp>
+//#include <boost/thread/thread.hpp>
+#include "pthread.h"
 
 namespace threads {
 
+	/* id = process id
+	 * p  = number of processes
+	 * n  = size of the problem (e.g. number of indices of an array, etc.)
+	 *
+	 * numbering starts at 0 for index
+	 */
 	int block_low (const int& id, const int& p, const int& n) {
 		return id*n/p;
 	}
