@@ -1,6 +1,7 @@
 #include "molecule.h"
 
 namespace md_system {
+
 	int Molecule::numMolecules = 0;
 
 	// A constructor for an empty molecule

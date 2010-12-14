@@ -1,14 +1,15 @@
 #ifndef MOLECULE_H_
 #define MOLECULE_H_
 
+#include "utility.h"
 #include "vecr.h"
 #include "matrixr.h"
-#include "utility.h"
 #include "atom.h"
 #include <string>
 #include <vector>
 
 namespace md_system {
+
 	class Molecule {
 
 		public:
