@@ -4,12 +4,14 @@
 #include "analysis.h"
 #include "threading.h"
 
-#define NUMTHREADS	4
+#define NUMTHREADS	2
 
 namespace md_analysis {
 
+	// pthread-compatible function for processing a single thread's data
 	void * build_histo (void * thread_data);
 
+	// data that each thread will need to have privately
 	struct thread_data_t {
 		Atom **atoms;									// system atom array
 		double min, max, res;					// rdf parameters
@@ -18,6 +20,8 @@ namespace md_analysis {
 		int thread_id;
 		int blocklow, blockhigh;
 		std::pair<int,int> * pairs;
+
+		std::vector<int>		_histo;		// private thread histogram
 
 		thread_data_t (
 				Atom ** _atoms,
@@ -29,7 +33,8 @@ namespace md_analysis {
 				min(_min), max(_max), res(_res),
 				elmt1(_elmt1), elmt2(_elmt2),
 				big_histo(_big_histo), thread_id(id),
-				blocklow(low), blockhigh(high), pairs(_pairs)
+				blocklow(low), blockhigh(high), pairs(_pairs),
+				_histo ((int)((max-min)/res), 0)
 	 	{ }
 
 	};
@@ -86,17 +91,25 @@ namespace md_analysis {
 			t.LoadAll();
 
 			// set up the pairs for processing
+			AtomPtr ai, aj;
 			for (int i = 0; i < t.sys_atoms.size() - 1; i++) {
+				ai = t.sys_atoms[i];
 				for (int j = i+1; j < t.sys_atoms.size(); j++) {
-					_pairs.push_back(std::make_pair(i,j));
-				}}
+					aj = t.sys_atoms[j];
+					// check if the pair of atoms is one of the pairs to analyze - is the pair in the list of pairs?
+					if ( ((ai->Element() == elmt1) && (aj->Element() == elmt2)) ||
+							((ai->Element() == elmt2) && (aj->Element() == elmt1)) ) {
+						_pairs.push_back(std::make_pair(i,j));
+					}
+				}
+			}
 
 
 			//printf ("total size = %zu\n", t.sys_atoms.size());
 			Atom ** atoms = &t.sys_atoms[0];
 			for (int i = 0; i < NUMTHREADS; i++) {
-				int low = threads::block_low(i, NUMTHREADS, t.sys_atoms.size());
-				int high = threads::block_high(i, NUMTHREADS, t.sys_atoms.size()); 
+				int low = threads::block_low(i, NUMTHREADS, _pairs.size());
+				int high = threads::block_high(i, NUMTHREADS, _pairs.size()); 
 				//printf ("%d) %d -- %d\n", i, low, high);
 				_thread_data[i] = new thread_data_t (
 						atoms,
@@ -116,37 +129,30 @@ namespace md_analysis {
 		//printf ("%d starting\n", data->thread_id);
 
 		double atomic_distance;
-		std::vector<int>	histo;
-		histo.clear();
-		histo.resize((int)((data->max-data->min)/data->res), 0);
-	 	
+
 
 		// go through each atom pair and process the rdf histogram
 		Atom *ai, *aj;
 		std::pair<int,int> pair;
 		for (int i = data->blocklow; i <= data->blockhigh; i++) {
 			pair = data->pairs[i];
-
 			ai = data->atoms[pair.first];
 			aj = data->atoms[pair.second];
 
-			// first check if the pair of atoms is one of the pairs to analyze - is the pair in the list of pairs?
-			if ( ((ai->Element() == data->elmt1) && (aj->Element() == data->elmt2)) ||
-					((ai->Element() == data->elmt2) && (aj->Element() == data->elmt1)) ) {
+			// for each pair in the list, bin the distance between the atoms into the proper histogram
+			atomic_distance = MDSystem::Distance(ai, aj).norm();
+			if (atomic_distance > data->max || atomic_distance < data->min) continue;
 
-				// for each pair in the list, bin the distance between the atoms into the proper histogram
-				atomic_distance = MDSystem::Distance(ai, aj).norm();
-				if (atomic_distance > data->max || atomic_distance < data->min) continue;
-
-				++histo[(int)((atomic_distance-data->min)/data->res)];
-			}
+			++data->_histo[(int)((atomic_distance-data->min)/data->res)];
 		}
 
+		/*
 		pthread_mutex_lock (&histogram_mutex);
 		for (int i = 0; i < histo.size(); i++) {
 			data->big_histo[i] += histo[i];
 		}
 		pthread_mutex_unlock (&histogram_mutex);
+		*/
 
 		pthread_exit(NULL);
 		return;
@@ -185,6 +191,16 @@ namespace md_analysis {
 
 	template <typename T>
 		void rdf_analysis<T>::DataOutput(system_t& t) {
+			// collect the histogram data from each of the threads
+
+			_histogram.assign(_histogram.size(), 0);
+			for (int i = 0; i < NUMTHREADS; i++) {
+				for (int j = 0; j < _histogram.size(); j++) {
+					_histogram[j] += _thread_data[i]->_histo[j];
+				}
+			}
+
+
 			rewind (t.Output());
 
 			double dV, n, N;

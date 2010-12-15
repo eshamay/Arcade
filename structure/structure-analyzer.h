@@ -11,7 +11,7 @@ USING_PART_OF_NAMESPACE_EIGEN
 #include "dipole-analysis.h"
 #include "neighbor-analysis.h"
 #include "atomic-density-analysis.h"
-#include "rdf-analysis.h"
+#include "rdf-analysis.threads.h"
 
 
 typedef std::vector<double> double_vec;
