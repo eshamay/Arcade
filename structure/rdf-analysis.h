@@ -4,7 +4,7 @@
 #include "analysis.h"
 #include "threading.h"
 
-#define NUMTHREADS	16
+#define NUMTHREADS	4
 
 namespace md_analysis {
 
@@ -17,18 +17,19 @@ namespace md_analysis {
 		int * big_histo;
 		int thread_id;
 		int blocklow, blockhigh;
+		std::pair<int,int> * pairs;
 
 		thread_data_t (
 				Atom ** _atoms,
 				double _min, double _max, double _res, 
 				Atom::Element_t _elmt1, Atom::Element_t _elmt2,
-				int * _big_histo, int id, int low, int high)
+				int * _big_histo, int id, int low, int high, std::pair<int,int> * _pairs)
 			: 
 				atoms(_atoms),
 				min(_min), max(_max), res(_res),
 				elmt1(_elmt1), elmt2(_elmt2),
 				big_histo(_big_histo), thread_id(id),
-				blocklow(low), blockhigh(high)
+				blocklow(low), blockhigh(high), pairs(_pairs)
 	 	{ }
 
 	};
@@ -63,6 +64,8 @@ namespace md_analysis {
 
 				double min, max, res;
 				Atom::Element_t		elmt1, elmt2;
+
+				std::vector<std::pair<int,int> >		_pairs;
 		};
 
 	template <typename T>
@@ -82,6 +85,13 @@ namespace md_analysis {
 			// load all the atoms to work with for the duration of the analysis
 			t.LoadAll();
 
+			// set up the pairs for processing
+			for (int i = 0; i < t.sys_atoms.size() - 1; i++) {
+				for (int j = i+1; j < t.sys_atoms.size(); j++) {
+					_pairs.push_back(std::make_pair(i,j));
+				}}
+
+
 			//printf ("total size = %zu\n", t.sys_atoms.size());
 			Atom ** atoms = &t.sys_atoms[0];
 			for (int i = 0; i < NUMTHREADS; i++) {
@@ -93,7 +103,8 @@ namespace md_analysis {
 						min, max, res, 
 						elmt1, elmt2,
 						&_histogram[0], i, 
-						low, high);
+						low, high,
+						&_pairs[0]);
 			}
 
 		} // rdf analysis setup
@@ -112,22 +123,22 @@ namespace md_analysis {
 
 		// go through each atom pair and process the rdf histogram
 		Atom *ai, *aj;
-		for (int i = data->blocklow; i < data->blockhigh; i++) {
-			ai = data->atoms[i];
+		std::pair<int,int> pair;
+		for (int i = data->blocklow; i <= data->blockhigh; i++) {
+			pair = data->pairs[i];
 
-			for (int j = i+1; j <= data->blockhigh; j++) {
-				aj = data->atoms[j];
+			ai = data->atoms[pair.first];
+			aj = data->atoms[pair.second];
 
-				// first check if the pair of atoms is one of the pairs to analyze - is the pair in the list of pairs?
-				if ( ((ai->Element() == data->elmt1) && (aj->Element() == data->elmt2)) ||
-						((ai->Element() == data->elmt2) && (aj->Element() == data->elmt1)) ) {
+			// first check if the pair of atoms is one of the pairs to analyze - is the pair in the list of pairs?
+			if ( ((ai->Element() == data->elmt1) && (aj->Element() == data->elmt2)) ||
+					((ai->Element() == data->elmt2) && (aj->Element() == data->elmt1)) ) {
 
-					// for each pair in the list, bin the distance between the atoms into the proper histogram
-					atomic_distance = MDSystem::Distance(ai, aj).norm();
-					if (atomic_distance > data->max || atomic_distance < data->min) continue;
+				// for each pair in the list, bin the distance between the atoms into the proper histogram
+				atomic_distance = MDSystem::Distance(ai, aj).norm();
+				if (atomic_distance > data->max || atomic_distance < data->min) continue;
 
-					++histo[(int)((atomic_distance-data->min)/data->res)];
-				}
+				++histo[(int)((atomic_distance-data->min)/data->res)];
 			}
 		}
 
