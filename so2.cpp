@@ -62,7 +62,7 @@ namespace md_system {
 
 		this->SetAtoms ();
 
-		// the z-axis is the negative of the C2V axis - so find the bisector and set the vector pointing towards the O (just like the dipole vector)
+		// the z-axis is the C2V axis - so find the bisector and set the vector pointing towards the O (just like the dipole vector)
 		_z = this->Bisector();
 
 		// the y-axis points perpendicular to the plane of the molecule. This can be found from the cross product of the two OH vectors

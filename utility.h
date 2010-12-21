@@ -200,6 +200,10 @@ namespace coordinate_conversion {
 	//		phi = twist about the z-axis, referenced from the x-axis
 
 	void CartesianToSpherical (double *coord);
+	void DCM2EulerAngles_ZXZ (double * m, double * angles);
+	void DCM2EulerAngles_YZY (double * m, double * angles);
+	void DCM2EulerAngles_ZXY (double * m, double * angles);
+	void DCM2EulerAngles_YZX (double * m, double * angles);
 }	// namespace coordinate conversion
 
 namespace md_name_utilities {
@@ -262,6 +266,21 @@ namespace md_name_utilities {
 
 namespace histogram_utilities {
 
+	struct histogram_data_t {
+		histogram_data_t (double min, double max, double res) 
+			: minimum(min), maximum(max), resolution(res), bins ((int)((max-min)/res)+1) { }
+
+		double minimum, maximum, resolution;
+		int bins; // number of bins in the histogram
+		double * histogram;
+	};
+
+
+
+
+
+	// bin a value into a histogram
+	void Bin
 	typedef std::pair<double, int> histo_pair;
 	typedef std::vector<histo_pair> histogram_t;
 

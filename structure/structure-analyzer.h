@@ -12,6 +12,7 @@ USING_PART_OF_NAMESPACE_EIGEN
 #include "neighbor-analysis.h"
 #include "atomic-density-analysis.h"
 #include "rdf-analysis.threads.h"
+#include "h2o-analysis.h"
 
 
 typedef std::vector<double> double_vec;
@@ -60,6 +61,7 @@ namespace md_analysis {
 			a = new so2_closest_water_map<T>();										analyses.push_back(a);
 			a = new so2_closest_water_spherical_map<T>();					analyses.push_back(a);
 			a = new rdf_analysis<T>();														analyses.push_back(a);
+			a = new h2o_analysis::H2OAngleAnalysis<T>();					analyses.push_back(a);
 		}
 
 	/*

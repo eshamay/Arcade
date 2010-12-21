@@ -155,7 +155,7 @@ namespace md_analysis {
 		*/
 
 		pthread_exit(NULL);
-		return;
+		return (void *)NULL;
 	}
 
 

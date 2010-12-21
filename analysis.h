@@ -166,14 +166,19 @@ namespace md_analysis {
 		void Analyzer<T>::OpenDataOutputFile (analysis_t& an) {
 
 			output = (FILE *)NULL;
-			output = fopen(an.Filename().c_str(), "w");
-
-			if (output == (FILE *)NULL) {
-				printf ("Analyzer<T>::_CheckOutputFile() - couldn't open the data output file, \"%s\", given in the analysis set!\n", an.Filename().c_str());
-				exit(1);
+			if (an.Filename() == "") {
+				printf ("\nAnalyzer:: No filename specified for dataoutput.\n");
 			}
+			else {
+				output = fopen(an.Filename().c_str(), "w");
 
-			printf ("\nOutputting data to \"%s\"\n", an.Filename().c_str());
+				if (output == (FILE *)NULL) {
+					printf ("Analyzer<T>::_CheckOutputFile() - couldn't open the data output file, \"%s\", given in the analysis set!\n", an.Filename().c_str());
+					exit(1);
+				}
+
+				printf ("\nOutputting data to \"%s\"\n", an.Filename().c_str());
+			}
 
 			return;
 		}
@@ -196,13 +201,13 @@ namespace md_analysis {
 
 
 	/*
-	template <>
-		extern void Analyzer<XYZSystem>::LoadNext () {
-			this->sys->LoadNext();
-			this->LoadAll();
-			return;
-		}
-		*/
+		 template <>
+		 extern void Analyzer<XYZSystem>::LoadNext () {
+		 this->sys->LoadNext();
+		 this->LoadAll();
+		 return;
+		 }
+		 */
 
 	template <>
 		extern void Analyzer<AmberSystem>::LoadNext () {
@@ -211,18 +216,18 @@ namespace md_analysis {
 		}
 
 	/*
-	template <>
-		extern void Analyzer<gromacs::GMXSystem<gromacs::TRRFile> >::LoadNext () {
-			this->sys->LoadNext();
-			return;
-		}
+		 template <>
+		 extern void Analyzer<gromacs::GMXSystem<gromacs::TRRFile> >::LoadNext () {
+		 this->sys->LoadNext();
+		 return;
+		 }
 
-	template <>
-		extern void Analyzer<gromacs::GMXSystem<gromacs::XTCFile> >::LoadNext () {
-			this->sys->LoadNext();
-			return;
-		}
-		*/
+		 template <>
+		 extern void Analyzer<gromacs::GMXSystem<gromacs::XTCFile> >::LoadNext () {
+		 this->sys->LoadNext();
+		 return;
+		 }
+		 */
 
 	template <class T>
 		void Analyzer<T>::SystemAnalysis (analysis_t& an) {
@@ -391,14 +396,14 @@ namespace md_analysis {
 
 	/***************** Analysis Sets specific to given MD systems ***************/
 	/*
-	class XYZAnalysisSet : public AnalysisSet< Analyzer<XYZSystem> > { 
-		public:
-			typedef Analyzer<XYZSystem> system_t;
-			XYZAnalysisSet (std::string desc, std::string fn) :
-				AnalysisSet<system_t> (desc, fn) { }
-			virtual ~XYZAnalysisSet () { }
-	};
-	*/
+		 class XYZAnalysisSet : public AnalysisSet< Analyzer<XYZSystem> > { 
+		 public:
+		 typedef Analyzer<XYZSystem> system_t;
+		 XYZAnalysisSet (std::string desc, std::string fn) :
+		 AnalysisSet<system_t> (desc, fn) { }
+		 virtual ~XYZAnalysisSet () { }
+		 };
+		 */
 
 	class AmberAnalysisSet : public AnalysisSet< Analyzer<AmberSystem> > { 
 		public:

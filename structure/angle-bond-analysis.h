@@ -75,7 +75,7 @@ namespace md_analysis {
 			this->FindWaterSurfaceLocation();
 
 			// distance from the top of the water surface to the sulfur of the so2
-			double distance_to_location = system_t::Position(this->s) - this->surfaceLocation;
+			double distance_to_location = system_t::Position(this->s) - this->surface_location;
 
 			// sort the waters by distance: h2o-O to the so2-S - the first waters in the vector will be closest to the SO2
 			Atom::KeepByElement(t.int_atoms, Atom::O);
@@ -114,7 +114,7 @@ namespace md_analysis {
 			// output the distance and the two S-O bondlengths and the SO2 oso_angle for each timestep
 			fprintf (t.Output(), "%d % 12.4f % 12.4f % 12.4f % 12.4f % 12.4f % 12.4f % 12.4f % 12.4f % 12.4f % 12.4f % 12.4f % 12.4f % 12.4f % 12.4f % 12.4f\n", 
 					t.Timestep(),
-					this->surfaceLocation,
+					this->surface_location,
 					distance_to_location,
 					this->so2->SO1().norm(), this->so2->SO2().norm(), 
 					oso_angle, 

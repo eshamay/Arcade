@@ -48,7 +48,7 @@ namespace md_analysis {
 		this->ReloadAnalysisWaters();
 		// record the distance from the so2 to the water surface
 		this->FindWaterSurfaceLocation();
-		double distance_to_location = system_t::Position(origin) - this->surfaceLocation;
+		double distance_to_location = system_t::Position(origin) - this->surface_location;
 		fprintf (t.Output(), "% 12.3f ", distance_to_location);
 
 		VecR r;						// vector pointing from the s to the water atom of interest
@@ -120,7 +120,9 @@ namespace md_analysis {
 				so2_closest_water_map () :
 					so2_analysis::SO2SystemAnalyzer<T> (
 							std::string("SO2 closest neighbor 3D histogram mapping analysis"),
-							std::string ("temp.xyz")) { }
+							std::string ("temp.xyz")),
+					numWatsToProcess(5)
+		 	{ }
 
 				virtual ~so2_closest_water_map () { }
 
@@ -131,9 +133,7 @@ namespace md_analysis {
 					this->so2 = new SulfurDioxide(mol);
 				}
 
-				void PostSetup (system_t& t) {
-					numWatsToProcess = 5;
-				}
+				void PostSetup (system_t& t) { }
 
 				void Analysis (system_t& t);
 				void DataOutput (system_t& t);
@@ -252,8 +252,9 @@ namespace md_analysis {
 
 			// a list of all the nearest molecules
 			std::vector<MolPtr> NearestMols;
-			NearestMols.push_back(this->analysis_atoms[0]->ParentMolecule());
-			NearestMols.push_back(this->analysis_atoms[1]->ParentMolecule());
+			for (int i = 0; i < 2; i++) {
+				NearestMols.push_back(this->analysis_atoms[i]->ParentMolecule());
+			}
 
 			this->ReloadAnalysisWaters();
 			MolPtr mol;
@@ -270,21 +271,25 @@ namespace md_analysis {
 			}
 
 			fprintf (t.Output(), "%d\n\n", (int)NearestMols.size()*3+3);
-			VecR r (0.0,0.0,0.0);
+			//VecR r (0.0,0.0,0.0);
+			VecR r = this->s->Position();
 			PrintXYZLocation (t, "S", r);
-			r = dcm * this->so2->SO1();
+			//r = dcm * this->so2->SO1();
+			r = this->o1->Position();
 			PrintXYZLocation (t, "O", r);
 
-			r = dcm * this->so2->SO2();
+			//r = dcm * this->so2->SO2();
+			r = this->o2->Position();
 			PrintXYZLocation (t, "O", r);
 
 			for (int i = 0; i < NearestMols.size(); i++) {
 				mol = NearestMols[i];
 				// print out every atom in the water molecule associated with the closest O
 				for (Atom_it it = mol->begin(); it != mol->end(); it++) {
-					r = MDSystem::Distance (reference_point, (*it)->Position());
+					//r = MDSystem::Distance (reference_point, (*it)->Position());
+					r = (*it)->Position();
 					// find out what r looks like in the molecular frame;
-					r = dcm * r;
+					//r = dcm * r;
 					PrintXYZLocation (t, Atom::Element2String((*it)->Element()), r);
 				}
 			}

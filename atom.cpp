@@ -125,7 +125,7 @@ namespace md_system {
 	}
 
 	Atom::Element_t Atom::String2Element (const std::string& name) {
-		const double * pos, * frc;
+		const double * pos=(double *)NULL, * frc=(double *)NULL;
 		AtomPtr atom = new Atom(name,pos,frc);
 		Atom::Element_t elmt = atom->Element();
 		delete atom;

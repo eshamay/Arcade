@@ -55,6 +55,5 @@ namespace md_system {
 	typedef Water_ptr_vec::iterator Wat_it;
 	typedef std::vector<Water> Water_vec;
 
-
 }
 #endif
