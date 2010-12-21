@@ -266,21 +266,66 @@ namespace md_name_utilities {
 
 namespace histogram_utilities {
 
-	struct histogram_data_t {
-		histogram_data_t (double min, double max, double res) 
-			: minimum(min), maximum(max), resolution(res), bins ((int)((max-min)/res)+1) { }
 
-		double minimum, maximum, resolution;
-		int bins; // number of bins in the histogram
-		double * histogram;
+	/*
+	class Histogram2D {
+		public:
+
+			Histogram2D (const double min1, const double max1, const double res1, const double min2, const double max2, const double res2) 
+				: set(false),
+				min_1(min1), max_1(max1), res_1(res1),
+				min_2(min2), max_2(max2), res_2(res2),
+				bins_1((int)((max_1-min_1)/res_1)),
+				bins_2((int)((max_2-min_2)/res_2)),
+				histogram (bins_1, std::vector<int>(bins_2, 0))
+		{ }
+
+			~Histogram2D () { }
+
+			typedef std::pair<double,double> double_pair;
+			typedef std::pair<int,int> int_pair;
+
+			double_pair Minimum () const { return std::make_pair(min_1, min_2); }
+			double_pair Maximum () const { return std::make_pair(max_1, max_2); }
+			double_pair Resolution () const { return std::make_pair(res_1, res_2); }
+			int_pair Bins () const { return std::make_pair(bins_1, bins_2); }
+
+			bool CheckBounds (const double i, const double j) const {
+				return i >= min_1 && i <= max_1 && j >= min_2 && j <= max_2;
+			}
+
+			int Element (const double i, const double j) const { 
+				if (!CheckBounds(i,j)) {
+					printf ("Histogram2D - out of bounds error!\n");
+					exit(1);
+				} 
+
+				return histogram[i][j];
+			}
+
+			void operator() (const double i, const double j) {
+				if (CheckBounds(i,j)) {
+					histogram[i][j]++;
+					count[i]++;
+					total_count++;
+				}
+			}
+
+		protected:
+			bool set;
+			double min_1, max_1, res_1;
+			double min_2, max_2, res_2;
+			int bins_1, bins_2; // number of bins in the histogram
+			std::vector<int> count;
+			int total_count;
+			std::vector< std::vector<int> > histogram;
 	};
+	*/
 
 
 
 
 
-	// bin a value into a histogram
-	void Bin
 	typedef std::pair<double, int> histo_pair;
 	typedef std::vector<histo_pair> histogram_t;
 

@@ -57,7 +57,8 @@ namespace md_analysis {
 
 				void _OutputHeader () const;
 				void _OutputStatus ();
-				md_analysis::StarStatusBarUpdater	status_updater;
+				//md_analysis::StarStatusBarUpdater	status_updater;
+				md_analysis::PercentProgressBar	status_updater;
 
 			public:
 				Analyzer (const std::string = std::string("system.cfg"));
@@ -121,12 +122,12 @@ namespace md_analysis {
 			output_freq(WaterSystem<T>::SystemParameterLookup("analysis.output-frequency")),
 			timestep (0)
 	{ 
-		Analyzer<T>::posres = WaterSystem<T>::SystemParameterLookup("analysis.resolution.position");
+		Analyzer<T>::posres = WaterSystem<T>::SystemParameterLookup("analysis.position-range")[2];
 		Analyzer<T>::posbins = int((WaterSystem<T>::posmax - WaterSystem<T>::posmin)/posres);
 
 		Analyzer<T>::angmin = WaterSystem<T>::SystemParameterLookup("analysis.angle-range")[0];
 		Analyzer<T>::angmax = WaterSystem<T>::SystemParameterLookup("analysis.angle-range")[1];
-		Analyzer<T>::angres = WaterSystem<T>::SystemParameterLookup("analysis.resolution.angle");
+		Analyzer<T>::angres = WaterSystem<T>::SystemParameterLookup("analysis.angle-range")[2];
 		Analyzer<T>::angbins = int((angmax - angmin)/angres);
 
 		Analyzer<T>::timesteps = WaterSystem<T>::SystemParameterLookup("system.timesteps");
