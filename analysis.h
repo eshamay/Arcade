@@ -46,6 +46,37 @@ namespace md_analysis {
 
 
 
+/* a means to attach new functionality to the basic analysis */
+	/*
+	template <typename T>
+		class AnalysisSetDecorator : public AnalysisSet<T> {
+			protected:
+				AnalysisSet<T>& _analysis;
+
+			public:
+
+				AnalysisSetDecorator (AnalysisSet<T>& analysis) : _analysis(analysis) { }
+				virtual ~AnalysisSetDecorator () { }
+
+				virtual void Setup (system_t& t) { _analysis.Setup(); }
+
+				// each analyzer has to have an analysis function to do some number crunching
+				virtual void Analysis (system_t&) = 0;
+
+				virtual void DataOutput (system_t&) { _analysis.DataOutput(t); }
+				virtual void PostAnalysis (system_t&) { _analysis.PostAnalysis(t); }
+
+				std::string& Description () { return description; }
+				std::string& Filename () { return filename; }
+
+				std::string& Description () { return _analysis.description; }
+				std::string& Filename () { return _analysis.filename; }
+
+		};
+		*/
+
+
+
 	template <class T>
 		class Analyzer : public WaterSystem<T>, public patterns::observer::observable {
 

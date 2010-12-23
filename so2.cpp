@@ -58,7 +58,7 @@ namespace md_system {
 	 * y-axis = perpendicular to the plane of the molecule
 	 * x-axis = y % z
 	 */
-	void SulfurDioxide::SetBisectorAxes () {
+	void SulfurDioxide::SetOrderAxes () {
 
 		this->SetAtoms ();
 

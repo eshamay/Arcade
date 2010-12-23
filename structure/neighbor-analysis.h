@@ -37,7 +37,7 @@ namespace md_analysis {
 		fprintf (t.Output(), "%12d ", t.Timestep());
 
 		// generate the direction cosine rotation matrix to rotate data from the system to the so2-molecular frame
-		this->so2->SetBisectorAxes();
+		this->so2->SetOrderAxes();
 		this->so2->DCMToLab();
 		MatR dcm = this->so2->DCM().transpose();
 
@@ -238,7 +238,7 @@ namespace md_analysis {
 			this->ReloadAnalysisWaters();
 
 			// generate the direction cosine rotation matrix to rotate data from the system to the so2-molecular frame
-			this->so2->SetBisectorAxes();
+			this->so2->SetOrderAxes();
 			this->so2->DCMToLab();
 			MatR dcm = this->so2->DCM().transpose();
 
