@@ -12,33 +12,39 @@ namespace md_analysis {
 	using namespace md_system;
 	using namespace md_files;
 
+	template <class T> class Analyzer;
+
 	// An analysis that will be performed on a system by an analyzer
 	template <typename T>
 		class AnalysisSet {
 			public:
-				typedef T system_t;
+				typedef Analyzer<T> system_t;
 
 				virtual ~AnalysisSet () { }
-				AnalysisSet (std::string desc, std::string fn) : description (desc), filename(fn) { }
+				AnalysisSet (system_t * sys, std::string desc, std::string fn) 
+					: 
+						_system(sys),
+						description (desc), filename(fn) { }
 
 				// default setup
-				virtual void Setup (system_t& t) {
-					rewind(t.Output());
-					t.LoadAll();
+				virtual void Setup () {
+					if (_system->Output())
+						rewind(_system->Output());
 					return;
 				}
 
 				// each analyzer has to have an analysis function to do some number crunching
-				virtual void Analysis (system_t&) = 0;
+				virtual void Analysis () = 0;
 				// normally this can be done in the analysis section, but just for style we can have something different defined here
-				virtual void DataOutput (system_t&) { }
-				virtual void PostAnalysis (system_t&) { }
+				virtual void DataOutput () { }
+				virtual void PostAnalysis () { }
 
 				std::string& Description () { return description; }
 				std::string& Filename () { return filename; }
 
 			protected:
 
+				system_t * _system;
 				std::string description;	// describes the analysis that is performed
 				std::string filename;		// filename to use for data output
 
@@ -46,34 +52,47 @@ namespace md_analysis {
 
 
 
-/* a means to attach new functionality to the basic analysis */
-	/*
+	// manipulator superclass
 	template <typename T>
-		class AnalysisSetDecorator : public AnalysisSet<T> {
-			protected:
-				AnalysisSet<T>& _analysis;
-
+		class SystemManipulator {
 			public:
+				typedef Analyzer<T> system_t;
 
-				AnalysisSetDecorator (AnalysisSet<T>& analysis) : _analysis(analysis) { }
-				virtual ~AnalysisSetDecorator () { }
+				SystemManipulator (system_t * sys) : _system(sys) { }
+				virtual ~SystemManipulator () { }
 
-				virtual void Setup (system_t& t) { _analysis.Setup(); }
-
-				// each analyzer has to have an analysis function to do some number crunching
-				virtual void Analysis (system_t&) = 0;
-
-				virtual void DataOutput (system_t&) { _analysis.DataOutput(t); }
-				virtual void PostAnalysis (system_t&) { _analysis.PostAnalysis(t); }
-
-				std::string& Description () { return description; }
-				std::string& Filename () { return filename; }
-
-				std::string& Description () { return _analysis.description; }
-				std::string& Filename () { return _analysis.filename; }
-
+			protected:
+				system_t * _system;
 		};
-		*/
+
+	/* a means to attach new functionality to the basic analysis */
+	/*
+		 template <typename T>
+		 class AnalysisSetDecorator : public AnalysisSet<T> {
+		 protected:
+		 AnalysisSet<T>& _analysis;
+
+		 public:
+
+		 AnalysisSetDecorator (AnalysisSet<T>& analysis) : _analysis(analysis) { }
+		 virtual ~AnalysisSetDecorator () { }
+
+		 virtual void Setup (system_t& t) { _analysis.Setup(); }
+
+	// each analyzer has to have an analysis function to do some number crunching
+	virtual void Analysis (system_t&) = 0;
+
+	virtual void DataOutput (system_t&) { _analysis.DataOutput(t); }
+	virtual void PostAnalysis (system_t&) { _analysis.PostAnalysis(t); }
+
+	std::string& Description () { return description; }
+	std::string& Filename () { return filename; }
+
+	std::string& Description () { return _analysis.description; }
+	std::string& Filename () { return _analysis.filename; }
+
+	};
+	*/
 
 
 
@@ -95,7 +114,7 @@ namespace md_analysis {
 				Analyzer (const std::string = std::string("system.cfg"));
 				virtual ~Analyzer ();
 
-				typedef AnalysisSet<Analyzer<T> > analysis_t;
+				typedef AnalysisSet<T> analysis_t;
 				void SystemAnalysis (analysis_t&);
 
 				// position boundaries and bin widths for gathering histogram data
@@ -266,14 +285,14 @@ namespace md_analysis {
 			// Open a file for data output
 			this->OpenDataOutputFile (an);
 			// do some initial setup
-			an.Setup(*this);
+			an.Setup();
 
 			// start the analysis - run through each timestep
 			for (timestep = 0; timestep < timesteps; timestep++) {
 
 				try {
 					// Perform the main loop analysis that works on every timestep of the simulation
-					an.Analysis (*this);
+					an.Analysis ();
 				} catch (std::exception& ex) {
 					std::cout << "Caught an exception during the system analysis at timestep " << timestep << "." << std::endl;
 					throw;
@@ -283,7 +302,7 @@ namespace md_analysis {
 				this->_OutputStatus ();
 				// Output the actual data being collected to a file or something for processing later
 				if (!(timestep % (output_freq * 10)) && timestep)
-					an.DataOutput(*this);
+					an.DataOutput();
 
 
 				try {
@@ -295,10 +314,10 @@ namespace md_analysis {
 			}
 
 			// do one final data output to push out the finalized data set
-			an.DataOutput(*this);
+			an.DataOutput();
 
 			// do a little work after the main analysis loop (normalization of a histogram? etc.)
-			an.PostAnalysis (*this);
+			an.PostAnalysis ();
 			return;
 		} // System Analysis w/ analysis set
 
@@ -435,15 +454,15 @@ namespace md_analysis {
 		 AnalysisSet<system_t> (desc, fn) { }
 		 virtual ~XYZAnalysisSet () { }
 		 };
-		 */
 
-	class AmberAnalysisSet : public AnalysisSet< Analyzer<AmberSystem> > { 
-		public:
-			typedef Analyzer<AmberSystem> system_t;
-			AmberAnalysisSet (std::string desc, std::string fn) :
-				AnalysisSet< system_t > (desc, fn) { }
-			virtual ~AmberAnalysisSet () { }
-	};
+		 class AmberAnalysisSet : public AnalysisSet< Analyzer<AmberSystem> > { 
+		 public:
+		 typedef Analyzer<AmberSystem> system_t;
+		 AmberAnalysisSet (std::string desc, std::string fn) :
+		 AnalysisSet< system_t > (desc, fn) { }
+		 virtual ~AmberAnalysisSet () { }
+		 };
+		 */
 
 }
 #endif

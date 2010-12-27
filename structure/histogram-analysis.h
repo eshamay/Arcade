@@ -6,16 +6,17 @@
 
 namespace md_analysis {
 
+/*
 	template <typename T, typename U=double>
 		class histogram_analysis : public AnalysisSet< Analyzer<T> > {
 			public:
 				typedef Analyzer<T> system_t;
 
 				histogram_analysis (
-						std::string desc, std::string fn,
+						std::string description, std::string filename,
 						const U min, const U max, const U resolution)
 					: 
-						AnalysisSet<system_t> (desc, fn),
+						AnalysisSet<system_t> (description, filename),
 						histogram (min, max, resolution) { }
 
 				virtual ~histogram_analysis() { }
@@ -24,6 +25,7 @@ namespace md_analysis {
 				typedef histogram_utilities::Histogram1D<U>	histogram_t;
 				histogram_t histogram;
 		};
+*/
 
 
 
@@ -33,7 +35,7 @@ namespace md_analysis {
 				typedef typename histogram_analysis<T>::system_t system_t;
 
 				double_histogram_analysis (
-						std::string desc, std::string fn,
+						analysisstd::string desc, std::string fn,
 						const double min, const double max, 
 						const double min_2, const double max_2, const int number_of_bins)
 					: 

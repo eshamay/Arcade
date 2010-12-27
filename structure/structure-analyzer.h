@@ -7,13 +7,13 @@ USING_PART_OF_NAMESPACE_EIGEN
 
 #include "analysis.h"
 #include "utility.h"
-#include "angle-bond-analysis.h"
-#include "dipole-analysis.h"
-#include "neighbor-analysis.h"
-#include "atomic-density-analysis.h"
-#include "rdf-analysis.threads.h"
-#include "h2o-analysis.h"
-#include "so2-system-analysis.h"
+//#include "angle-bond-analysis.h"
+//#include "dipole-analysis.h"
+//#include "neighbor-analysis.h"
+//#include "atomic-density-analysis.h"
+//#include "rdf-analysis.threads.h"
+#include "angle-analysis.h"
+//#include "so2-system-analysis.h"
 
 
 typedef std::vector<double> double_vec;
@@ -42,7 +42,7 @@ namespace md_analysis {
 			//! Loads all the analyses that are compatible with the given system-type
 			void LoadSystemAnalyses ();
 			// The set of possible analyses to perform on a given system
-			typedef std::vector<AnalysisSet<system_t> *>	analysis_vec;
+			typedef std::vector<AnalysisSet<T> *>	analysis_vec;
 			analysis_vec analyses;
 	};
 
@@ -51,19 +51,19 @@ namespace md_analysis {
 	template <>
 		void StructureAnalyzer<AmberSystem>::LoadSystemAnalyses () {
 			typedef AmberSystem T;
-			AnalysisSet<system_t> * a;
+			AnalysisSet<T> * a;
 
-			a = new h2o_angle_bond_histogram_analyzer<T>();				analyses.push_back(a);
-			a = new so2_angle_bond_histogram_analyzer<T>();				analyses.push_back(a);
-			a = new h2o_dipole_magnitude_histogram_analyzer<T>(); analyses.push_back(a);
-			a = new atomic_density_analysis<T>();									analyses.push_back(a);
-			a = new so2_uptake_analysis<T>();											analyses.push_back(a);
-			a = new so2_angle_bond_analyzer<T>();									analyses.push_back(a);
-			a = new so2_closest_water_map<T>();										analyses.push_back(a);
-			a = new so2_closest_water_spherical_map<T>();					analyses.push_back(a);
-			a = new rdf_analysis<T>();														analyses.push_back(a);
-			a = new h2o_analysis::H2OAngleAnalysis<T>();					analyses.push_back(a);
-			a = new so2_analysis::SO2AngleAnalysis<T>();					analyses.push_back(a);
+			//a = new h2o_angle_bond_histogram_analyzer<T>();				analyses.push_back(a);
+			//a = new so2_angle_bond_histogram_analyzer<T>();				analyses.push_back(a);
+			//a = new h2o_dipole_magnitude_histogram_analyzer<T>(); analyses.push_back(a);
+			//a = new atomic_density_analysis<T>();									analyses.push_back(a);
+			//a = new so2_uptake_analysis<T>();											analyses.push_back(a);
+			//a = new so2_angle_bond_analyzer<T>();									analyses.push_back(a);
+			//a = new so2_closest_water_map<T>();										analyses.push_back(a);
+			//a = new so2_closest_water_spherical_map<T>();					analyses.push_back(a);
+			//a = new rdf_analysis<T>();														analyses.push_back(a);
+			a = new angle_analysis::H2OAngleAnalysis<T>(this);					analyses.push_back(a);
+			a = new angle_analysis::SO2AngleAnalysis<T>(this);					analyses.push_back(a);
 		}
 
 	/*

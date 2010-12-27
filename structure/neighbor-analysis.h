@@ -2,6 +2,7 @@
 #define NEIGHBOR_ANALYSIS_H_
 
 #include "analysis.h"
+#include "h2o-analysis.h"
 #include "so2-system-analysis.h"
 
 namespace md_analysis {
