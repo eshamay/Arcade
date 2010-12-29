@@ -7,6 +7,25 @@
 
 namespace md_analysis {
 
+	/******************* Neighbor Manipulator ******************/
+	template <typename T>
+		class NeighborManipulator : public SystemManipulator<T> {
+			public:
+
+				typedef Analyzer<T> system_t;
+				NeighborManipulator (system_t * sys) : SystemManipulator<T>(sys) { }
+				~NeighborManipulator() {
+					this->_system->LoadAll();
+			 	}
+
+			protected:
+				Atom_ptr_vec		all_atoms;
+				Atom_ptr_vec		analysis_atoms;
+
+				Mol_ptr_vec			all_mols;
+				Mol_ptr_vec			analysis_mols;
+
+		}; // neighbor manipulator
 
 	/******************* SPHERICAL MAPPING *********************/
 	// creates a spherical mapping (spherical coordinates) of the locations of the nearest water atoms. The origin is set as the so2 S atom, and the Z axis runs along the bisector, with the plane of the molecule in the x-z plane.

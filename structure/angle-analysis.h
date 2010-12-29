@@ -225,13 +225,10 @@ namespace angle_analysis {
 
 	template <typename T>
 		void SO2TransitAngleAnalysis<T>::Analysis () {
-
 			this->h2os.ReloadAnalysisWaters();
 			this->h2os.FindWaterSurfaceLocation();
 			this->BinAngles(this->so2s.SO2());
 		}
-
-
 
 }	// namespace angle analysis
 
