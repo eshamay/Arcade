@@ -20,16 +20,21 @@ namespace md_analysis {
 			public:
 				typedef Analyzer<T> system_t;
 
-				virtual ~AnalysisSet () { }
+				virtual ~AnalysisSet () {
+					if (output != (FILE *)NULL)
+						fclose(output);
+				}
+
 				AnalysisSet (system_t * sys, std::string desc, std::string fn) 
 					: 
 						_system(sys),
-						description (desc), filename(fn) { }
+						description (desc), filename(fn),
+						output((FILE *)NULL) { }
 
 				// default setup
 				virtual void Setup () {
-					if (_system->Output())
-						rewind(_system->Output());
+					OpenDataOutputFile ();
+					_system->LoadAll();
 					return;
 				}
 
@@ -39,6 +44,8 @@ namespace md_analysis {
 				virtual void DataOutput () { }
 				virtual void PostAnalysis () { }
 
+				void OpenDataOutputFile ();
+
 				std::string& Description () { return description; }
 				std::string& Filename () { return filename; }
 
@@ -47,9 +54,31 @@ namespace md_analysis {
 				system_t * _system;
 				std::string description;	// describes the analysis that is performed
 				std::string filename;		// filename to use for data output
+				FILE * output;
+
 
 		};  // class AnalysisSet
 
+
+	template <class T> 
+		void AnalysisSet<T>::OpenDataOutputFile () {
+
+			output = (FILE *)NULL;
+			if (filename == "") {
+				printf ("\nAnalysis:: No filename specified for dataoutput.\n");
+			}
+			else {
+				output = fopen(filename.c_str(), "w");
+
+				if (output == (FILE *)NULL) {
+					printf ("AnalysisSet<T>::_OpenDataOutputFile() - couldn't open the data output file, \"%s\", given in the analysis set!\n", filename.c_str());
+					exit(1);
+				}
+
+				printf ("\nOutputting data to \"%s\"\n", filename.c_str());
+			}
+			return;
+		}
 
 
 	// manipulator superclass
@@ -65,34 +94,6 @@ namespace md_analysis {
 				system_t * _system;
 		};
 
-	/* a means to attach new functionality to the basic analysis */
-	/*
-		 template <typename T>
-		 class AnalysisSetDecorator : public AnalysisSet<T> {
-		 protected:
-		 AnalysisSet<T>& _analysis;
-
-		 public:
-
-		 AnalysisSetDecorator (AnalysisSet<T>& analysis) : _analysis(analysis) { }
-		 virtual ~AnalysisSetDecorator () { }
-
-		 virtual void Setup (system_t& t) { _analysis.Setup(); }
-
-	// each analyzer has to have an analysis function to do some number crunching
-	virtual void Analysis (system_t&) = 0;
-
-	virtual void DataOutput (system_t&) { _analysis.DataOutput(t); }
-	virtual void PostAnalysis (system_t&) { _analysis.PostAnalysis(t); }
-
-	std::string& Description () { return description; }
-	std::string& Filename () { return filename; }
-
-	std::string& Description () { return _analysis.description; }
-	std::string& Filename () { return _analysis.filename; }
-
-	};
-	*/
 
 
 
@@ -101,8 +102,6 @@ namespace md_analysis {
 
 			protected:
 
-				std::string output_filename;
-				FILE * output;
 				int	output_freq;
 
 				void _OutputHeader () const;
@@ -132,9 +131,6 @@ namespace md_analysis {
 				static double Position (const double);
 
 				void LoadNext ();
-
-				FILE * Output () { return output; }
-				void OpenDataOutputFile (analysis_t&);
 
 				Atom_ptr_vec& Atoms () { return WaterSystem<T>::int_atoms; } 
 				Mol_ptr_vec& Molecules () { return WaterSystem<T>::int_mols; }
@@ -168,7 +164,6 @@ namespace md_analysis {
 	template <class T> 
 		Analyzer<T>::Analyzer (const std::string ConfigurationFilename) : 
 			WaterSystem<T>(ConfigurationFilename),
-			output_filename(""), output((FILE *)NULL),
 			output_freq(WaterSystem<T>::SystemParameterLookup("analysis.output-frequency")),
 			timestep (0)
 	{ 
@@ -207,30 +202,6 @@ namespace md_analysis {
 		Analyzer<T>::~Analyzer () {
 
 			delete this->sys;
-			if (output != (FILE *)NULL)
-				fclose(output);
-
-			return;
-		}
-
-	template <class T> 
-		void Analyzer<T>::OpenDataOutputFile (analysis_t& an) {
-
-			output = (FILE *)NULL;
-			if (an.Filename() == "") {
-				printf ("\nAnalyzer:: No filename specified for dataoutput.\n");
-			}
-			else {
-				output = fopen(an.Filename().c_str(), "w");
-
-				if (output == (FILE *)NULL) {
-					printf ("Analyzer<T>::_CheckOutputFile() - couldn't open the data output file, \"%s\", given in the analysis set!\n", an.Filename().c_str());
-					exit(1);
-				}
-
-				printf ("\nOutputting data to \"%s\"\n", an.Filename().c_str());
-			}
-
 			return;
 		}
 
@@ -238,15 +209,6 @@ namespace md_analysis {
 		void Analyzer<T>::_OutputStatus ()
 		{
 			this->notifyObservers ();
-			/*
-				 if (!(timestep % (this->output_freq * 10)))
-				 std::cout << std::endl << timestep << "/" << this->timesteps << " ) ";
-				 if (!(timestep % this->output_freq)) {
-				 std::cout << "*";
-				 }
-
-				 fflush (stdout);
-				 */
 			return;
 		}
 
@@ -282,8 +244,6 @@ namespace md_analysis {
 
 	template <class T>
 		void Analyzer<T>::SystemAnalysis (analysis_t& an) {
-			// Open a file for data output
-			this->OpenDataOutputFile (an);
 			// do some initial setup
 			an.Setup();
 
@@ -303,7 +263,6 @@ namespace md_analysis {
 				// Output the actual data being collected to a file or something for processing later
 				if (!(timestep % (output_freq * 10)) && timestep)
 					an.DataOutput();
-
 
 				try {
 					// load the next timestep

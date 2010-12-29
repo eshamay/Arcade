@@ -42,8 +42,8 @@ namespace md_system {
 
 			virtual VecR ReferencePoint () const { return _o->Position(); }
 
-			VecR const * OH1 () const { return &_oh1; }
-			VecR const * OH2 () const { return &_oh2; }
+			VecR& OH1 () { return _oh1; }
+			VecR& OH2 () { return _oh2; }
 			double Angle () const { return (_oh1 < _oh2); }	// returns the cos of the H-O-H angle
 
 			virtual void SetOrderAxes ();		// sets the molecular axes such that the z-axis is along the C2V axis point from the H's to the O, and the x-axis is in the plane of the molecule
@@ -53,6 +53,7 @@ namespace md_system {
 	typedef Water::WaterPtr WaterPtr;
 	typedef std::vector<WaterPtr> Water_ptr_vec;
 	typedef Water_ptr_vec::iterator Wat_it;
+	typedef Water_ptr_vec::reverse_iterator Wat_rit;
 	typedef std::vector<Water> Water_vec;
 
 }

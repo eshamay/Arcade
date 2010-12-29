@@ -7,10 +7,10 @@ USING_PART_OF_NAMESPACE_EIGEN
 
 #include "analysis.h"
 #include "utility.h"
-//#include "angle-bond-analysis.h"
+#include "angle-bond-analysis.h"
 //#include "dipole-analysis.h"
 //#include "neighbor-analysis.h"
-//#include "atomic-density-analysis.h"
+#include "atomic-density-analysis.h"
 //#include "rdf-analysis.threads.h"
 #include "angle-analysis.h"
 //#include "so2-system-analysis.h"
@@ -53,17 +53,18 @@ namespace md_analysis {
 			typedef AmberSystem T;
 			AnalysisSet<T> * a;
 
-			//a = new h2o_angle_bond_histogram_analyzer<T>();				analyses.push_back(a);
+			a = new H2OAngleBondAnalysis<T>(this);									analyses.push_back(a);
 			//a = new so2_angle_bond_histogram_analyzer<T>();				analyses.push_back(a);
 			//a = new h2o_dipole_magnitude_histogram_analyzer<T>(); analyses.push_back(a);
-			//a = new atomic_density_analysis<T>();									analyses.push_back(a);
+			a = new AtomicDensityAnalysis<T>(this);									analyses.push_back(a);
 			//a = new so2_uptake_analysis<T>();											analyses.push_back(a);
 			//a = new so2_angle_bond_analyzer<T>();									analyses.push_back(a);
 			//a = new so2_closest_water_map<T>();										analyses.push_back(a);
 			//a = new so2_closest_water_spherical_map<T>();					analyses.push_back(a);
 			//a = new rdf_analysis<T>();														analyses.push_back(a);
-			a = new angle_analysis::H2OAngleAnalysis<T>(this);					analyses.push_back(a);
-			a = new angle_analysis::SO2AngleAnalysis<T>(this);					analyses.push_back(a);
+			a = new angle_analysis::H2OAngleAnalysis<T>(this);			analyses.push_back(a);
+			a = new angle_analysis::SO2AngleAnalysis<T>(this);			analyses.push_back(a);
+			a = new angle_analysis::SO2TransitAngleAnalysis<T>(this);			analyses.push_back(a);
 		}
 
 	/*

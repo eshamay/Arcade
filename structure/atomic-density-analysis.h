@@ -1,5 +1,5 @@
-#ifndef __DENSITY_HISTOGRAM_H
-#define __DENSITY_HISTOGRAM_H
+#ifndef DENSITY_HISTOGRAM_H
+#define DENSITY_HISTOGRAM_H
 
 #include "../utility.h"
 #include "../analysis.h"
@@ -29,22 +29,21 @@
 namespace md_analysis {
 
 	template <typename T>
-		class atomic_density_analysis : public AnalysisSet< Analyzer<T> > {
+		class AtomicDensityAnalysis : public AnalysisSet<T> {
 			public:
 				typedef Analyzer<T> system_t;
 
-				atomic_density_analysis () : 
-					AnalysisSet<system_t> (
+				AtomicDensityAnalysis (system_t * t) : 
+					AnalysisSet<T> (t,
 							std::string("An analysis of the density of atoms in a system based on atomic position"),
-							//std::string("3d-atomic-density.dat")) { }
 							WaterSystem<T>::SystemParameterLookup("analysis.density.filename")) { }
 
-				virtual ~atomic_density_analysis () { }
+				virtual ~AtomicDensityAnalysis () { }
 
-				void Setup (system_t& t);
-				void Analysis (system_t& t);
+				void Setup ();
+				void Analysis ();
 				// For each atom type (name) in the system, the histograms in each direction will be output
-				void DataOutput (system_t& t);
+				void DataOutput ();
 
 			protected:
 				std::vector<std::string> atom_name_list;
@@ -69,9 +68,9 @@ namespace md_analysis {
 
 
 	template <class T>
-		void atomic_density_analysis<T>::Setup (system_t& t) {
+		void AtomicDensityAnalysis<T>::Setup () {
 
-			AnalysisSet<system_t>::Setup(t);
+			this->_system->LoadAll();
 
 			// grab the list of atomic names/types that will be used for the analysis and create the vector-histograms
 			libconfig::Setting &atom_names = WaterSystem<T>::SystemParameterLookup("analysis.density.atom-names");
@@ -85,34 +84,33 @@ namespace md_analysis {
 			}
 
 			// narrow down the system atoms to just those with names we're looking for
-			md_name_utilities::KeepByNames (t.int_atoms, atom_name_list);
+			md_name_utilities::KeepByNames (this->_system->int_atoms, atom_name_list);
 
 		}	// Setup
 
 
 	template <class T>
-		void atomic_density_analysis<T>::Analysis (system_t& t) { 
+		void AtomicDensityAnalysis<T>::Analysis () { 
 
 			//for (Atom_it it = t.int_atoms.begin(); it != t.int_atoms.end(); it++) {
 			//VecR pos = (*it)->Position();
 			//histograms[(*it)->Name()].push_back (pos);
 			//}
 
-			std::for_each (t.int_atoms.begin(), t.int_atoms.end(), std::bind2nd(binner, &histograms));
-
+			std::for_each (this->_system->int_atoms.begin(), this->_system->int_atoms.end(), std::bind2nd(binner, &histograms));
 		}
 
 	template <class T>
-		void atomic_density_analysis<T>::DataOutput (system_t& t) {
+		void AtomicDensityAnalysis<T>::DataOutput () {
 
-			rewind(t.Output());
+			rewind(this->output);
 
 			// first output the header of all the atom-names
 			for (std::vector<std::string>::const_iterator it = atom_name_list.begin(); it != atom_name_list.end(); it++) {
-				fprintf (t.Output(), "%s_x %s_y %s_z ", it->c_str(), it->c_str(), it->c_str());
+				fprintf (this->output, "%s_x %s_y %s_z ", it->c_str(), it->c_str(), it->c_str());
 			}
-			fprintf (t.Output(), "\n");
-			fflush(t.Output());
+			fprintf (this->output, "\n");
+			fflush(this->output);
 
 			// output the data from the histograms
 			double dr = histograms.begin()->second[0].Resolution();
@@ -124,15 +122,17 @@ namespace md_analysis {
 
 					histogram_set& hs = histograms[*name];
 					for (int ax = 0; ax < 3; ax++) {
-						fprintf (t.Output(), "% 8.3f % 8.3f ", r, hs[ax].Population(r)/t.timestep);
+						fprintf (this->output, "% 8.3f % 8.3f ", r, hs[ax].Population(r)/this->_system->timestep);
 					}
 				}
-				fprintf (t.Output(), "\n");
+				fprintf (this->output, "\n");
 			}
 
-			fflush(t.Output());
+			fflush(this->output);
 
 		}	// Data Output
+
+
 
 
 	/*
@@ -140,6 +140,7 @@ namespace md_analysis {
 	 * The output will be 1 column in a datafile:
 	 *		# of SO2s in the water phase
 	 */
+	/*
 	template <typename T>
 		class so2_uptake_analysis : public AnalysisSet< Analyzer<T> > {
 			public:
@@ -207,8 +208,10 @@ namespace md_analysis {
 
 		fprintf (t.Output(), "%12d %8d\n", t.Timestep(), this->numAdsorbed);
 	}
+	*/
 
 }	// namespace md_analysis
+
 
 
 

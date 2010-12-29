@@ -47,7 +47,9 @@ namespace so2_analysis {
 				// The method by which the SO2 of interest is found in the system
 				virtual void FindSO2 () {
 					// find the so2 in the system and set some pointers up
-					MolPtr mol = Molecule::FindByType(this->_system->sys_mols, Molecule::SO2);
+					int id = WaterSystem<T>::SystemParameterLookup("analysis.reference-molecule-id");
+					MolPtr mol = this->_system->sys_mols[id];
+					//MolPtr mol = Molecule::FindByType(this->_system->sys_mols, Molecule::SO2);
 					this->so2 = new SulfurDioxide(mol);
 				}
 
