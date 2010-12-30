@@ -2,8 +2,8 @@
 #define NEIGHBOR_ANALYSIS_H_
 
 #include "analysis.h"
-#include "h2o-analysis.h"
-#include "so2-system-analysis.h"
+//#include "h2o-analysis.h"
+//#include "so2-system-analysis.h"
 
 # include <boost/iterator/iterator_facade.hpp>
 
@@ -11,36 +11,34 @@ namespace md_analysis {
 
 
 	/*
-	class atom_element_iterator : 
-		public boost::iterator_facade <
-		Atom_it,
-		AtomPtr,
-		boost::forward_traversal_tag
-		>
-	{
-		public:
+		 class atom_element_iterator : 
+		 public boost::iterator_facade <
+		 Atom_it,
+		 AtomPtr,
+		 boost::forward_traversal_tag
+		 >
+		 {
+		 public:
 
-			atom_element_iterator (const Atom_it atom, const Atom::Element_t elmt) : _atom(atom), _elmt(elmt) { 
-				if (_atom->Element() != _elmt)
-					this->increment();
-			}
+		 atom_element_iterator (const Atom_it atom, const Atom::Element_t elmt) : _atom(atom), _elmt(elmt) { 
+		 if (_atom->Element() != _elmt)
+		 this->increment();
+		 }
 
-			void increment() { while ( (*(++_atom))->Element() != _elmt) { } }
+		 void increment() { while ( (*(++_atom))->Element() != _elmt) { } }
 
-			bool equal(atom_element_iterator const& other) const {
-				return this->_atom == other._atom;
-			}
+		 bool equal(atom_element_iterator const& other) const {
+		 return this->_atom == other._atom;
+		 }
 
-			AtomPtr& dereference() const { return *_atom; }
+		 AtomPtr& dereference() const { return *_atom; }
 
-		protected:
-			friend class boost::iterator_core_access;
-			Atom_it					_atom;
-			Atom::Element_t	_elmt;
-	};
-	*/
-
-
+		 protected:
+		 friend class boost::iterator_core_access;
+		 Atom_it					_atom;
+		 Atom::Element_t	_elmt;
+		 };
+		 */
 
 
 	/******************* Neighbor Manipulator ******************/
@@ -77,9 +75,10 @@ namespace md_analysis {
 					return it;
 				}
 
-			private:
-
 		}; // neighbor manipulator
+
+
+
 
 	template <typename T>
 		class TestAnalysis : public AnalysisSet<T> {
@@ -88,18 +87,25 @@ namespace md_analysis {
 			TestAnalysis (system_t * t) :
 				AnalysisSet<T>(t,
 						std::string ("test analysis"),
-						std::string (""))
-			{ 
-				AtomPtr a = this->analysis_atoms[0];
-				a->Print();
-				OrderAtomsByDistance(a);
-				for (Atom_it it = begin(Atom::O); it != end(); Increment(it,Atom::O)) {
-					(*it)->Print();
+						std::string ("")),
+				nm(t) { 
+					AtomPtr a = nm.analysis_atoms[0];
+					a->Print();
+
+					nm.OrderAtomsByDistance(a);
+					for (Atom_it it = nm.begin(Atom::O); it != nm.end(); nm.Increment(it,Atom::O)) {
+						(*it)->Print();
+					}
 				}
-			}
+
+			~TestAnalysis() { }
 
 			void Analysis() { }
-		}
+
+			protected:
+			NeighborManipulator<T>	nm;
+
+		};	// test analysis
 
 }	// namespace md analysis
 

@@ -63,8 +63,8 @@ namespace h2o_analysis {
 			analysis_waters.clear();
 			std::copy (all_waters.begin(), all_waters.end(), std::back_inserter(analysis_waters));
 			// now all_waters has... all the waters, and analysis wats is used to perform some analysis
-			analysis_atoms.clear();
-			std::copy (all_water_atoms.begin(), all_water_atoms.end(), std::back_inserter(analysis_atoms));
+			this->analysis_atoms.clear();
+			std::copy (all_water_atoms.begin(), all_water_atoms.end(), std::back_inserter(this->analysis_atoms));
 		}	// reload analysis wats
 
 
