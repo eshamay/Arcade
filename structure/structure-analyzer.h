@@ -9,7 +9,7 @@ USING_PART_OF_NAMESPACE_EIGEN
 #include "utility.h"
 #include "angle-bond-analysis.h"
 //#include "dipole-analysis.h"
-//#include "neighbor-analysis.h"
+#include "neighbor-analysis.h"
 #include "atomic-density-analysis.h"
 //#include "rdf-analysis.threads.h"
 #include "angle-analysis.h"
@@ -65,6 +65,7 @@ namespace md_analysis {
 			a = new angle_analysis::H2OAngleAnalysis<T>(this);			analyses.push_back(a);
 			a = new angle_analysis::SO2AngleAnalysis<T>(this);			analyses.push_back(a);
 			a = new angle_analysis::SO2TransitAngleAnalysis<T>(this);			analyses.push_back(a);
+			a = new md_analysis::TestAnalysis<T>(this);			analyses.push_back(a);
 		}
 
 	/*

@@ -30,7 +30,7 @@ namespace h2o_analysis {
 
 						all_water_atoms.clear();
 						std::copy(this->_system->int_atoms.begin(), this->_system->int_atoms.end(), std::back_inserter(all_water_atoms));
-						this->ReloadAnalysisWaters();
+						this->Reload();
 					}
 
 				virtual ~H2OSystemManipulator () { 
@@ -38,7 +38,7 @@ namespace h2o_analysis {
 						delete *it;
 				}
 
-				virtual void ReloadAnalysisWaters ();
+				void Reload ();
 				virtual void FindWaterSurfaceLocation ();		
 
 				double ReferencePoint() const { return reference_point; }
@@ -48,12 +48,9 @@ namespace h2o_analysis {
 				Wat_it begin() { return analysis_waters.begin(); }
 				Wat_it end() { return analysis_waters.end(); }
 
-				Atom_it atoms_begin() { return analysis_atoms.begin(); }
-				Atom_it atoms_end() { return analysis_atoms.end(); }
-
 			protected:
 				Water_ptr_vec all_waters, analysis_waters;
-				Atom_ptr_vec all_water_atoms, analysis_atoms;
+				Atom_ptr_vec all_water_atoms;
 
 				double reference_point;	// the original location of the so2 along the reference axis
 				double surface_location;	// location of the water surface along the reference axis
@@ -62,7 +59,7 @@ namespace h2o_analysis {
 
 
 	template <typename T>
-		void H2OSystemManipulator<T>::ReloadAnalysisWaters () {
+		void H2OSystemManipulator<T>::Reload () {
 			analysis_waters.clear();
 			std::copy (all_waters.begin(), all_waters.end(), std::back_inserter(analysis_waters));
 			// now all_waters has... all the waters, and analysis wats is used to perform some analysis
@@ -76,19 +73,19 @@ namespace h2o_analysis {
 			// get rid of everything above the so2
 			analysis_waters.erase(
 					//remove_if(analysis_waters.begin(), analysis_waters.end(), system_t::MoleculeAbovePosition(reference_point, system_t::axis)), analysis_waters.end());
-					remove_if(analysis_waters.begin(), analysis_waters.end(), system_t::MoleculeBelowPosition(reference_point, system_t::axis)), analysis_waters.end()); // bottom surface
+				remove_if(analysis_waters.begin(), analysis_waters.end(), system_t::MoleculeBelowPosition(reference_point, system_t::axis)), analysis_waters.end()); // bottom surface
 
 			// sort the waters by position along the reference axis - first waters are lowest, last are highest
 			std::sort (analysis_waters.begin(), analysis_waters.end(), system_t::molecule_position_pred(Atom::O));
 			int numWats = 20;				// number of waters to use for calculating the location of the "top" of the water surface
 			surface_location = 0.0;
 			for (Wat_it it = analysis_waters.begin(); it != analysis_waters.begin() + numWats; it++) { // bottom surface
-			//for (Wat_rit it = analysis_waters.rbegin(); it != analysis_waters.rbegin() + numWats; it++) {
+				//for (Wat_rit it = analysis_waters.rbegin(); it != analysis_waters.rbegin() + numWats; it++) {
 				surface_location += system_t::Position((*it)->ReferencePoint());
 				//printf ("% .3f\n", system_t::Position((*it)->ReferencePoint()));
 			}
 			surface_location /= numWats;
-		}	// find surface water location
+			}	// find surface water location
 
 
 		}	// namespace md analysis

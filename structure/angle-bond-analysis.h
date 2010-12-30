@@ -46,7 +46,7 @@ namespace md_analysis {
 
 	template <typename T>
 		void H2OAngleBondAnalysis<T>::Analysis () {
-			h2os.ReloadAnalysisWaters();
+			h2os.Reload();
 			h2os.FindWaterSurfaceLocation ();
 
 			for (Wat_it it = h2os.begin(); it != h2os.end(); it++) {
@@ -106,7 +106,7 @@ VecR Y = Vector3d::UnitY();
 // and the angle of the bisector to the system normal
 double system_angle = acos(bisector < Y)*180.0/M_PI;
 
-this->ReloadAnalysisWaters ();
+this->Reload ();
 this->FindWaterSurfaceLocation();
 
 // distance from the top of the water surface to the sulfur of the so2

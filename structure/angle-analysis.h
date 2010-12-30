@@ -130,7 +130,7 @@ namespace angle_analysis {
 		void H2OAngleAnalysis<T>::Analysis () {
 
 			h2os.FindWaterSurfaceLocation();
-			h2os.ReloadAnalysisWaters();
+			h2os.Reload();
 
 			for (Wat_it wat = h2os.begin(); wat != h2os.end(); wat++) {
 				BinAngles(*wat);
@@ -192,7 +192,7 @@ namespace angle_analysis {
 	template <typename T>
 		void SO2AngleAnalysis<T>::Analysis () {
 
-			h2os.ReloadAnalysisWaters();
+			h2os.Reload();
 			h2os.FindWaterSurfaceLocation();
 
 			for (std::vector<SulfurDioxide *>::iterator so2 = so2s.begin(); so2 != so2s.end(); so2++) {
@@ -225,7 +225,7 @@ namespace angle_analysis {
 
 	template <typename T>
 		void SO2TransitAngleAnalysis<T>::Analysis () {
-			this->h2os.ReloadAnalysisWaters();
+			this->h2os.Reload();
 			this->h2os.FindWaterSurfaceLocation();
 			this->BinAngles(this->so2s.SO2());
 		}
