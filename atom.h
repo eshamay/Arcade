@@ -35,6 +35,7 @@ namespace md_system {
 			typedef std::vector<AtomPtr> Atom_ptr_vec;
 			typedef Atom_ptr_vec::const_iterator Atom_it;
 			typedef Atom_ptr_vec::iterator Atom_it_non_const;
+			typedef Atom_ptr_vec::reverse_iterator Atom_rit;
 
 			double operator- (const Atom& input) const;		// operator usage to determine the distance between two atoms
 			double operator[] (const coord index) const;	// get the atom's position by coordinate
@@ -125,6 +126,7 @@ namespace md_system {
 	typedef Atom::Atom_ptr_vec Atom_ptr_vec;
 	typedef Atom::Atom_it Atom_it;
 	typedef Atom::Atom_it_non_const Atom_it_non_const;
+	typedef Atom::Atom_rit Atom_rit;
 
 }	// namespace md system
 #endif

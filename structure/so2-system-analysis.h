@@ -34,7 +34,7 @@ namespace so2_analysis {
 							so2s.push_back(mol);
 						}
 					}
-					printf ("\nFound %zu Sulfur Dioxides in the system\n", so2s.size());
+					//printf ("\nFound %zu Sulfur Dioxides in the system\n", so2s.size());
 				}
 
 				virtual ~SO2SystemManipulator () { 
