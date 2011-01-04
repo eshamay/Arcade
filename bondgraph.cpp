@@ -11,6 +11,7 @@ namespace bondgraph {
 	BondGraph::PropertyMap<AtomPtr,BondGraph::VertexProperties>::Type BondGraph::v_atom = get(&VertexProperties::atom, _graph);
 	BondGraph::PropertyMap<VecR,BondGraph::VertexProperties>::Type BondGraph::v_position = get(&VertexProperties::position, _graph);
 	BondGraph::PropertyMap<Atom::Element_t,BondGraph::VertexProperties>::Type BondGraph::v_elmt = get(&VertexProperties::element, _graph);
+	BondGraph::PropertyMap<AtomPtr,BondGraph::VertexProperties>::Type BondGraph::v_parent = get(&VertexProperties::parent, _graph);
 
 
 	/*
@@ -370,6 +371,18 @@ namespace bondgraph {
 
 		return Distance(*vi,*vj);
 	}
+
+
+
+	AtomPtr BondGraph::Parent (const Vertex& v) const { 
+		return v_parent[v];
+	}
+
+	AtomPtr BondGraph::Parent (const AtomPtr a) const { 
+		return Parent(*(this->_FindVertex(a)));
+	}
+
+
 
 	distance_pair BondGraph::ClosestAtom (const MolPtr& mol, const Atom::Element_t elmt) const {
 		distance_vec distances;

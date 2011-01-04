@@ -39,7 +39,7 @@ namespace bondgraph {
 
 	// various bondlengths to be used
 	const double OHBONDLENGTH = 1.2;				// used to be 1.1
-	const double HBONDLENGTH  = 2.8;				// used to be 2.46
+	const double HBONDLENGTH  = 2.6;				// used to be 2.46
 	//const double HBONDANGLECOS	= cos(30.0*M_PI/180.0);		// bonding angle has to be bigger than this cos (i.e. smaller than ~30 degrees
 	const double NOBONDLENGTH = 2.0;
 	const double NHBONDLENGTH = 1.3;		// uhmm... check this?
@@ -52,6 +52,7 @@ namespace bondgraph {
 	// useful for tracking distances between atom pairs
 	typedef std::pair<double, AtomPtr>	distance_pair;
 	typedef std::vector<distance_pair> 	distance_vec;
+	typedef distance_vec::const_iterator	distance_it;
 
 	/* Encoding of the different coordination types
 	 * The numbering is based on each O having a value of 1, and each H haveing a value of 10 (i.e. add 1 for every O, and 10 for every H...). So a water in a state of OOHH bonding would have a coordination of 22, and a coordination of 13 would be OOOH, 12 = OOH, 11 = OH, 10 = H, etc.
@@ -77,9 +78,10 @@ namespace bondgraph {
 
 			// Vertices are atoms
 			struct VertexProperties {
-				AtomPtr atom;
+				AtomPtr atom;							// the atom itself
 				VecR position;
-				Atom::Element_t element;
+				Atom::Element_t element;	// easier than probing the AtomPtr itself
+				AtomPtr parent;						// for use when performing various graph-traversal routines
 			};
 
 			// edges are bonds between atoms
@@ -128,11 +130,15 @@ namespace bondgraph {
 				};
 
 
+			// edge properties
 			static PropertyMap<double,EdgeProperties>::Type 			b_length;
 			static PropertyMap<bondtype,EdgeProperties>::Type 		b_type;
+
+			// vertex properties
 			static PropertyMap<AtomPtr,VertexProperties>::Type 		v_atom;
 			static PropertyMap<VecR,VertexProperties>::Type 			v_position;
 			static PropertyMap<Atom::Element_t,VertexProperties>::Type	v_elmt;
+			static PropertyMap<AtomPtr,VertexProperties>::Type		v_parent;
 
 			void _ParseAtoms (const Atom_ptr_vec& atoms);
 			void _ParseBonds ();
@@ -188,6 +194,10 @@ namespace bondgraph {
 			// returns the distance between two atoms
 			double Distance (const AtomPtr, const AtomPtr) const;
 
+			// the vertex's parent after running a graph-traversal such as breadth-first search
+			AtomPtr Parent (const Vertex&) const;
+			AtomPtr Parent (const AtomPtr) const;
+
 
 
 			typedef std::exception graphex;
@@ -241,7 +251,7 @@ namespace bondgraph {
 							m_has_cycle = true;
 						AtomPtr i = BondGraph::v_atom[source(e,g)];
 						AtomPtr j = BondGraph::v_atom[target(e,g)];
-						printf ("%s(%d) <--> %s(%d)\n", i->Name().c_str(), i->ID(), j->Name().c_str(), j->ID());
+						printf ("\n%s(%d) <--> %s(%d)\n", i->Name().c_str(), i->ID(), j->Name().c_str(), j->ID());
 					}
 			protected:
 				bool& m_has_cycle;
@@ -282,14 +292,71 @@ namespace bondgraph {
 
 	class bfs_atom_visitor : public default_bfs_visitor {
 		public:
+			// supply the list of atoms that was used to make the graph,
+			// a bool for determining if a cycle was found
+			// and a target atom to identify the gray target
+			bfs_atom_visitor(Atom_ptr_vec& atoms, bool& has_cycle, AtomPtr& graysource, AtomPtr& graytarget)
+				: _has_cycle(has_cycle), _gray_source(graysource), _gray_target(graytarget) { }
 
-			bfs_atom_visitor() { }
+			template < typename Vertex, typename Graph >
+			void initialize_vertex (Vertex v, Graph & g) { 
+				BondGraph::v_parent[v] = (AtomPtr)NULL;
+			}
+
+			// set the currently dequeued vertex as the parent
+			template < typename Vertex, typename Graph >
+			void examine_vertex (Vertex v, Graph & g) { 
+				parent = BondGraph::v_atom[v]; 
+			}
+
+			// Mark each child's parent for reconstructing any traversals
+			template < typename Edge, typename Graph >
+			void tree_edge (Edge e, Graph & g) { 
+				BondGraph::Vertex t_v = target(e,g);
+				BondGraph::Vertex s_v = source(e,g);
+
+				AtomPtr t = BondGraph::v_atom[t_v];
+				AtomPtr s = BondGraph::v_atom[s_v];
+				AtomPtr s_parent = BondGraph::v_parent[s_v];
+
+				if (s_parent != t) {
+					BondGraph::v_parent[t_v] = s;
+					//printf ("%s(%d) --> %s(%d)\n", s->Name().c_str(), s->ID(), t->Name().c_str(), t->ID());
+				}
+
+			}
+
 
 			template < typename Edge, typename Graph >
-				void gray_target(Edge e, const Graph & g) const {
-					printf ("\nfound gray");
-					fflush(stdout);
+				void gray_target(Edge e, const Graph & g) {
+
+					_has_cycle = true;
+					_gray_source = BondGraph::v_atom[source(e,g)];
+					_gray_target = BondGraph::v_atom[target(e,g)];
+					//printf ("\n%s(%d) <--> %s(%d)\n", _gray_source->Name().c_str(), _gray_source->ID(), _gray_target->Name().c_str(), _gray_target->ID());
+
+					//for (Atom_it it = _atoms.begin(); it != _atoms.end(); it++) {
+						//(*it)->Print();
+					//}
+					//fflush(stdout);
 				}
+
+
+			/*
+			template < typename Vertex, typename Graph >
+			void finish_vertex (Vertex v, Graph & g) { 
+				printf ("\n\n");
+			}
+			*/
+
+			AtomPtr GraySource () const { return _gray_source; }
+			AtomPtr GrayTarget () const { return _gray_target; }
+
+		private:
+			bool& _has_cycle;
+			AtomPtr&	_gray_source;
+			AtomPtr&	_gray_target;
+			AtomPtr parent;
 	};
 
 

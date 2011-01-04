@@ -6,11 +6,17 @@
 #include "so2-system-analysis.h"
 #include "bondgraph.h"
 
-# include <boost/iterator/iterator_facade.hpp>
+//#include <boost/iterator/iterator_facade.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp>
 
 namespace neighbor_analysis {
 
 	using namespace md_analysis;
+
+	typedef enum {
+		HBRIDGE,	// a single H that bridges the two SO2 oxygens
+		HOHBRIDGE // a water molecule where the two Hs are bound to the two Os of the SO2
+	} cycle_type;
 
 	/*
 		 class atom_element_iterator : 
@@ -117,76 +123,68 @@ namespace neighbor_analysis {
 
 				void Analysis() {
 
+					// order the atoms in the system in closest to furthest from a particular reference point
 					AtomPtr ref_atom = so2s.S();
 					nm.OrderAtomsByDistance(ref_atom);
-					int num_close_atoms = 5;
 
+					// grab only a certain number of the closest atoms for analysis
 					Atom_ptr_vec atoms;
 					atoms.push_back(ref_atom);
+					int num_close_atoms = 10;
 					std::copy(nm.closest(), nm.closest() + num_close_atoms, std::back_inserter(atoms));
 
+					// build a graph of the selected atoms and their bonding/connectivity
 					graph.UpdateGraph(atoms);
 
+					// determine if within the graph there are any closed cycles
 					typedef std::vector<bondgraph::BondGraph::Vertex> pred_vec;
-					pred_vec preds (8);
-
+					pred_vec preds (num_close_atoms);
 					bool has_cycle = false;
-					bondgraph::cycle_detector<pred_vec> vis(has_cycle, preds); 
-					//boost::depth_first_search(graph.Graph(), visitor(vis));
+					//bondgraph::cycle_detector<pred_vec> vis(has_cycle, preds); 
+					AtomPtr source, target;
+					bondgraph::bfs_atom_visitor vis(atoms, has_cycle, source, target);
 					boost::breadth_first_search(graph.Graph(), *graph._FindVertex(ref_atom), visitor(vis));
+
+
+					// once a cycle is detected - do something
 					if (has_cycle) {
-						for (Atom_it it = atoms.begin(); it != atoms.end(); it++) {
-							printf ("%s(%d), ", (*it)->Name().c_str(), (*it)->ID());
+
+						typedef std::list<AtomPtr> apl;
+						apl cycle;
+						for (AtomPtr a = target; a != so2s.S(); a = graph.Parent(a)) {
+							cycle.push_front(a);
 						}
-						printf ("\n");
+						for (AtomPtr a = source; a != so2s.S(); a = graph.Parent(a)) {
+							cycle.push_back(a);
+						}
+						// cycle involving both so2-Os
+						if (cycle.front() != cycle.back() || cycle.size() == 3) {
+
+
+							// find the number of unique waters involved in the cycle
+							std::vector<int> mol_ids;
+							std::vector<int> h2o_ids;
+							for (apl::const_iterator it = cycle.begin(); it != cycle.end(); it++) {
+								(*it)->Print();
+								mol_ids.push_back((*it)->MolID());
+								h2o_ids.push_back((*it)->ID());
+							}
+							std::sort(mol_ids.begin(), mol_ids.end());
+							std::sort(h2o_ids.begin(), h2o_ids.end());
+							std::vector<int>::iterator mol_ids_it = std::unique(mol_ids.begin(), mol_ids.end());
+							std::vector<int>::iterator h2o_ids_it = std::unique(h2o_ids.begin(), h2o_ids.end());
+							mol_ids.resize(mol_ids_it - mol_ids.begin());
+							h2o_ids.resize(h2o_ids_it - h2o_ids.begin());
+							// print the number of h2o atoms involved
+							printf ("\ncycle found : %zu  %zu\n", h2o_ids.size() - 2, mol_ids.size() - 1);
+						}
+
 					}
 
-					// Internal compiler error if commented out
-					//typedef property_map<bondgraph::BondGraph::graph_t,vertex_color_t>::type Color;
-
-					/*
-					bondgraph::BondGraph::Vertex_it vi, vi_end;
-					for (boost::tie(vi, vi_end) = boost::vertices(graph.Graph()); vi != vi_end; ++vi)
-						boost::get(boost::vertex_color, graph.Graph())[*vi] = boost::white_color;
-
-					// Line B
-					boost::depth_first_visit(graph.Graph(), boost::vertices(graph.Graph()).first[1], bondgraph::vertex_processor(),
-							get(boost::vertex_color, graph.Graph()) ); 
-							*/
 
 
 
-
-					//bondgraph::bfs_atom_visitor vis;
-					//boost::breadth_first_search(graph.Graph(), *graph._FindVertex(so2s.S()), visitor(vis));
-
-					//bondgraph::BondGraph::dfs_atom_visitor vis;
-
-
-					/*
-						 Atom_it closest = nm.closest(Atom::O); 
-						 nm.next_closest(closest,Atom::O); 
-						 nm.next_closest(closest,Atom::O); // first non-covalent O
-						 distance_1 = MDSystem::Distance(so2s.S(), *closest).norm();
-						 nm.next_closest(closest,Atom::O); // second non-covalent O
-						 distance_2 = MDSystem::Distance(so2s.S(), *closest).norm();
-						 s_bonds(distance_1, distance_2);
-
-						 nm.OrderAtomsByDistance(so2s.O1());
-						 closest = nm.closest(Atom::H);
-						 distance_1 = MDSystem::Distance(so2s.O1(), *closest).norm();
-						 nm.next_closest(closest,Atom::H);
-						 distance_2 = MDSystem::Distance(so2s.O1(), *closest).norm();
-						 o_bonds(distance_1, distance_2);
-
-						 nm.OrderAtomsByDistance(so2s.O2());
-						 closest = nm.closest(Atom::H);
-						 distance_1 = MDSystem::Distance(so2s.O2(), *closest).norm();
-						 nm.next_closest(closest, Atom::H);
-						 distance_2 = MDSystem::Distance(so2s.O2(), *closest).norm();
-						 o_bonds(distance_1, distance_2);
-						 */
-				}
+				} // analysis
 
 				void DataOutput() {
 					/*
