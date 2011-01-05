@@ -105,21 +105,19 @@ namespace neighbor_analysis {
 
 	//************* finds the nearest neighbors to each of the SO2 atoms **************/
 	template <typename T>
-		class SO2NearestNeighborAnalysis : public AnalysisSet<T> {
+		class SO2BondingCycleAnalysis : public AnalysisSet<T> {
 			public:
 				typedef Analyzer<T> system_t;
 
-				SO2NearestNeighborAnalysis (system_t * t) :
+				SO2BondingCycleAnalysis (system_t * t) :
 					AnalysisSet<T>(t,
 							std::string ("SO2 nearest neighbor analysis"),
 							std::string ("")),
 					nm(t),
-					s_bonds ("so2-nearest.S.dat", 2.5, 3.5, 0.05, 2.5, 3.7, 0.05),
-					o_bonds ("so2-nearest.O.dat", 2.0, 3.75, 0.05, 2.5, 3.75, 0.05),
 					so2s (t)
 		 	{ }
 
-				~SO2NearestNeighborAnalysis() { }
+				//~SO2BondingCycleAnalysis() { }
 
 				void Analysis() {
 
@@ -164,6 +162,7 @@ namespace neighbor_analysis {
 							// find the number of unique waters involved in the cycle
 							std::vector<int> mol_ids;
 							std::vector<int> h2o_ids;
+							printf ("\n");
 							for (apl::const_iterator it = cycle.begin(); it != cycle.end(); it++) {
 								(*it)->Print();
 								mol_ids.push_back((*it)->MolID());
@@ -180,27 +179,14 @@ namespace neighbor_analysis {
 						}
 
 					}
-
-
-
-
 				} // analysis
 
-				void DataOutput() {
-					/*
-						 s_bonds.OutputData();
-						 o_bonds.OutputData();
-						 */
-				}
 
 			protected:
 				NeighborManipulator<T>	nm;
-				Histogram2DAgent			s_bonds;
-				Histogram2DAgent			o_bonds;
 				so2_analysis::SO2SystemManipulator<T>	so2s;
 				bondgraph::BondGraph	graph;
 
-				double distance_1, distance_2;
 		};	// test analysis
 
 }	// namespace md analysis
