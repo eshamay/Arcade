@@ -44,6 +44,7 @@ namespace bondgraph {
 	const double NOBONDLENGTH = 2.0;
 	const double NHBONDLENGTH = 1.3;		// uhmm... check this?
 	const double SOBONDLENGTH = 1.9;
+	
 
 
 	// bond types
@@ -290,12 +291,14 @@ namespace bondgraph {
 
 
 
+
+
 	class bfs_atom_visitor : public default_bfs_visitor {
 		public:
 			// supply the list of atoms that was used to make the graph,
 			// a bool for determining if a cycle was found
 			// and a target atom to identify the gray target
-			bfs_atom_visitor(Atom_ptr_vec& atoms, bool& has_cycle, AtomPtr& graysource, AtomPtr& graytarget)
+			bfs_atom_visitor(bool& has_cycle, AtomPtr& graysource, AtomPtr& graytarget)
 				: _has_cycle(has_cycle), _gray_source(graysource), _gray_target(graytarget) { }
 
 			template < typename Vertex, typename Graph >

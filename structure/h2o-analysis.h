@@ -39,7 +39,7 @@ namespace h2o_analysis {
 				}
 
 				void Reload ();
-				virtual void FindWaterSurfaceLocation ();		
+				virtual void FindWaterSurfaceLocation (const bool top = true);		
 
 				double ReferencePoint() const { return reference_point; }
 				void ReferencePoint (const double point) { reference_point = point; }
@@ -69,26 +69,36 @@ namespace h2o_analysis {
 
 
 	template <typename T>
-		void H2OSystemManipulator<T>::FindWaterSurfaceLocation () {
-			// get rid of everything above the so2
-			analysis_waters.erase(
-					//remove_if(analysis_waters.begin(), analysis_waters.end(), system_t::MoleculeAbovePosition(reference_point, system_t::axis)), analysis_waters.end());
-				remove_if(analysis_waters.begin(), analysis_waters.end(), system_t::MoleculeBelowPosition(reference_point, system_t::axis)), analysis_waters.end()); // bottom surface
+		void H2OSystemManipulator<T>::FindWaterSurfaceLocation (const bool top) {
+			// get rid of everything above (or below) the so2
+			if (top) {
+				analysis_waters.erase(
+						remove_if(analysis_waters.begin(), analysis_waters.end(), system_t::MoleculeAbovePosition(reference_point, system_t::axis)), analysis_waters.end());
+			}
+			else if (!top) {
+				analysis_waters.erase(
+						remove_if(analysis_waters.begin(), analysis_waters.end(), system_t::MoleculeBelowPosition(reference_point, system_t::axis)), analysis_waters.end()); // bottom surface
+			}
 
 			// sort the waters by position along the reference axis - first waters are lowest, last are highest
 			std::sort (analysis_waters.begin(), analysis_waters.end(), system_t::molecule_position_pred(Atom::O));
 			int numWats = 20;				// number of waters to use for calculating the location of the "top" of the water surface
 			surface_location = 0.0;
-			for (Wat_it it = analysis_waters.begin(); it != analysis_waters.begin() + numWats; it++) { // bottom surface
-				//for (Wat_rit it = analysis_waters.rbegin(); it != analysis_waters.rbegin() + numWats; it++) {
-				surface_location += system_t::Position((*it)->ReferencePoint());
-				//printf ("% .3f\n", system_t::Position((*it)->ReferencePoint()));
+			if (top) {
+				for (Wat_rit it = analysis_waters.rbegin(); it != analysis_waters.rbegin() + numWats; it++) {
+					surface_location += system_t::Position((*it)->ReferencePoint());
+				}
+			}
+			else if (!top) {
+				for (Wat_it it = analysis_waters.begin(); it != analysis_waters.begin() + numWats; it++) { // bottom surface
+					surface_location += system_t::Position((*it)->ReferencePoint());
+				}
 			}
 			surface_location /= numWats;
-			}	// find surface water location
+		}	// find surface water location
 
 
-		}	// namespace md analysis
+}	// namespace md analysis
 
 
 
