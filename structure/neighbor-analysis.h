@@ -83,8 +83,15 @@ namespace neighbor_analysis {
 				CycleManipulator (system_t * t) : 
 					SystemManipulator<T>(t),
 					nm(t),
-					cycle_size(0), ref_atom((AtomPtr)NULL) { }
+					cycle_size(0), ref_atom((AtomPtr)NULL), cycle_type(NO_CYCLE) { }
 
+
+				typedef enum {
+					NO_CYCLE = 0,		// no cycle present in the local graph of the so2 neighbors
+					COMPLETE = 1,		// A complete cycle links the two so2 oxygens
+					PARTIAL = 2,			// a cycle exists but does not link the two so2 oxygens
+					UNKNOWN = 3			// some other type that isn't figured out right now
+				}	cycle_t;
 
 				void BuildGraph ();	// builds the graph of the given atoms closest to the reference atom
 				void FindCycle ();	// finds if a cycle exists in the topology, and parses it
@@ -114,41 +121,36 @@ namespace neighbor_analysis {
 				AtomPtr Source () const { return gray_source; }
 				AtomPtr Target () const { return gray_target; }
 
-				typedef std::list<AtomPtr> cycle_t;
-				typedef cycle_t::const_iterator cycle_it;
+				typedef std::list<AtomPtr> cycle_list;
+				typedef cycle_list::const_iterator cycle_it;
 
 				cycle_it	begin() const { return cycle.begin(); }
 				cycle_it	end() const { return cycle.end(); }
 				AtomPtr	front() const { return cycle.front(); }
 				AtomPtr	back() const { return cycle.back(); }
 
-				typedef std::vector<int> int_vec;
-
-				int_vec::const_iterator begin_mol_ids () const { return mol_ids.begin(); }
-				int_vec::const_iterator end_mol_ids () const { return mol_ids.end(); }
-				size_t NumUniqueMoleculesInCycle () const { return mol_ids.size(); }
-
-				int_vec::const_iterator begin_atom_ids () const { return atom_ids.begin(); }
-				int_vec::const_iterator end_atom_ids () const { return atom_ids.end(); }
-				size_t NumUniqueAtomsInCycle () const { return atom_ids.size(); }
-				int NumUniqueWaterAtoms () const;
-
+				cycle_t CycleType() const { return cycle_type; }
 				size_t size () const { return cycle.size(); }
 
-				int NumReferenceAtomHBonds () const { return graph.NumHBonds(ref_atom); }
+				size_t NumUniqueAtomsInCycle () const { return unique_cycle_atoms.size(); }
+				size_t NumUniqueMoleculesInCycle () const { return unique_cycle_mols.size(); }
+				int NumUniqueWaterAtoms () const;
 
+				int NumReferenceAtomHBonds () const { return graph.NumHBonds(ref_atom); }
 
 			private:
 				NeighborManipulator<T>	nm;
 
 				bondgraph::BondGraph		graph;
 				AtomPtr									ref_atom;
-				int_vec									mol_ids, atom_ids;
 				int											cycle_size;
 				bool										has_cycle;
 				AtomPtr									gray_source, gray_target;
 
-				cycle_t									cycle;
+				cycle_list							cycle;				// all the atoms comprising the cycle
+				Atom_ptr_vec						unique_cycle_atoms;	// only unique atoms in the cycle
+				Mol_ptr_vec							unique_cycle_mols;
+				cycle_t									cycle_type;
 
 		}; // cycle manipulator
 
@@ -182,10 +184,12 @@ namespace neighbor_analysis {
 			boost::breadth_first_search(graph.Graph(), *graph._FindVertex(ref_atom), visitor(vis));
 
 			// grab the atoms that make up the cycle
+			cycle_type = NO_CYCLE;
 			if (has_cycle) {
 				cycle.clear();
 
 				// fill the cycle's atom list here by first getting all the atoms from the target to the ref-atom, and then from the source so that both sides of the cycle are accounted for.
+				// cycle list will look like S -- O1 -- etc. -- O2
 				for (AtomPtr a = gray_target; a != ref_atom; a = graph.Parent(a)) {
 					cycle.push_front(a);
 				}
@@ -193,34 +197,45 @@ namespace neighbor_analysis {
 				for (AtomPtr a = gray_source; a != ref_atom; a = graph.Parent(a)) {
 					cycle.push_back(a);
 				}
+
+				cycle_it _first = begin(); _first++;
+				if (*_first != back()) { cycle_type = COMPLETE; }
+				else if (*_first == back()) { cycle_type = PARTIAL; }
+				else { cycle_type = UNKNOWN; }
 			}
+
 		}	// find cycle
 
 
 	template <typename T>
 		void CycleManipulator<T>::FindUniqueMembers () {
 
-			mol_ids.clear();
-			atom_ids.clear();
-			// find the number of unique atoms and molecules involved in the cycle
-			for (cycle_it it = begin(); it != end(); it++) {
-				mol_ids.push_back((*it)->MolID());
-				atom_ids.push_back((*it)->ID());
-			}
+			// find all the unique atoms in the cycle
+			unique_cycle_atoms.clear();
+			std::copy (cycle.begin(), cycle.end(), std::back_inserter(unique_cycle_atoms));
+			std::sort(unique_cycle_atoms.begin(), unique_cycle_atoms.end(), std::ptr_fun(&Atom::id_cmp));
+			Atom_it unique_atoms_it = std::unique(unique_cycle_atoms.begin(), unique_cycle_atoms.end(), std::ptr_fun(&Atom::id_eq));
+			unique_cycle_atoms.resize(unique_atoms_it - unique_cycle_atoms.begin());
 
-			// get the unique atom and molecule ids 
-			std::sort(mol_ids.begin(), mol_ids.end());
-			std::sort(atom_ids.begin(), atom_ids.end());
-			std::vector<int>::iterator mol_ids_it = std::unique(mol_ids.begin(), mol_ids.end());
-			std::vector<int>::iterator atom_ids_it = std::unique(atom_ids.begin(), atom_ids.end());
-			mol_ids.resize(mol_ids_it - mol_ids.begin());
-			atom_ids.resize(atom_ids_it - atom_ids.begin());
+			unique_cycle_mols.clear();
+			std::transform(
+					unique_cycle_atoms.begin(), 
+					unique_cycle_atoms.end(), 
+					std::back_inserter(unique_cycle_mols),
+					std::mem_fun<MolPtr,Atom>(&Atom::ParentMolecule));
+
+			std::sort(unique_cycle_mols.begin(), unique_cycle_mols.end(), std::ptr_fun(&Molecule::mol_cmp));
+			Mol_it unique_mols_it = std::unique(unique_cycle_mols.begin(), unique_cycle_mols.end(), std::ptr_fun(&Molecule::mol_eq));
+			unique_cycle_mols.resize(unique_mols_it - unique_cycle_mols.begin());
+
+			//std::for_each(cycle.begin(), cycle.end(), std::mem_fun(&Atom::Print));
+			//printf ("unique = %zu %zu\n", unique_cycle_atoms.size(), unique_cycle_mols.size());
 		}
 
 	template <typename T>
 		int CycleManipulator<T>::NumUniqueWaterAtoms () const {
 			int num = 0;
-			for (cycle_it it = begin(); it != end(); it++) {
+			for (Atom_it it = unique_cycle_atoms.begin(); it != unique_cycle_atoms.end(); it++) {
 				if ((*it)->ParentMolecule()->MolType() == Molecule::H2O) {
 					++num;
 				}
@@ -241,15 +256,6 @@ namespace neighbor_analysis {
 			public:
 				typedef Analyzer<T> system_t;
 
-
-				typedef enum {
-					NO_CYCLE = 0,		// no cycle present in the local graph of the so2 neighbors
-					COMPLETE = 1,		// A complete cycle links the two so2 oxygens
-					PARTIAL = 2,			// a cycle exists but does not link the two so2 oxygens
-					UNKNOWN = 3			// some other type that isn't figured out right now
-				}	cycle_t;
-
-
 				SO2BondingCycleAnalysis (system_t * t) :
 					AnalysisSet<T>(t,
 							std::string ("SO2 cycle bonding analysis"),
@@ -262,11 +268,12 @@ namespace neighbor_analysis {
 
 				void Analysis();
 
+				typedef typename CycleManipulator<T>::cycle_t cycle_t;
+
 			protected:
 				CycleManipulator<T>								cm;
 				h2o_analysis::H2OSystemManipulator<T>	h2os;
 				so2_analysis::SO2SystemManipulator<T>	so2s;
-				std::vector<int> mol_ids, h2o_ids;
 
 		};	// cycle bonding analysis
 
@@ -302,7 +309,6 @@ namespace neighbor_analysis {
 			cm.SetReferenceAtom(so2s.S());
 			cm.BuildGraph();
 			cm.FindCycle();
-			cycle_t cycle_type = NO_CYCLE;
 			int number_water_atoms_in_cycle = 0;
 			int number_waters_in_cycle = 0;
 
@@ -311,36 +317,26 @@ namespace neighbor_analysis {
 
 				cm.FindUniqueMembers();
 
-				//printf ("\n");
-				//for (typename CycleManipulator<T>::cycle_it it = cm.begin(); it != cm.end(); it++) {
-					//(*it)->Print();
-				//}
-
-				typename CycleManipulator<T>::cycle_it begin = cm.begin();
-				typename CycleManipulator<T>::cycle_it end = cm.end();
-				begin++;	// second one
-				end--;	// last one
 				// cycle involving both so2-Os
-				if (*begin != *end) {
-					cycle_type = COMPLETE;
+				if (cm.CycleType() == CycleManipulator<T>::COMPLETE || cm.CycleType() == CycleManipulator<T>::PARTIAL) {
 					number_water_atoms_in_cycle = cm.NumUniqueWaterAtoms();
 					number_waters_in_cycle = cm.NumUniqueMoleculesInCycle() - 1;		// don't count the SO2
-					//printf ("\n%d %d %d\n", cycle_type, number_water_atoms_in_cycle, number_waters_in_cycle);
 				}
-				else if (*begin == *end) {
-					cycle_type = PARTIAL;
-					number_water_atoms_in_cycle = cm.NumUniqueWaterAtoms();
-					number_waters_in_cycle = cm.NumUniqueMoleculesInCycle();		// don't count the SO2
-					//printf ("\n%d %d %d\n", cycle_type, number_water_atoms_in_cycle, number_waters_in_cycle);
-				}
-				else { cycle_type = UNKNOWN; }
+
+				//for (typename CycleManipulator<T>::cycle_it it = cm.begin(); it != cm.end(); it++) {
+				//(*it)->Print();
+				//}
+				//printf ("%d %d %zu\n", (int)cm.CycleType(), cm.NumUniqueWaterAtoms(), cm.NumUniqueMoleculesInCycle() - 1);
 			}
 
 			// final print out of the cycle information
 			fprintf (this->output, " %5d %5d %5d \n", 
-					(int)cycle_type, number_water_atoms_in_cycle,	number_waters_in_cycle);
+					(int)cm.CycleType(), number_water_atoms_in_cycle,	number_waters_in_cycle);
 			fflush(this->output);
 		} // analysis
+
+
+
 
 
 
@@ -366,7 +362,6 @@ namespace neighbor_analysis {
 				CycleManipulator<T>								cm;
 				h2o_analysis::H2OSystemManipulator<T>	h2os;
 				so2_analysis::SO2SystemManipulator<T>	so2s;
-				std::vector<int> mol_ids, h2o_ids;
 
 		};	// h-bonding analysis
 

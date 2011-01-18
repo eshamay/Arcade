@@ -123,6 +123,14 @@ namespace md_system {
 			virtual MatR const & DCMToLab ();
 			virtual const MatR& DCM () { return _DCM; }
 
+			static bool mol_cmp (const MolPtr first, const MolPtr second) {
+				return first->MolID() < second->MolID();
+			}
+
+			static bool mol_eq (const MolPtr first, const MolPtr second) {
+				return first->MolID() == second->MolID();
+			}
+
 			template <class U>
 				struct SameType : public std::binary_function<U,U,bool> {
 					bool operator() (const U& left, const U& right) const {

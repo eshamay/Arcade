@@ -93,7 +93,12 @@ namespace md_system {
 
 			static AtomPtr FindByElement (const Atom_ptr_vec& apv, Element_t elmt);
 			static AtomPtr FindByID (const Atom_ptr_vec& apv, int id);
+			// predicate to determine if two atoms are equal (by element)
 			static bool element_eq (const AtomPtr& first, const AtomPtr& second);
+			// predicate compares two atom ids for sorting
+			static bool id_cmp (const AtomPtr& first, const AtomPtr& second);
+			// compares two atoms for equality (using the atom id)
+			static bool id_eq (const AtomPtr& first, const AtomPtr& second);
 
 			// tests if the combination of atoms supplied matches the element pair supplied
 			static bool ElementCombo (const AtomPtr& ai, const AtomPtr& aj, const Element_t element_a, const Element_t element_b);
@@ -105,7 +110,7 @@ namespace md_system {
 
 		protected:
 			std::string			_name,				// human-readable identifier
-											_residue;			// name of the parent-molecule 
+				_residue;			// name of the parent-molecule 
 
 			int    _ID;							// some numerical identifier in case the atom is in an ordered list
 			int	   _molid;					// the molecule that contains this atom

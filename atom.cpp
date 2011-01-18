@@ -183,6 +183,15 @@ namespace md_system {
 		return first->Element() == second->Element();
 	}
 
+
+	bool Atom::id_cmp (const AtomPtr& first, const AtomPtr& second) {
+		return first->ID() < second->ID();
+	}
+
+	bool Atom::id_eq (const AtomPtr& first, const AtomPtr& second) {
+		return first->ID() == second->ID();
+	}
+
 	AtomPtr Atom::FindByElement (const Atom_ptr_vec& apv, Element_t elmt) {
 		Atom_it a = std::find_if (apv.begin(), apv.end(), member_functional::mem_fun_eq(&Atom::Element,elmt));
 		return *a;

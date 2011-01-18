@@ -82,7 +82,7 @@ namespace bondgraph {
 
 				// calculate the distance between the two atoms (taking into account the periodic boundaries)
 				double bondlength = MDSystem::Distance (v_position[*vi], v_position[*vj]).Magnitude();
-				if (bondlength > HBONDLENGTH) continue;
+				if (bondlength > HBONDLENGTH && bondlength > SOINTERACTIONLENGTH) continue;
 				// all bonds are considered unbound unless proven otherwise
 				bondtype btype = unbonded;
 
@@ -142,9 +142,14 @@ namespace bondgraph {
 				}
 
 				// now process SO2 molecules
-				else if (Atom::ElementCombo (ai,aj, Atom::S, Atom::O) && (bondlength < SOBONDLENGTH)) {
-					btype = covalent;
-				} // process S-O bonds
+				else if (Atom::ElementCombo (ai,aj, Atom::S, Atom::O)) { 
+					if (bondlength < SOBONDLENGTH) {
+						btype = covalent;
+					} // process S-O covalent bonds
+					if (bondlength < SOINTERACTIONLENGTH) {
+						btype = interaction;
+					}	// process S-O interactions (sorta h-bonds)
+				}
 
 				// add in the bond between two atoms
 				if (btype != unbonded)
@@ -255,7 +260,8 @@ namespace bondgraph {
 
 			// check the bondtype criteria - return only bonds that are specified by the bondtype argument, or if no argument is specified, return all hbond and covalent bonds.
 			e = edge(*va, *vi, _graph).first;
-			if (btype == b_type[e] || ((!btype) && ((b_type[e] == hbond) || (b_type[e] == covalent)))) {
+			//if (btype == b_type[e] || ((!btype) && ((b_type[e] == hbond) || (b_type[e] == covalent)))) {
+			if (btype == b_type[e] || (!btype && btype != unbonded)) {
 				if (!elmt || (v_elmt[*vi] == elmt)) {
 					atoms.push_back(v_atom[*vi]);
 				}

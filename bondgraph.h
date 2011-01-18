@@ -44,11 +44,12 @@ namespace bondgraph {
 	const double NOBONDLENGTH = 2.0;
 	const double NHBONDLENGTH = 1.3;		// uhmm... check this?
 	const double SOBONDLENGTH = 1.9;
+	const double SOINTERACTIONLENGTH = 3.0;		// S not covalently bound to O
 	
 
 
 	// bond types
-	typedef enum {null = 0, unbonded, hbond, covalent} bondtype;
+	typedef enum {null = 0, unbonded, hbond, interaction, covalent} bondtype;
 
 	// useful for tracking distances between atom pairs
 	typedef std::pair<double, AtomPtr>	distance_pair;
