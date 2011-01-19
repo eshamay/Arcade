@@ -305,13 +305,13 @@ namespace bondgraph {
 			template < typename Vertex, typename Graph >
 			void initialize_vertex (Vertex v, Graph & g) { 
 				BondGraph::v_parent[v] = (AtomPtr)NULL;
-			}
+			}	// initialize vertex
 
 			// set the currently dequeued vertex as the parent
 			template < typename Vertex, typename Graph >
 			void examine_vertex (Vertex v, Graph & g) { 
 				parent = BondGraph::v_atom[v]; 
-			}
+			} // examine vertex
 
 			// Mark each child's parent for reconstructing any traversals
 			template < typename Edge, typename Graph >
@@ -327,8 +327,7 @@ namespace bondgraph {
 					BondGraph::v_parent[t_v] = s;
 					//printf ("%s(%d) --> %s(%d)\n", s->Name().c_str(), s->ID(), t->Name().c_str(), t->ID());
 				}
-
-			}
+			}	// tree edge
 
 
 			template < typename Edge, typename Graph >
