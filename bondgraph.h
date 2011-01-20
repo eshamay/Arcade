@@ -299,8 +299,7 @@ namespace bondgraph {
 			// supply the list of atoms that was used to make the graph,
 			// a bool for determining if a cycle was found
 			// and a target atom to identify the gray target
-			bfs_atom_visitor(bool& has_cycle, AtomPtr& graysource, AtomPtr& graytarget)
-				: _has_cycle(has_cycle), _gray_source(graysource), _gray_target(graytarget) { }
+			bfs_atom_visitor() : _num_cycles(0) { }
 
 			template < typename Vertex, typename Graph >
 			void initialize_vertex (Vertex v, Graph & g) { 
@@ -333,9 +332,9 @@ namespace bondgraph {
 			template < typename Edge, typename Graph >
 				void gray_target(Edge e, const Graph & g) {
 
-					_has_cycle = true;
-					_gray_source = BondGraph::v_atom[source(e,g)];
-					_gray_target = BondGraph::v_atom[target(e,g)];
+					++_num_cycles;
+					_gray_source.push_back(BondGraph::v_atom[source(e,g)]);
+					_gray_target.push_back(BondGraph::v_atom[target(e,g)]);
 					//printf ("\n%s(%d) <--> %s(%d)\n", _gray_source->Name().c_str(), _gray_source->ID(), _gray_target->Name().c_str(), _gray_target->ID());
 
 					//for (Atom_it it = _atoms.begin(); it != _atoms.end(); it++) {
@@ -352,14 +351,20 @@ namespace bondgraph {
 			}
 			*/
 
-			AtomPtr GraySource () const { return _gray_source; }
-			AtomPtr GrayTarget () const { return _gray_target; }
+			typedef std::list<AtomPtr>	Atom_ptr_list;
+			Atom_ptr_list::const_iterator gray_source_begin () const { return _gray_source.begin(); }
+			Atom_ptr_list::const_iterator gray_source_end () const { return _gray_source.end(); }
+
+			Atom_ptr_list::const_iterator gray_target_begin () const { return _gray_target.begin(); }
+			Atom_ptr_list::const_iterator gray_target_end () const { return _gray_target.end(); }
+
+			int NumCycles () const { return _num_cycles; }
 
 		private:
-			bool& _has_cycle;
-			AtomPtr&	_gray_source;
-			AtomPtr&	_gray_target;
-			AtomPtr parent;
+			int 				_num_cycles;
+			std::list<AtomPtr>	_gray_source, 
+			  					_gray_target;	// the running list of gray sources/targets for each cycle that's found
+			AtomPtr 			parent;
 	};
 
 
