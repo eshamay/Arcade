@@ -146,7 +146,7 @@ namespace bondgraph {
 					if (bondlength < SOBONDLENGTH) {
 						btype = covalent;
 					} // process S-O covalent bonds
-					if (bondlength < SOINTERACTIONLENGTH) {
+					else if (bondlength < SOINTERACTIONLENGTH) {
 						btype = interaction;
 					}	// process S-O interactions (sorta h-bonds)
 				}
@@ -260,8 +260,8 @@ namespace bondgraph {
 
 			// check the bondtype criteria - return only bonds that are specified by the bondtype argument, or if no argument is specified, return all hbond and covalent bonds.
 			e = edge(*va, *vi, _graph).first;
-			//if (btype == b_type[e] || ((!btype) && ((b_type[e] == hbond) || (b_type[e] == covalent)))) {
-			if (btype == b_type[e] || (!btype && btype != unbonded)) {
+			if (btype == b_type[e] || ((!btype) && ((b_type[e] == hbond) || (b_type[e] == covalent)))) {
+		//	if (btype == b_type[e] || (!btype && b_type[e] != unbonded)) {
 				if (!elmt || (v_elmt[*vi] == elmt)) {
 					atoms.push_back(v_atom[*vi]);
 				}
@@ -270,6 +270,10 @@ namespace bondgraph {
 
 		return (atoms);
 	}	// Bonded atoms
+
+	int BondGraph::NumInteractions (const AtomPtr ap) const {
+		return (this->BondedAtoms(ap, interaction).size());
+	}
 
 	int BondGraph::NumHBonds (const AtomPtr ap) const {
 		return (this->BondedAtoms(ap, hbond).size());

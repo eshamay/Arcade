@@ -30,7 +30,7 @@
 	 As for the diagonal elements - instead of writing a routine that will count the number of h-bonds by looking over the rows and columns, as distances are calculated the diagonal elements for each atom will be updated to reflect the number of H-bonds formed. Thus at any time we can look at the diagonal and know immediately the number of H-bonds an atom is involved in.
 
 	 This leaves the bottom-diagonal free to store more information. If two atoms are covalently bound, then the bottom diagonal element will mark this with a 1.0.
-	 */
+ */
 
 namespace bondgraph {
 
@@ -45,7 +45,7 @@ namespace bondgraph {
 	const double NHBONDLENGTH = 1.3;		// uhmm... check this?
 	const double SOBONDLENGTH = 1.9;
 	const double SOINTERACTIONLENGTH = 3.0;		// S not covalently bound to O
-	
+
 
 
 	// bond types
@@ -123,7 +123,7 @@ namespace bondgraph {
 				 typedef graph_traits<graph_t>::degree_size_type       degree_size_type;
 
 				 typedef graph_t::stored_vertex stored_vertex;
-				 */
+			 */
 
 			// generic property maps
 			template <class T, class Property_T> 
@@ -187,6 +187,7 @@ namespace bondgraph {
 			// find the atoms closest to a given molecule
 			distance_vec ClosestAtoms (const MolPtr, const int = 1, const Atom::Element_t = Atom::NO_ELEMENT) const;
 
+			int NumInteractions (const AtomPtr ap) const;
 			int NumHBonds (const AtomPtr) const;
 			int NumHBonds (const WaterPtr) const;
 			coordination WaterCoordination (const WaterPtr) const;
@@ -229,7 +230,7 @@ namespace bondgraph {
 			// and number is the number of nearest atoms
 			// i.e. ClosestAtoms (5, O, 3) - returns the three closest O's to the atom with ID 5
 			std::vector<Atom *> ClosestAtoms (const int input, const string atomname, const int number) const;
-			*/
+			 */
 	};	// BondGraph
 
 
@@ -271,7 +272,7 @@ namespace bondgraph {
 		 protected:
 		 bool& _has_cycle;
 		 };
-		 */
+	 */
 
 
 	class vertex_processor : public dfs_visitor<> {
@@ -296,37 +297,38 @@ namespace bondgraph {
 
 	class bfs_atom_visitor : public default_bfs_visitor {
 		public:
+			typedef std::list<AtomPtr>	Atom_ptr_list;
 			// supply the list of atoms that was used to make the graph,
 			// a bool for determining if a cycle was found
 			// and a target atom to identify the gray target
-			bfs_atom_visitor() : _num_cycles(0) { }
+			bfs_atom_visitor(Atom_ptr_list& gray_source, Atom_ptr_list& gray_target) : _gray_source(gray_source), _gray_target(gray_target) { }
 
 			template < typename Vertex, typename Graph >
-			void initialize_vertex (Vertex v, Graph & g) { 
-				BondGraph::v_parent[v] = (AtomPtr)NULL;
-			}	// initialize vertex
+				void initialize_vertex (Vertex v, Graph & g) { 
+					BondGraph::v_parent[v] = (AtomPtr)NULL;
+				}	// initialize vertex
 
 			// set the currently dequeued vertex as the parent
 			template < typename Vertex, typename Graph >
-			void examine_vertex (Vertex v, Graph & g) { 
-				parent = BondGraph::v_atom[v]; 
-			} // examine vertex
+				void examine_vertex (Vertex v, Graph & g) { 
+					parent = BondGraph::v_atom[v]; 
+				} // examine vertex
 
 			// Mark each child's parent for reconstructing any traversals
 			template < typename Edge, typename Graph >
-			void tree_edge (Edge e, Graph & g) { 
-				BondGraph::Vertex t_v = target(e,g);
-				BondGraph::Vertex s_v = source(e,g);
+				void tree_edge (Edge e, Graph & g) { 
+					BondGraph::Vertex t_v = target(e,g);
+					BondGraph::Vertex s_v = source(e,g);
 
-				AtomPtr t = BondGraph::v_atom[t_v];
-				AtomPtr s = BondGraph::v_atom[s_v];
-				AtomPtr s_parent = BondGraph::v_parent[s_v];
+					AtomPtr t = BondGraph::v_atom[t_v];
+					AtomPtr s = BondGraph::v_atom[s_v];
+					AtomPtr s_parent = BondGraph::v_parent[s_v];
 
-				if (s_parent != t) {
-					BondGraph::v_parent[t_v] = s;
-					//printf ("%s(%d) --> %s(%d)\n", s->Name().c_str(), s->ID(), t->Name().c_str(), t->ID());
-				}
-			}	// tree edge
+					if (s_parent != t) {
+						BondGraph::v_parent[t_v] = s;
+						//printf ("%s(%d) --> %s(%d)\n", s->Name().c_str(), s->ID(), t->Name().c_str(), t->ID());
+					}
+				}	// tree edge
 
 
 			template < typename Edge, typename Graph >
@@ -338,33 +340,27 @@ namespace bondgraph {
 					//printf ("\n%s(%d) <--> %s(%d)\n", _gray_source->Name().c_str(), _gray_source->ID(), _gray_target->Name().c_str(), _gray_target->ID());
 
 					//for (Atom_it it = _atoms.begin(); it != _atoms.end(); it++) {
-						//(*it)->Print();
+					//(*it)->Print();
 					//}
 					//fflush(stdout);
 				}
 
 
 			/*
-			template < typename Vertex, typename Graph >
-			void finish_vertex (Vertex v, Graph & g) { 
-				printf ("\n\n");
-			}
-			*/
+				 template < typename Vertex, typename Graph >
+				 void finish_vertex (Vertex v, Graph & g) { 
+				 printf ("\n\n");
+				 }
+			 */
 
-			typedef std::list<AtomPtr>	Atom_ptr_list;
-			Atom_ptr_list::const_iterator gray_source_begin () const { return _gray_source.begin(); }
-			Atom_ptr_list::const_iterator gray_source_end () const { return _gray_source.end(); }
-
-			Atom_ptr_list::const_iterator gray_target_begin () const { return _gray_target.begin(); }
-			Atom_ptr_list::const_iterator gray_target_end () const { return _gray_target.end(); }
 
 			int NumCycles () const { return _num_cycles; }
 
 		private:
-			int 				_num_cycles;
-			std::list<AtomPtr>	_gray_source, 
-			  					_gray_target;	// the running list of gray sources/targets for each cycle that's found
-			AtomPtr 			parent;
+			int									_num_cycles;
+			Atom_ptr_list&	_gray_source; // the running list of gray sources/targets for each cycle that's found
+			Atom_ptr_list&	_gray_target;	
+			AtomPtr							parent;
 	};
 
 
