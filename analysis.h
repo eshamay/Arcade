@@ -152,6 +152,7 @@ namespace md_analysis {
 				static int 		timesteps;
 				static int		restart;
 
+				static double Position (const MolPtr);
 				static double Position (const AtomPtr);
 				static double Position (const VecR&);
 				static double Position (const double);
@@ -308,7 +309,12 @@ namespace md_analysis {
 
 
 
-	/* Find the periodic-boundary-satistfying location of an atom, vector, or raw coordinate along the reference axis */
+	/* Find the periodic-boundary-satistfying location of a molecule, atom, vector, or raw coordinate along the reference axis */
+	template <class T> 
+		double Analyzer<T>::Position (const MolPtr mol) {
+			return Analyzer<T>::Position(mol->ReferencePoint());
+		}
+
 	template <class T> 
 		double Analyzer<T>::Position (const AtomPtr patom) {
 			//return Analyzer<T>::Position(patom->Position());

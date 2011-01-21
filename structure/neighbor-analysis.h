@@ -368,7 +368,7 @@ namespace neighbor_analysis {
 
 			// find the locatin of the surface of the water slab
 			h2os.Reload();
-			h2os.FindWaterSurfaceLocation(true);
+			h2os.FindWaterSurfaceLocation();
 			//h2os.FindWaterSurfaceLocation(false);	 // bottom surface
 			double distance = system_t::Position(so2s.S()) - h2os.SurfaceLocation(); // top surface
 			//double distance = h2os.SurfaceLocation() - system_t::Position(so2s.S());	// bottom surface
@@ -474,7 +474,7 @@ namespace neighbor_analysis {
 			// find the locatin of the surface of the water slab and the distance of the so2 to it
 			h2os.Reload();
 			//h2os.FindWaterSurfaceLocation(true);	// top surface
-			h2os.FindWaterSurfaceLocation(false);	// bottom surface
+			h2os.FindWaterSurfaceLocation();	// bottom surface
 			//double distance = system_t::Position(so2s.S()) - h2os.SurfaceLocation();	// top surface
 			double distance = h2os.SurfaceLocation() - system_t::Position(so2s.S());	// bottom surface
 			fprintf (this->output, " % 8.3f ", distance);

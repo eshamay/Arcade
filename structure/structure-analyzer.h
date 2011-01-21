@@ -67,6 +67,8 @@ namespace md_analysis {
 			a = new angle_analysis::SO2TransitAngleAnalysis<T>(this);			analyses.push_back(a);
 			a = new neighbor_analysis::SO2BondingCycleAnalysis<T>(this);	analyses.push_back(a);
 			a = new neighbor_analysis::SO2HBondingAnalysis<T>(this);			analyses.push_back(a);
+			a = new md_analysis::H2OSurfaceStatisticsAnalysis<T>(this);		analyses.push_back(a);
+
 
 		}
 

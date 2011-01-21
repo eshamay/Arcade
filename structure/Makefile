@@ -4,7 +4,7 @@ STRUCTURE				= $(ANALYZER)
 SYSTEMANALYSES	= $(STRUCTURE) ../bondgraph.o structure-analyzer.o
 
 structure-analyzer : $(SYSTEMANALYSES)
-	$(CXX) $(SYSTEMANALYSES) $(LIBS) -lpthread -o ../bin/structure-analyzer
+	$(CXX) $(SYSTEMANALYSES) $(LIBS) -lpthread -lgsl -lgslcblas -o ../bin/structure-analyzer
 
 cleanstructure :
 	rm -f *.o 
