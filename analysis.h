@@ -168,8 +168,9 @@ namespace md_analysis {
 
 				//! Predicate for sorting a container of molecules based on position along the main axis of the system, and using a specific element type to determine molecular position. i.e. sort a container of waters based on the O position, or sort a container of NO3s based on the N position, etc.
 				class molecule_position_pred; 		
-				class molecule_reference_distance_pred; 		
-				class atomic_reference_distance_pred;
+				class atomic_distance_cmp;
+				class molecule_distance_cmp;
+				class molecule_distance_generator;
 
 				class MoleculeAbovePosition;
 				class MoleculeBelowPosition;
@@ -375,36 +376,55 @@ namespace md_analysis {
 		};
 
 
-	//! Calculates the distance between two molecules using their given reference points (as defined in the Molecule::ReferencePoint
-	template<class T>
-		class Analyzer<T>::molecule_reference_distance_pred : public std::binary_function <MolPtr,MolPtr,bool> {
-			private:
-				MolPtr _reference_mol;	// the molecule that will act as the reference point for the comparison
-			public:
-				molecule_reference_distance_pred (const MolPtr refmol) : _reference_mol(refmol) { }
-				// return the distance between the two molecules and the reference mol
-				bool operator()(const MolPtr left, const MolPtr right) const {
-					double left_dist = (left->ReferencePoint() - _reference_mol->ReferencePoint()).norm();
-					double right_dist = (right->ReferencePoint() - _reference_mol->ReferencePoint()).norm();
-					return left_dist < right_dist;
-				}
-		};
 
-	// this predicate is used for distance calculations/sorting between atoms given a reference atom
+	// this predicate is used for distance calculations/sorting between atoms given a reference atom or position
 	template<class T>
-		class Analyzer<T>::atomic_reference_distance_pred : public std::binary_function <AtomPtr,AtomPtr,bool> {
+		class Analyzer<T>::atomic_distance_cmp : public std::binary_function <AtomPtr,AtomPtr,bool> {
 			private:
-				AtomPtr _refatom;	// the molecule that will act as the reference point for the comparison
+				VecR _v;	// the molecule that will act as the reference point for the comparison
 			public:
-				atomic_reference_distance_pred (const AtomPtr refatom) : _refatom (refatom) { }
+				atomic_distance_cmp (const AtomPtr refatom) : _v (refatom->Position()) { }
+				atomic_distance_cmp (const VecR v) : _v (v) { }
 				// return the distance between the two molecules and the reference mol
 				bool operator()(const AtomPtr left, const AtomPtr right) const {
-					double left_dist = (left->Position() - _refatom->Position()).norm();
-					double right_dist = (right->Position() - _refatom->Position()).norm();
+					double left_dist = MDSystem::Distance(left->Position(), _v).norm();
+					double right_dist = MDSystem::Distance(right->Position(), _v).norm();
 					return left_dist < right_dist;
 				}
 		};
 
+	// given a reference point, this returns a molecule's distance to that point
+	template <class T>
+		class Analyzer<T>::molecule_distance_generator : public std::unary_function <MolPtr,double> {
+			private:
+				VecR _v;	// the molecule that will act as the reference point for the comparison
+
+			public:
+				molecule_distance_generator (const MolPtr refmol) : _v(refmol->ReferencePoint()) { }
+				molecule_distance_generator (const AtomPtr refatom) : _v(refatom->Position()) { }
+				molecule_distance_generator (const VecR v) : _v(v) { }
+
+				double operator()(const MolPtr mol) const {
+					return MDSystem::Distance(mol->ReferencePoint(), _v).norm();
+				}
+		}; // molecule distance generator
+
+	template<class T>
+		class Analyzer<T>::molecule_distance_cmp : public std::binary_function <MolPtr,MolPtr,bool> {
+			private:
+				VecR _v;	// the molecule that will act as the reference point for the comparison
+			public:
+				molecule_distance_cmp (const MolPtr refmol) : _v(refmol->ReferencePoint()) { }
+				molecule_distance_cmp (const AtomPtr refatom) : _v(refatom->Position()) { }
+				molecule_distance_cmp (const VecR v) : _v(v) { }
+
+				// return the distance between the two molecules and the reference
+				bool operator()(const MolPtr left, const MolPtr right) const {
+					double left_dist = MDSystem::Distance(left->ReferencePoint(), _v).norm();
+					double right_dist = MDSystem::Distance(right->ReferencePoint(), _v).norm();
+					return left_dist < right_dist;
+				}
+		};
 
 	// predicate tells if a molecule's reference point along a given axis is above a given value
 	template <typename T>

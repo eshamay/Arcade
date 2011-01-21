@@ -39,7 +39,7 @@ namespace neighbor_analysis {
 					std::sort(
 							this->analysis_atoms.begin(), 
 							this->analysis_atoms.end(), 
-							system_t::atomic_reference_distance_pred (ap));
+							system_t::atomic_distance_cmp (ap));
 				}
 
 				// iterate over the atoms sorted by distance - but only over a particular element.

@@ -192,6 +192,7 @@ namespace md_system {
 				return *it;
 			}
 
+					
 
 		protected:
 			Atom_ptr_vec	_atoms;				// the list of the atoms in the molecule

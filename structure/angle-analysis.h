@@ -18,7 +18,6 @@ namespace angle_analysis {
 				AngleAnalyzer (system_t * t,
 						std::string alphafile = std::string("alpha.dat"), 
 						std::string betafile = std::string("beta.dat"))
-
 					:
 					_system(t), 
 					_alpha(alphafile, 
@@ -154,8 +153,8 @@ namespace angle_analysis {
 
 				typedef Analyzer<T> system_t;
 
-				SO2AngleAnalysis (system_t * t, std::string description = std::string("SO2 angle analysis")) :
-					AnalysisSet<T> (t, description, std::string("")),
+				SO2AngleAnalysis (system_t * t, std::string description = std::string("SO2 angle analysis"), std::string fn = std::string("")) :
+					AnalysisSet<T> (t, description, fn),
 					h2os(t), so2s(t), angles(t) { 
 						h2os.ReferencePoint(WaterSystem<T>::SystemParameterLookup("analysis.reference-location"));
 					}
@@ -229,6 +228,54 @@ namespace angle_analysis {
 			this->h2os.FindWaterSurfaceLocation();
 			this->BinAngles(this->so2s.SO2());
 		}
+
+	template <typename T>
+		class SO2AdsorptionWaterAngleAnalysis : public AnalysisSet<T> {
+			public:
+				typedef Analyzer<T> system_t;
+
+				SO2AdsorptionWaterAngleAnalysis(system_t * t) 
+					: 
+						AnalysisSet<T> (t,
+								std::string("Orientation analysis of waters near an adsorbing so2"),
+								std::string("")),
+						h2os(t), so2s(t),
+						angle_histo ("angle.dat", 0.0, 10.0, 0.1, -1.0, 1.0, 0.05)	// distance from 0 to 10 angstroms
+		 	{ 
+							//double pos = system_t::Position(this->so2s.SO2()->ReferencePoint()); 
+							//this->h2os.ReferencePoint(pos);
+						}
+
+				virtual void Analysis ();
+				virtual void DataOutput () { angle_histo.OutputData(); }
+
+			protected:
+				h2o_analysis::H2OSystemManipulator<T>	h2os;
+				so2_analysis::SO2SystemManipulator<T>	so2s;
+				Histogram2DAgent											angle_histo;
+		};
+
+	template <typename T>
+		void SO2AdsorptionWaterAngleAnalysis<T>::Analysis () {
+			h2os.Reload();
+			h2os.FindWaterSurfaceLocation();
+			h2os.FindClosestWaters (so2s.S());	// find the waters closest to the sulfur of so2
+
+			VecR ref_axis;
+			for (Wat_it it = h2os.begin(); it != h2os.begin() + 10; it++) {
+				// for each of the closest waters, find the vector going from the O(h2o) to the S(so2) and call that the reference axis
+				ref_axis = MDSystem::Distance((*it)->O(), so2s.S());
+				// and then find the angle the water bisector makes with that reference axis
+				double angle = ref_axis < (*it)->Bisector();
+				// and bin it along with the distance
+				angle_histo (ref_axis.norm(), angle);
+			}
+
+			//std::cout << std::endl;
+			//std::transform (h2os.begin(), h2os.begin()+20, std::ostream_iterator<double>(std::cout, " "), system_t::molecule_distance_generator(so2s.S()));
+			//std::cout << std::endl;
+
+		}	// analysis
 
 }	// namespace angle analysis
 

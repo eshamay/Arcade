@@ -44,6 +44,7 @@ namespace h2o_analysis {
 
 				void Reload ();
 				virtual void FindWaterSurfaceLocation ();		
+				virtual void FindClosestWaters (const AtomPtr);
 
 				double ReferencePoint() const { return reference_point; }
 				void ReferencePoint (const double point) { reference_point = point; }
@@ -110,20 +111,29 @@ namespace h2o_analysis {
 				std::transform (analysis_waters.rbegin(), analysis_waters.rbegin()+number_surface_waters, std::back_inserter(surface_water_positions), WaterLocation());
 			}	// top surface
 			else if (!top_surface) {
-				std::transform (analysis_waters.rbegin(), analysis_waters.rbegin()+number_surface_waters, std::back_inserter(surface_water_positions), WaterLocation());
+				std::transform (analysis_waters.begin(), analysis_waters.begin()+number_surface_waters, std::back_inserter(surface_water_positions), WaterLocation());
 			}	// bottom surface
+
 			surface_location = gsl_stats_mean (&surface_water_positions[0], 1, number_surface_waters);
 			surface_width = gsl_stats_sd (&surface_water_positions[0], 1, number_surface_waters);
 
 			if (surface_width > 2.0) {
-				std::cout << std::endl << "Check the pbc-flip setting and decrease/increase is to fix this gigantic surface width" << std::endl;
+				std::cout << std::endl << "Check the pbc-flip or the reference point settings and decrease/increase is to fix this gigantic surface width" << std::endl;
 				std::cout << "Here's the positions of the waters used to calculate the surface:" << std::endl;
 				std::copy (surface_water_positions.begin(), surface_water_positions.end(), std::ostream_iterator<double>(std::cout, " "));
-				printf ("\nSurface width = % 8.3f\n", surface_width);
+				printf ("\nSurface width = % 8.3f, Reference point = % 8.3f\n", surface_width, reference_point);
 				fflush(stdout);
 			}
 
 		}	// find surface water location
+
+
+	// sort all the waters in the system by distance to a given reference atom
+	template <typename T>
+		void H2OSystemManipulator<T>::FindClosestWaters (const AtomPtr a) {
+			this->Reload();
+			std::sort(analysis_waters.begin(), analysis_waters.end(), system_t::molecule_distance_cmp(a));
+		} // find closest waters
 
 }	// namespace md analysis
 
