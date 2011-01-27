@@ -28,5 +28,11 @@ namespace md_files {
 		return;
 	}
 
+	void CRDFile::Rewind () {
+		rewind(this->_file);
+		ReadLine();
+		LoadNext();
+		this->_frame = 1;
+	}	// rewind
 }
 

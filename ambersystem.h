@@ -32,6 +32,9 @@ namespace md_files {
 			// Controller & Calculation methods
 			void LoadNext ();	 					// Update the system to the next timestep
 			void LoadFirst ();
+			void Rewind () { 
+				_coords.Rewind(); 
+			}
 
 			bool eof () const { return _coords.eof(); }
 

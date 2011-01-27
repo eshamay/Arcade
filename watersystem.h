@@ -174,6 +174,7 @@ namespace md_system {
 				//bondgraph::BondGraph& Graph () const { return sys->graph; }
 
 				void LoadNext() const { sys->LoadNext(); }
+				virtual void Rewind() const { sys->Rewind(); }
 
 			protected:
 				T * sys;	/* System coordinate & files */

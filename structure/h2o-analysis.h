@@ -48,9 +48,8 @@ namespace h2o_analysis {
 
 				double ReferencePoint() const { return reference_point; }
 				void ReferencePoint (const double point) { reference_point = point; }
-				double SurfaceLocation () const { return surface_location; }
+				double SurfaceLocation () const { return surface_location; }	// mean location
 				double SurfaceWidth () const { return surface_width; }	// standard deviation
-				//double SurfaceThickness () const { return 
 
 				Wat_it begin() { return analysis_waters.begin(); }
 				Wat_it end() { return analysis_waters.end(); }
@@ -59,7 +58,7 @@ namespace h2o_analysis {
 
 			protected:
 				Water_ptr_vec all_waters, analysis_waters;
-				Atom_ptr_vec all_water_atoms;
+				Atom_ptr_vec all_water_atoms, analysis_water_atoms;
 
 				double reference_point;	// the original location of the so2 along the reference axis
 				int number_surface_waters;

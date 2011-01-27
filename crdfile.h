@@ -15,6 +15,7 @@ namespace md_files {
 
 			// Various control functions
 			void LoadNext ();
+			void Rewind ();
 
 			const VecR& Dimensions () const { return _dimensions; }
 

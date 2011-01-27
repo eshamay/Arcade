@@ -30,6 +30,11 @@ namespace md_system {
 			char * Line () { return _line; }
 
 			virtual void LoadNext () = 0;
+			virtual void Rewind () {
+				rewind(this->_file);
+				this->LoadNext();
+				_frame = 1;
+			}
 
 			// retrieves coordinates as VecR (3-element vectors)
 			//const coord_t& Coordinate (const int index) const { return _vectors[index]; }
@@ -49,7 +54,7 @@ namespace md_system {
 			int Frame () 	const { return _frame; }
 
 		protected:
-			FILE				*_file;				// the XYZ file listing all the atom coordinates
+			FILE				*_file;				// the file listing all the atom coordinates
 			std::string _path;
 
 			int				_size;				// number of coordinates to parse in each frame (e.g. number of atoms in the system)
@@ -86,6 +91,8 @@ namespace md_system {
 			virtual void LoadFirst () = 0;
 			//! Loads the next frame of an MD simulation data set
 			virtual void LoadNext () = 0;
+			//! rewinds the coordinate files
+			virtual void Rewind () = 0;
 
 
 			//! The set of all molecules in a system

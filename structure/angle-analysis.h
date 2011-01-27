@@ -237,39 +237,101 @@ namespace angle_analysis {
 				SO2AdsorptionWaterAngleAnalysis(system_t * t) 
 					: 
 						AnalysisSet<T> (t,
-								std::string("Orientation analysis of waters near an adsorbing so2"),
-								std::string("")),
-						h2os(t), so2s(t),
-						angle_histo ("angle.dat", 0.0, 10.0, 0.1, -1.0, 1.0, 0.05)	// distance from 0 to 10 angstroms
-		 	{ 
-							//double pos = system_t::Position(this->so2s.SO2()->ReferencePoint()); 
-							//this->h2os.ReferencePoint(pos);
-						}
+								std::string("Analysis of waters near an adsorbing so2"),
+								std::string("first-adsorption-water.dat")),
+						h2os(t), so2s(t), nm(t), first_bound_water ((WaterPtr)NULL), second_pass(false)
+						//angle_histo ("angle.dat", 0.0, 10.0, 0.1, -1.0, 1.0, 0.05)	// distance from 0 to 10 angstroms
+			{ }
+				~SO2AdsorptionWaterAngleAnalysis () {
+					if (!first_bound_water) delete first_bound_water;
+				}
 
 				virtual void Analysis ();
-				virtual void DataOutput () { angle_histo.OutputData(); }
+				//virtual void DataOutput () { angle_histo.OutputData(); }
+
+				void FindInteractions (const AtomPtr);
 
 			protected:
 				h2o_analysis::H2OSystemManipulator<T>	h2os;
 				so2_analysis::SO2SystemManipulator<T>	so2s;
-				Histogram2DAgent											angle_histo;
+				neighbor_analysis::NeighborManipulator<T>	nm;
+
+				bondgraph::BondGraph	graph;
+				std::vector<double>		so2_distances;
+				std::vector<double>		water_angles;
+				WaterPtr							first_bound_water;
+				Atom_ptr_vec					bonded_atoms;
+				Atom_ptr_vec					analysis_atoms;
+				bool									second_pass;
 		};
 
 	template <typename T>
-		void SO2AdsorptionWaterAngleAnalysis<T>::Analysis () {
-			h2os.Reload();
-			h2os.FindWaterSurfaceLocation();
-			h2os.FindClosestWaters (so2s.S());	// find the waters closest to the sulfur of so2
-
-			VecR ref_axis;
-			for (Wat_it it = h2os.begin(); it != h2os.begin() + 10; it++) {
-				// for each of the closest waters, find the vector going from the O(h2o) to the S(so2) and call that the reference axis
-				ref_axis = MDSystem::Distance((*it)->O(), so2s.S());
-				// and then find the angle the water bisector makes with that reference axis
-				double angle = ref_axis < (*it)->Bisector();
-				// and bin it along with the distance
-				angle_histo (ref_axis.norm(), angle);
+		void SO2AdsorptionWaterAngleAnalysis<T>::FindInteractions (const AtomPtr ref_atom) {
+			// first sort the waters to find those closest to the so2 S
+			nm.OrderAtomsByDistance (ref_atom);
+			// then graph the closest several waters for analysis
+			analysis_atoms.clear();
+			Atom_it it = nm.closest(Atom::O);
+			for (int i = 0; i < 10; i++) {
+				analysis_atoms.push_back(*it);
+				nm.next_closest(it, Atom::O);
 			}
+			analysis_atoms.push_back(ref_atom);
+			// build a graph out of those atoms to find the interactions (if any) to the S
+			graph.UpdateGraph(this->analysis_atoms); 
+			bonded_atoms.clear();
+			bonded_atoms = graph.BondedAtoms (ref_atom, bondgraph::interaction);
+		}	
+
+
+
+	template <typename T>
+		void SO2AdsorptionWaterAngleAnalysis<T>::Analysis () {
+
+			if (!second_pass) {
+				FindInteractions (so2s.S());			// load up bonded_atoms with any atoms that are bound to the ref-atom
+
+				if (bonded_atoms.size() && !first_bound_water) {
+					std::cout << std::endl << "found the first interacting water at timestep " << this->_system->Timestep() << std::endl;
+					first_bound_water = new Water(bonded_atoms[0]->ParentMolecule());
+					first_bound_water->SetAtoms();
+					first_bound_water->Print();
+					so2s.S()->Print();
+
+					std::cout << "now rewinding and rerunning the analysis" << std::endl;
+					this->_system->Rewind();
+					std::cout << "system is rewound - starting over..." << std::endl;
+					second_pass = true;
+				}
+			}
+
+			else {
+				// find distance of so2 to the water surface
+				h2os.Reload();
+				h2os.FindWaterSurfaceLocation();
+
+				// output the posisition of the so2 wrt the water surface
+				fprintf (this->output, " % 8.3f ", system_t::Position(so2s.S()) - h2os.SurfaceLocation());
+
+				// also the distance from the S to the O
+				fprintf (this->output, " % 8.3f", MDSystem::Distance(first_bound_water->O(), so2s.S()).norm());
+
+				// the standard deviation of distance from the surface of waters used in calculating the surface
+				fprintf (this->output, " % 8.3f", h2os.SurfaceWidth());
+
+				// distance of the reference water to the surface
+				fprintf (this->output, " % 8.3f", system_t::Position(first_bound_water) - h2os.SurfaceLocation());
+
+				// calculate the angle of the water of interest with the surface normal
+				fprintf (this->output, " % 8.3f", first_bound_water->Bisector() < VecR::UnitY());
+
+				// the (cos) angle between the h2o and so2 bisectors
+				fprintf (this->output, " % 8.3f", first_bound_water->Bisector() < so2s.SO2()->Bisector());
+
+
+				fprintf (this->output, "\n");
+			}
+
 
 			//std::cout << std::endl;
 			//std::transform (h2os.begin(), h2os.begin()+20, std::ostream_iterator<double>(std::cout, " "), system_t::molecule_distance_generator(so2s.S()));

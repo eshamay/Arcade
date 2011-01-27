@@ -158,6 +158,11 @@ namespace md_analysis {
 				static double Position (const double);
 
 				void LoadNext ();
+				void Rewind() { 
+					this->sys->Rewind();
+					timestep = 1;
+				}
+
 
 				Atom_ptr_vec& Atoms () { return WaterSystem<T>::int_atoms; } 
 				Mol_ptr_vec& Molecules () { return WaterSystem<T>::int_mols; }
