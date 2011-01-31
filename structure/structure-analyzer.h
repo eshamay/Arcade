@@ -26,23 +26,27 @@ namespace md_analysis {
 	{
 		public:
 			typedef Analyzer<T> system_t;
+			typedef std::vector<AnalysisSet<T> *>	analysis_vec;
 
 			StructureAnalyzer (const int choice = -1) 
-				: system_t (), _analysis_choice(choice) 
-			{
-				LoadSystemAnalyses ();
-				PromptForAnalysisFunction(); 
+				: system_t (), _analysis_choice(choice) {
+					LoadSystemAnalyses ();
+					PromptForAnalysisFunction(); 
+				}
+
+			virtual ~StructureAnalyzer () {
+				for (typename analysis_vec::iterator it = analyses.begin(); it != analyses.end(); it++) {
+					delete *it;
+				}
 			}
 
 		protected:
-
 			int _analysis_choice;
 			// output a bit of text to stdout and ask the user for a choice as to which type of analysis to perform - then do it.
 			void PromptForAnalysisFunction ();
 			//! Loads all the analyses that are compatible with the given system-type
 			void LoadSystemAnalyses ();
 			// The set of possible analyses to perform on a given system
-			typedef std::vector<AnalysisSet<T> *>	analysis_vec;
 			analysis_vec analyses;
 	};
 
@@ -64,71 +68,73 @@ namespace md_analysis {
 			//a = new rdf_analysis<T>();														analyses.push_back(a);
 			a = new angle_analysis::H2OAngleAnalysis<T>(this);			analyses.push_back(a);
 			a = new angle_analysis::SO2AngleAnalysis<T>(this);			analyses.push_back(a);
-			a = new angle_analysis::SO2TransitAngleAnalysis<T>(this);			analyses.push_back(a);
+			//a = new angle_analysis::SO2TransitAngleAnalysis<T>(this);			analyses.push_back(a);
 			a = new neighbor_analysis::SO2BondingCycleAnalysis<T>(this);	analyses.push_back(a);
 			a = new neighbor_analysis::SO2HBondingAnalysis<T>(this);			analyses.push_back(a);
 			a = new md_analysis::H2OSurfaceStatisticsAnalysis<T>(this);		analyses.push_back(a);
 			a = new angle_analysis::SO2AdsorptionWaterAngleAnalysis<T>(this);	analyses.push_back(a);
+			a = new angle_analysis::WaterOHAngleAnalysis<T>(this);				analyses.push_back(a);
+
 		}
 
 	/*
-	template <>
-		void StructureAnalyzer<gromacs::GMXSystem< gromacs::XTCFile> >::LoadSystemAnalyses () {
-			typedef gromacs::GMXSystem<gromacs::XTCFile>  T;
-			AnalysisSet<system_t> * a;
+		 template <>
+		 void StructureAnalyzer<gromacs::GMXSystem< gromacs::XTCFile> >::LoadSystemAnalyses () {
+		 typedef gromacs::GMXSystem<gromacs::XTCFile>  T;
+		 AnalysisSet<system_t> * a;
 
-			a = new h2o_angle_bond_histogram_analyzer<T>();
-			analyses.push_back(a);
-			a = new so2_angle_bond_histogram_analyzer<T>();
-			analyses.push_back(a);
-			a = new h2o_dipole_magnitude_histogram_analyzer<T>();
-			analyses.push_back(a);
-			a = new atomic_density_analysis<T>();
-			analyses.push_back(a);
-			a = new so2_uptake_analysis<T>();
-			analyses.push_back(a);
-		}
+		 a = new h2o_angle_bond_histogram_analyzer<T>();
+		 analyses.push_back(a);
+		 a = new so2_angle_bond_histogram_analyzer<T>();
+		 analyses.push_back(a);
+		 a = new h2o_dipole_magnitude_histogram_analyzer<T>();
+		 analyses.push_back(a);
+		 a = new atomic_density_analysis<T>();
+		 analyses.push_back(a);
+		 a = new so2_uptake_analysis<T>();
+		 analyses.push_back(a);
+		 }
 
-	template <>
-		void StructureAnalyzer<gromacs::GMXSystem< gromacs::TRRFile> >::LoadSystemAnalyses () {
-			typedef gromacs::GMXSystem<gromacs::TRRFile>  T;
-			AnalysisSet<system_t> * a;
+		 template <>
+		 void StructureAnalyzer<gromacs::GMXSystem< gromacs::TRRFile> >::LoadSystemAnalyses () {
+		 typedef gromacs::GMXSystem<gromacs::TRRFile>  T;
+		 AnalysisSet<system_t> * a;
 
-			a = new h2o_angle_bond_histogram_analyzer<T>();
-			analyses.push_back(a);
-			a = new so2_angle_bond_histogram_analyzer<T>();
-			analyses.push_back(a);
-			a = new h2o_dipole_magnitude_histogram_analyzer<T>();
-			analyses.push_back(a);
-			a = new atomic_density_analysis<T>();
-			analyses.push_back(a);
-		}
+		 a = new h2o_angle_bond_histogram_analyzer<T>();
+		 analyses.push_back(a);
+		 a = new so2_angle_bond_histogram_analyzer<T>();
+		 analyses.push_back(a);
+		 a = new h2o_dipole_magnitude_histogram_analyzer<T>();
+		 analyses.push_back(a);
+		 a = new atomic_density_analysis<T>();
+		 analyses.push_back(a);
+		 }
 
-	template <>
-		void StructureAnalyzer<XYZSystem>::LoadSystemAnalyses () {
-			typedef XYZSystem T;
-			AnalysisSet<system_t> * a;
+		 template <>
+		 void StructureAnalyzer<XYZSystem>::LoadSystemAnalyses () {
+		 typedef XYZSystem T;
+		 AnalysisSet<system_t> * a;
 
-			a = new h2o_angle_bond_histogram_analyzer<T>();
-			analyses.push_back(a);
-			a = new so2_angle_bond_histogram_analyzer<T>();
-			analyses.push_back(a);
-			a = new h2o_dipole_magnitude_histogram_analyzer<T>();
-			analyses.push_back(a);
-			a = new atomic_density_analysis<T>();
-			analyses.push_back(a);
-			a = new so2_angle_bond_analyzer<T>();
-			analyses.push_back(a);
-			a = new so2_closest_H_analyzer();
-			analyses.push_back(a);
-			a = new so2_closest_O_analyzer();
-			analyses.push_back(a);
-			a = new so2_closest_OH_analyzer();
-			analyses.push_back(a);
-			a = new so2_hbond_factor_analyzer();
-			analyses.push_back(a);
-		}
-		*/
+		 a = new h2o_angle_bond_histogram_analyzer<T>();
+		 analyses.push_back(a);
+		 a = new so2_angle_bond_histogram_analyzer<T>();
+		 analyses.push_back(a);
+		 a = new h2o_dipole_magnitude_histogram_analyzer<T>();
+		 analyses.push_back(a);
+		 a = new atomic_density_analysis<T>();
+		 analyses.push_back(a);
+		 a = new so2_angle_bond_analyzer<T>();
+		 analyses.push_back(a);
+		 a = new so2_closest_H_analyzer();
+		 analyses.push_back(a);
+		 a = new so2_closest_O_analyzer();
+		 analyses.push_back(a);
+		 a = new so2_closest_OH_analyzer();
+		 analyses.push_back(a);
+		 a = new so2_hbond_factor_analyzer();
+		 analyses.push_back(a);
+		 }
+	 */
 
 
 	template <typename T>

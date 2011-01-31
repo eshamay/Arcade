@@ -183,7 +183,6 @@ namespace md_system {
 		return first->Element() == second->Element();
 	}
 
-
 	bool Atom::id_cmp (const AtomPtr& first, const AtomPtr& second) {
 		return first->ID() < second->ID();
 	}

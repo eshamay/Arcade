@@ -253,6 +253,7 @@ namespace md_system {
 					std::string mdcrd = this->SystemParameterLookup("system.files.mdcrd");
 					bool periodic = this->SystemParameterLookup("system.periodic");
 					this->sys = new AmberSystem(prmtop, mdcrd, periodic);
+					printf ("\n\tSystem Files::\n\t\tprmtop = %s\n\t\tmdcrd = %s\n", prmtop.c_str(), mdcrd.c_str());
 				}
 				catch (const libconfig::SettingNotFoundException &snfex) {
 					std::cerr << "Couldn't find the Amber system filenames listed in the configuration file" << std::endl;

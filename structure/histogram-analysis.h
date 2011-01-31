@@ -91,6 +91,7 @@ namespace md_analysis {
 			void operator() (const double i, const double j) { histogram(i,j); }
 
 			double Count (const double i) const { return histogram.Count(i); }
+			double TotalCount() const { return histogram.TotalCount(); }
 			double Population (const double i, const double j) const { return histogram.Population(i,j); }
 
 	}; // histogram 2d agent

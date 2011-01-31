@@ -51,6 +51,8 @@ namespace h2o_analysis {
 				double SurfaceLocation () const { return surface_location; }	// mean location
 				double SurfaceWidth () const { return surface_width; }	// standard deviation
 
+				bool TopSurface () const { return top_surface; }
+
 				Wat_it begin() { return analysis_waters.begin(); }
 				Wat_it end() { return analysis_waters.end(); }
 				Wat_rit rbegin() { return analysis_waters.rbegin(); }
@@ -91,6 +93,8 @@ namespace h2o_analysis {
 
 	template <typename T>
 		void H2OSystemManipulator<T>::FindWaterSurfaceLocation () {
+			this->Reload();
+
 			// get rid of everything above (or below) the reference point
 			if (top_surface) {
 				analysis_waters.erase(
@@ -103,7 +107,7 @@ namespace h2o_analysis {
 
 			// sort the waters by position along the reference axis - first waters are lowest, last are highest
 			std::sort (analysis_waters.begin(), analysis_waters.end(), system_t::molecule_position_pred(Atom::O));
-
+			
 			// get the position of the top-most waters
 			std::vector<double> surface_water_positions;
 			if (top_surface) {
@@ -116,7 +120,7 @@ namespace h2o_analysis {
 			surface_location = gsl_stats_mean (&surface_water_positions[0], 1, number_surface_waters);
 			surface_width = gsl_stats_sd (&surface_water_positions[0], 1, number_surface_waters);
 
-			if (surface_width > 2.0) {
+			if (surface_width > 2.5) {
 				std::cout << std::endl << "Check the pbc-flip or the reference point settings and decrease/increase is to fix this gigantic surface width" << std::endl;
 				std::cout << "Here's the positions of the waters used to calculate the surface:" << std::endl;
 				std::copy (surface_water_positions.begin(), surface_water_positions.end(), std::ostream_iterator<double>(std::cout, " "));
@@ -133,6 +137,24 @@ namespace h2o_analysis {
 			this->Reload();
 			std::sort(analysis_waters.begin(), analysis_waters.end(), system_t::molecule_distance_cmp(a));
 		} // find closest waters
+
+
+
+	// functor takes a water and returns the values of the cos(angles) formed between the two oh-vectors. The first value of the pair is always the greater (magnitude) of the two values.
+	class OHAngleCalculator : public std::unary_function <WaterPtr,std::pair<double,double> > {
+		private:
+			VecR axis;	// the reference axis to which the angles will be formed
+		public:
+			OHAngleCalculator (const VecR ax) : axis(ax) { }
+			std::pair<double,double> operator() (const WaterPtr& wat) {
+				double angle1 = wat->OH1() < axis;
+				double angle2 = wat->OH2() < axis;
+				std::pair<double,double> p = (fabs(angle1) > fabs(angle2)) 
+					? std::make_pair(angle1,angle2) 
+					: std::make_pair(angle2,angle1);
+				return p;
+			}
+	};
 
 }	// namespace md analysis
 

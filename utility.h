@@ -2,6 +2,7 @@
 #define __UTIL_H
 
 #include <algorithm>
+#include <numeric>
 #include <utility>
 #include <functional>
 #include <iterator>
@@ -469,39 +470,35 @@ namespace histogram_utilities {
 
 			// Initialization with [min, max, resolution]
 			Histogram2D (const pair_t& minima, const pair_t& maxima, const pair_t& resolutions) 
-				: min(minima), max(maxima), resolution(resolutions)
-			{
-				size.first = int((max.first - min.first)/resolution.first) + 1;
-				size.second = int((max.second - min.second)/resolution.second) + 1;
+				: min(minima), max(maxima), resolution(resolutions) {
+					size.first = int((max.first - min.first)/resolution.first) + 1;
+					size.second = int((max.second - min.second)/resolution.second) + 1;
 
-				/* 
-					 printf ("size = <%d,%d>\nmax = <%f,%f\n,min = <%f,%f>\nres = <%f,%f>\n",
-					 size.first, size.second, max.first, max.second, min.first, min.second, resolution.first, resolution.second);
+					/* 
+						 printf ("size = <%d,%d>\nmax = <%f,%f\n,min = <%f,%f>\nres = <%f,%f>\n",
+						 size.first, size.second, max.first, max.second, min.first, min.second, resolution.first, resolution.second);
 					 */
 
-				_histogram.clear();
-				_histogram.resize (size.first, Histogram_t (size.second, 0));
+					_histogram.clear();
+					_histogram.resize (size.first, Histogram_t (size.second, 0));
 
-				counts.resize(size.first, 0);
-			}
+					counts.resize(size.first, 0);
+				}
 
 			void operator() (const T& a, const T& b) {
-				if (CheckLimits(a,b))
-				{
+				if (CheckLimits(a,b)) {
 					// find which bin is to be updated
 					bins new_bins = Bin(a,b);
 					// Update the correct bin
-					_histogram[new_bins.first][new_bins.second]++;
-					// update the number of times that this particular 1st-dimensions has been accessed (total # of bin updates)
-					counts[new_bins.first]++;
+					Shove (new_bins.first, new_bins.second);
 				}
 				return;
 			}
 
 			/* Increment the bins given by the two indices without doing any checks */
-			void Shove (const int a, const int b)
-			{
+			void Shove (const int a, const int b) {
 				_histogram[a][b]++;
+				// update the number of times that this particular 1st-dimensions has been accessed (total # of bin updates)
 				counts[a]++;
 				return;
 			}
@@ -509,14 +506,14 @@ namespace histogram_utilities {
 			int Element (const int x, const int y) const { return _histogram[x][y]; }
 
 			// returns the population of a single bin given a value
-			double Population (const T& a, const T& b) const 
-			{ 
+			double Population (const T& a, const T& b) const { 
 				bins temp = Bin(a, b);
 				return _histogram[temp.first][temp.second]; 
 			}		
 
 			//int Count (const int i) const { return counts[i]; }
 			double Count (const T& i) const { return counts[(i-min.first)/resolution.first]; }
+			double TotalCount () const { return std::accumulate(counts.begin(), counts.end(), 0.0); }
 
 		private:
 			typedef std::vector<double> Histogram_t;
@@ -526,14 +523,12 @@ namespace histogram_utilities {
 			typedef std::pair<bin,bin> bins;
 
 			/* calculates the bins into which a value will be placed */
-			bins Bin (const T& a, const T& b) const
-			{ 
+			bins Bin (const T& a, const T& b) const { 
 				return std::make_pair( bin((a-min.first)/resolution.first), bin((b-min.second)/resolution.second) );
 			}
 
 			/* checks if the given value pair is within the limits of the histogram */
-			bool CheckLimits (const T& a, const T& b) const
-			{ 
+			bool CheckLimits (const T& a, const T& b) const { 
 				return a > min.first && a < max.first && b > min.second && b < max.second;
 			}
 

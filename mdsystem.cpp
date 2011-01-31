@@ -122,5 +122,4 @@ namespace md_system {
 		return (dipole);
 	}
 
-
 } // namespace md system
