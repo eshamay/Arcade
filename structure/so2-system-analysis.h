@@ -69,7 +69,41 @@ namespace so2_analysis {
 		};
 
 
-}	// namespace so2_analysis
+	template <typename T>
+	class SO2PositionRecorder : public AnalysisSet<T> {
+
+		public:
+			typedef Analyzer<T> system_t;
+			SO2PositionRecorder (system_t * t) : 
+				AnalysisSet<T> (t, 
+						std::string ("Record position of so2 relative to the surface, and the surface location"),
+						std::string ("so2-position.dat")),
+				so2s(t), h2os(t) { }
+
+			void Analysis ();
+
+		private:
+			SO2SystemManipulator<T>	so2s;
+			h2o_analysis::H2OSystemManipulator<T>	h2os;
+	};
+
+	// write out the position of the so2, the position of the surface, and the difference between the two
+	template <typename T>
+		void SO2PositionRecorder<T>::Analysis () {
+			h2os.FindWaterSurfaceLocation();
+			double so2_pos, surface, distance;
+			so2_pos = system_t::Position(so2s.S());
+			surface = h2os.SurfaceLocation();
+			if (h2os.TopSurface())
+				distance = so2_pos - surface;
+			else
+				distance = surface - so2_pos;
+
+			fprintf (this->output, "% 12.7f % 12.7f % 12.7f\n", so2_pos, surface, distance);
+		}
+
+
+	}	// namespace so2_analysis
 
 
 #endif

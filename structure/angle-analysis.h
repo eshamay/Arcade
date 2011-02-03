@@ -192,7 +192,7 @@ namespace angle_analysis {
 				so2_analysis::SO2SystemManipulator<T>	so2s;
 				md_analysis::Histogram1DAgent										_alpha;
 				md_analysis::Histogram1DAgent										_beta;
-				h2o_analysis::OHAngleCalculator											oh_calculator;
+				h2o_analysis::OHAngleCalculator									oh_calculator;
 		};	// water oh angle analysis
 
 	template <typename T>

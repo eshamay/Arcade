@@ -3,11 +3,10 @@
 namespace md_files {
 	CRDFile::CRDFile (std::string const crdpath, int const c_size, const bool periodic) :
 		CoordinateFile (crdpath, c_size),
-		_periodic(periodic)
-	{
-		ReadLine (); // skip the first frame's header
-		LoadNext ();	// load the first frame of the file
-	}
+		_periodic(periodic) {
+			ReadLine (); // skip the first frame's header
+			LoadNext ();	// load the first frame of the file
+		}
 
 
 	void CRDFile::LoadNext () {

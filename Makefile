@@ -11,10 +11,6 @@ MOLECULES = $(MDSRC)/h2o.o $(MDSRC)/oh.o $(MDSRC)/h.o $(MDSRC)/h3o.o $(MDSRC)/hn
 MDSYSTEM = $(MDSRC)/utility.o $(MDSRC)/atom.o $(MDSRC)/molecule.o $(MOLECULES) $(MDSRC)/moleculefactory.o $(MDSRC)/mdsystem.o
 AMBERSYSTEM = $(MDSYSTEM) $(MDSRC)/crdfile.o $(MDSRC)/topfile.o $(MDSRC)/ambersystem.o
 ANALYZER = $(AMBERSYSTEM) $(MDSRC)/dataoutput.o
-TEST = $(ANALYZER) test.o
-
-test: $(TEST)
-	$(CXX) $(TEST) $(LIBS)
 
 %.o: %.cpp %.h
 	$(CXX) $(CPPFLAGS) -c -o $@ $<

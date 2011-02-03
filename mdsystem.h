@@ -12,13 +12,12 @@ namespace md_system {
 
 	const double WANNIER_BOND = 0.7;
 
-
-
 	class CoordinateFile {
 
 		public:
 
 			CoordinateFile (const std::string path, int const c_size); 
+			CoordinateFile (const std::string path);
 
 			virtual ~CoordinateFile () { fclose (_file); }
 
@@ -94,7 +93,6 @@ namespace md_system {
 			//! rewinds the coordinate files
 			virtual void Rewind () = 0;
 
-
 			//! The set of all molecules in a system
 			Mol_ptr_vec& Molecules () { return _mols; }
 			//! An iterator to the beginning of the set of molecules
@@ -114,6 +112,7 @@ namespace md_system {
 			int NumAtoms ()	const { return (int)_atoms.size(); }
 
 			int size () const { return (int)_atoms.size(); }
+
 			static VecR Dimensions () { return MDSystem::_dimensions; }
 			static void Dimensions (const vector_base& dimensions) { MDSystem::_dimensions = dimensions; }
 

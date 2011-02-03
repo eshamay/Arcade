@@ -27,6 +27,19 @@ namespace md_system {
 		}
 
 
+	CoordinateFile::CoordinateFile (const std::string path) :
+		_file ((FILE *)NULL),
+		_path(path),
+		_frame(0),
+		_eof(false) {
+
+			_file = fopen64 (path.c_str(), "r");
+			if (_file == (FILE *)NULL)
+			{
+				printf ("Couldn't load the Coordinate file %s\n", path.c_str());
+				exit(1);
+			}
+		}
 
 	// The system size for periodic boundary calculations
 	VecR MDSystem::_dimensions = VecR ();

@@ -74,7 +74,7 @@ namespace md_analysis {
 			a = new md_analysis::H2OSurfaceStatisticsAnalysis<T>(this);		analyses.push_back(a);
 			a = new angle_analysis::SO2AdsorptionWaterAngleAnalysis<T>(this);	analyses.push_back(a);
 			a = new angle_analysis::WaterOHAngleAnalysis<T>(this);				analyses.push_back(a);
-
+			a = new so2_analysis::SO2PositionRecorder<T>(this);						analyses.push_back(a);
 		}
 
 	/*
