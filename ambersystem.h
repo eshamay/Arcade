@@ -13,16 +13,15 @@ namespace md_files {
 	class AmberSystem : public md_system::MDSystem {
 
 		protected:
-			//AmberSystem () { }
-			//Atom_ptr_vec	_atoms;
 			TOPFile		_topfile;
 			CRDFile		_coords;
-			//ForceFile	_forces;
 			bool _periodic;
-
 
 			void _ParseAtomInformation ();
 			void _ParseMolecules ();
+
+			Atom_ptr_vec	_atoms;		// the atoms in the system
+			Mol_ptr_vec		_mols;		// the molecules in the system
 
 		public:
 			// constructors
@@ -40,6 +39,26 @@ namespace md_files {
 
 			// Output
 			const VecR&	Dimensions () 		const 	{ return _coords.Dimensions(); }		// returns the system size.
+
+			//! The set of all molecules in a system
+			Mol_ptr_vec& Molecules () { return _mols; }
+			//! An iterator to the beginning of the set of molecules
+			Mol_it begin_mols () const { return _mols.begin(); }
+			//! An iterator to the end of the set of molecules
+			Mol_it end_mols () const { return _mols.end(); }
+			//! An indexing method for retrieving specific molecules in a system
+			MolPtr Molecules (int index) { return _mols[index]; }
+			//! Returns the total number of molecules in a system
+			int NumMols () const { return _mols.size(); }
+
+			Atom_ptr_vec& Atoms () { return _atoms; }
+			Atom_it begin () { return _atoms.begin(); }
+			Atom_it end () { return _atoms.end(); }
+			AtomPtr Atoms (const int index) { return _atoms[index]; }
+			AtomPtr operator[] (int index) { return _atoms[index]; }
+			int NumAtoms ()	const { return (int)_atoms.size(); }
+
+			int size () const { return (int)_atoms.size(); }
 
 			//int 	Current ()		const 	{ return _coords.Current(); }
 

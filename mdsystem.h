@@ -73,8 +73,6 @@ namespace md_system {
 	class MDSystem {
 
 		protected:
-			Atom_ptr_vec	_atoms;		// the atoms in the system
-			Mol_ptr_vec		_mols;		// the molecules in the system
 
 			static VecR		_dimensions;		// system dimensions - size
 
@@ -94,24 +92,24 @@ namespace md_system {
 			virtual void Rewind () = 0;
 
 			//! The set of all molecules in a system
-			Mol_ptr_vec& Molecules () { return _mols; }
+			virtual Mol_ptr_vec& Molecules () = 0;
 			//! An iterator to the beginning of the set of molecules
-			Mol_it begin_mols () const { return _mols.begin(); }
+			virtual Mol_it begin_mols () const = 0;
 			//! An iterator to the end of the set of molecules
-			Mol_it end_mols () const { return _mols.end(); }
+			virtual Mol_it end_mols () const = 0;
 			//! An indexing method for retrieving specific molecules in a system
-			MolPtr Molecules (int index) { return _mols[index]; }
+			virtual MolPtr Molecules (int index) = 0;
 			//! Returns the total number of molecules in a system
-			int NumMols () const { return _mols.size(); }
+			virtual int NumMols () const = 0;
 
-			Atom_ptr_vec& Atoms () { return _atoms; }
-			Atom_it begin () { return _atoms.begin(); }
-			Atom_it end () { return _atoms.end(); }
-			AtomPtr Atoms (const int index) { return _atoms[index]; }
-			AtomPtr operator[] (int index) { return _atoms[index]; }
-			int NumAtoms ()	const { return (int)_atoms.size(); }
+			virtual Atom_ptr_vec& Atoms () = 0;
+			virtual Atom_it begin () = 0;
+			virtual Atom_it end () = 0;
+			virtual AtomPtr Atoms (const int index) = 0;
+			virtual AtomPtr operator[] (int index) = 0;
+			virtual int NumAtoms ()	const = 0;
 
-			int size () const { return (int)_atoms.size(); }
+			virtual int size () const = 0;
 
 			static VecR Dimensions () { return MDSystem::_dimensions; }
 			static void Dimensions (const vector_base& dimensions) { MDSystem::_dimensions = dimensions; }
