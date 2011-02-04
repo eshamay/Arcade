@@ -5,7 +5,7 @@
 #include "mdsystem.h"
 #include "xyzfile.h"
 #include "wannier.h"
-#include "graph.h"
+#include "bondgraph.h"
 #include <ext/algorithm>
 #include <exception>
 

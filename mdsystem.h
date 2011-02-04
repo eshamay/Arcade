@@ -19,7 +19,11 @@ namespace md_system {
 			CoordinateFile (const std::string path, int const c_size); 
 			CoordinateFile (const std::string path);
 
-			virtual ~CoordinateFile () { fclose (_file); }
+			virtual ~CoordinateFile () { 
+				if (_file) {
+					fclose (_file); 
+				}
+			}
 
 			char * ReadLine () { 
 				fgets (_line, 1000, _file);
@@ -56,7 +60,7 @@ namespace md_system {
 			FILE				*_file;				// the file listing all the atom coordinates
 			std::string _path;
 
-			int				_size;				// number of coordinates to parse in each frame (e.g. number of atoms in the system)
+			int					_size;				// number of coordinates to parse in each frame (e.g. number of atoms in the system)
 
 			std::vector<double>								_coords;				// array of atomic coordinates
 			//coord_set_t												_vectors;				// set of vectors representing positions

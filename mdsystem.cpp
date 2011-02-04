@@ -12,18 +12,11 @@ namespace md_system {
 		_eof(false) {
 
 			_file = fopen64 (path.c_str(), "r");
-			if (_file == (FILE *)NULL)
-			{
+			if (_file == (FILE *)NULL) {
 				printf ("Couldn't load the Coordinate file %s\n", path.c_str());
 				exit(1);
 			}
 
-			/*
-			// and then map those elements to vectors
-			_vectors.clear();
-			for (int i = 0; i < _size; i++)
-			_vectors.push_back (Eigen::Map<VecR> (&_coords[3*i]));
-			*/
 		}
 
 
@@ -40,6 +33,12 @@ namespace md_system {
 				exit(1);
 			}
 		}
+
+	CoordinateFile::CoordinateFile () :
+		_file ((FILE *)NULL),
+		_frame(0),
+		_eof(false) { }
+
 
 	// The system size for periodic boundary calculations
 	VecR MDSystem::_dimensions = VecR ();

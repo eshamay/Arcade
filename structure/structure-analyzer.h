@@ -58,17 +58,9 @@ namespace md_analysis {
 			AnalysisSet<T> * a;
 
 			a = new H2OAngleBondAnalysis<T>(this);									analyses.push_back(a);
-			//a = new so2_angle_bond_histogram_analyzer<T>();				analyses.push_back(a);
-			//a = new h2o_dipole_magnitude_histogram_analyzer<T>(); analyses.push_back(a);
 			a = new AtomicDensityAnalysis<T>(this);									analyses.push_back(a);
-			//a = new so2_uptake_analysis<T>();											analyses.push_back(a);
-			//a = new so2_angle_bond_analyzer<T>();									analyses.push_back(a);
-			//a = new so2_closest_water_map<T>();										analyses.push_back(a);
-			//a = new so2_closest_water_spherical_map<T>();					analyses.push_back(a);
-			//a = new rdf_analysis<T>();														analyses.push_back(a);
 			a = new angle_analysis::H2OAngleAnalysis<T>(this);			analyses.push_back(a);
 			a = new angle_analysis::SO2AngleAnalysis<T>(this);			analyses.push_back(a);
-			//a = new angle_analysis::SO2TransitAngleAnalysis<T>(this);			analyses.push_back(a);
 			a = new neighbor_analysis::SO2BondingCycleAnalysis<T>(this);	analyses.push_back(a);
 			a = new neighbor_analysis::SO2HBondingAnalysis<T>(this);			analyses.push_back(a);
 			a = new md_analysis::H2OSurfaceStatisticsAnalysis<T>(this);		analyses.push_back(a);
@@ -110,31 +102,16 @@ namespace md_analysis {
 		 analyses.push_back(a);
 		 }
 
-		 template <>
-		 void StructureAnalyzer<XYZSystem>::LoadSystemAnalyses () {
-		 typedef XYZSystem T;
-		 AnalysisSet<system_t> * a;
+*/
 
-		 a = new h2o_angle_bond_histogram_analyzer<T>();
-		 analyses.push_back(a);
-		 a = new so2_angle_bond_histogram_analyzer<T>();
-		 analyses.push_back(a);
-		 a = new h2o_dipole_magnitude_histogram_analyzer<T>();
-		 analyses.push_back(a);
-		 a = new atomic_density_analysis<T>();
-		 analyses.push_back(a);
-		 a = new so2_angle_bond_analyzer<T>();
-		 analyses.push_back(a);
-		 a = new so2_closest_H_analyzer();
-		 analyses.push_back(a);
-		 a = new so2_closest_O_analyzer();
-		 analyses.push_back(a);
-		 a = new so2_closest_OH_analyzer();
-		 analyses.push_back(a);
-		 a = new so2_hbond_factor_analyzer();
-		 analyses.push_back(a);
-		 }
-	 */
+	template <>
+		void StructureAnalyzer<XYZSystem>::LoadSystemAnalyses () {
+			typedef XYZSystem T;
+			AnalysisSet<system_t> * a;
+
+			a = new angle_analysis::WaterOHAngleAnalysis<T>(this);				analyses.push_back(a);
+
+		}
 
 
 	template <typename T>

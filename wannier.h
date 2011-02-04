@@ -8,6 +8,8 @@
 
 namespace md_files {
 
+	using namespace md_system;
+
 	class WannierFile : public CoordinateFile {
 
 		public:

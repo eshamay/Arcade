@@ -4,7 +4,7 @@
 
 #include "mdsystem.h"
 #include "ambersystem.h"
-//#include "xyzsystem.h"
+#include "xyzsystem.h"
 //#include "gmxsystem.h"
 
 #include "utility.h"
@@ -262,33 +262,33 @@ namespace md_system {
 				return;
 			}
 
+		template <>
+			void WaterSystem<XYZSystem>::_InitializeSystem () {
+
+				try {
+					std::string filepath = this->SystemParameterLookup("system.files.xyzfile");
+
+					double a,b,c;
+					a = this->SystemParameterLookup("system.dimensions")[0];
+					b = this->SystemParameterLookup("system.dimensions")[1];
+					c = this->SystemParameterLookup("system.dimensions")[2];
+
+					std::string wanniers = SystemParameterLookup("system.files.wanniers");
+					VecR dims(a,b,c);
+					printf ("system dimensions are: ");
+					dims.Print();
+
+					this->sys = new XYZSystem(filepath, dims, wanniers);
+				}
+				catch (const libconfig::SettingNotFoundException &snfex) {
+					std::cerr << "Couldn't find the xyz system parameters in the configuration file" << std::endl;
+					exit(EXIT_FAILURE);
+				}
+
+				return;
+			}
+
 		/*
-			 template <>
-			 void WaterSystem<XYZSystem>::_InitializeSystem () {
-
-			 try {
-			 std::string filepath = this->SystemParameterLookup("system.files.xyzfile");
-
-			 double a,b,c;
-			 a = this->SystemParameterLookup("system.dimensions")[0];
-			 b = this->SystemParameterLookup("system.dimensions")[1];
-			 c = this->SystemParameterLookup("system.dimensions")[2];
-
-			 std::string wanniers = SystemParameterLookup("system.files.wanniers");
-			 VecR dims(a,b,c);
-			 printf ("system dimensions are: ");
-			 dims.Print();
-
-			 this->sys = new XYZSystem(filepath, dims, wanniers);
-			 }
-			 catch (const libconfig::SettingNotFoundException &snfex) {
-			 std::cerr << "Couldn't find the xyz system parameters in the configuration file" << std::endl;
-			 exit(EXIT_FAILURE);
-			 }
-
-			 return;
-			 }
-
 			 template <>
 			 void WaterSystem< gromacs::GMXSystem<gromacs::TRRFile> >::_InitializeSystem () {
 			 std::string gro = this->SystemParameterLookup("system.files.gmx-grofile");

@@ -122,8 +122,7 @@ namespace md_files {
 				std::remove_if (_unparsed.begin(), _unparsed.end(), std::bind2nd(AtomPtr_In_List<Atom_ptr_vec>(), parsed)), _unparsed.end());
 
 		return;
-	}
-
+	} 
 
 void XYZSystem::_CheckForUnparsedAtoms () const {
 
