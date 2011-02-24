@@ -8,7 +8,7 @@ USING_PART_OF_NAMESPACE_EIGEN
 #include "analysis.h"
 #include "utility.h"
 #include "angle-bond-analysis.h"
-//#include "dipole-analysis.h"
+#include "dipole-analysis.h"
 #include "neighbor-analysis.h"
 #include "atomic-density-analysis.h"
 //#include "rdf-analysis.threads.h"
@@ -61,12 +61,17 @@ namespace md_analysis {
 			a = new AtomicDensityAnalysis<T>(this);									analyses.push_back(a);
 			a = new angle_analysis::H2OAngleAnalysis<T>(this);			analyses.push_back(a);
 			a = new angle_analysis::SO2AngleAnalysis<T>(this);			analyses.push_back(a);
+			a = new angle_analysis::ReferenceSO2AngleAnalysis<T>(this);			analyses.push_back(a);
 			a = new neighbor_analysis::SO2BondingCycleAnalysis<T>(this);	analyses.push_back(a);
 			a = new neighbor_analysis::SO2HBondingAnalysis<T>(this);			analyses.push_back(a);
 			a = new md_analysis::H2OSurfaceStatisticsAnalysis<T>(this);		analyses.push_back(a);
 			a = new angle_analysis::SO2AdsorptionWaterAngleAnalysis<T>(this);	analyses.push_back(a);
 			a = new angle_analysis::WaterOHAngleAnalysis<T>(this);				analyses.push_back(a);
 			a = new so2_analysis::SO2PositionRecorder<T>(this);						analyses.push_back(a);
+			a = new angle_analysis::SOAngleAnalysis<T>(this);						analyses.push_back(a);
+			a = new neighbor_analysis::SO2NearestNeighborAnalysis<T>(this);						analyses.push_back(a);
+
+//			a = new md_analysis::SystemDipoleAnalyzer<T>(this);				analyses.push_back(a);
 		}
 
 	/*
@@ -107,9 +112,9 @@ namespace md_analysis {
 	template <>
 		void StructureAnalyzer<XYZSystem>::LoadSystemAnalyses () {
 			typedef XYZSystem T;
-			AnalysisSet<system_t> * a;
+			AnalysisSet<T> * a;
 
-			a = new angle_analysis::WaterOHAngleAnalysis<T>(this);				analyses.push_back(a);
+			a = new md_analysis::SystemDipoleAnalyzer<T>(this);				analyses.push_back(a);
 
 		}
 

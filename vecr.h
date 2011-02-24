@@ -21,6 +21,8 @@ typedef Eigen::Vector3f VecF;
 typedef Eigen::MatrixBase<Eigen::Matrix<double, 3, 1, 2, 3, 1> >	vector_base;
 //typedef Eigen::MapBase<Eigen::Matrix<double, 3, 1, 2, 3, 1> >		vector_map_base;
 typedef Eigen::Map<VecR> vector_map;
+typedef std::vector<vector_map>		vector_map_vec;
+typedef vector_map_vec::const_iterator vector_map_it;
 //typedef Eigen::MapBase<Eigen::Map<VecR, 1> >	vector_map_base;
 
 typedef std::list< VecR, Eigen::aligned_allocator<VecR> > VecR_vec;
@@ -37,5 +39,12 @@ typedef VecF_vec::iterator VecF_it_non_const;
 typedef Eigen::Map<VecR>	coord_t;
 typedef std::vector<coord_t> coord_set_t;
 typedef coord_set_t::const_iterator coord_it;
+
+class vecr_add : public std::binary_function<VecR,VecR,VecR> {
+	public:
+		VecR operator() (const VecR& a, const VecR& b) {
+			return a + b;
+		}
+};
 
 #endif

@@ -1,4 +1,3 @@
-#pragma once
 #ifndef XYZSYSTEM_H_
 #define XYZSYSTEM_H_
 
@@ -53,12 +52,7 @@ namespace md_files {
 
 			bondgraph::BondGraph graph;
 
-			// Update the system to the next timestep
-			void LoadNext ();
-
 			void SetReparseLimit (const int limit) { _reparse_limit = limit; }
-
-			const VecR_vec& Wanniers () const { return _wanniers.Coords(); }
 
 			Atom_ptr_vec CovalentBonds (const AtomPtr atom) const { return graph.BondedAtoms(atom, bondgraph::covalent); }
 			Atom_ptr_vec BondedAtoms (const AtomPtr atom) const { return graph.BondedAtoms (atom); }
@@ -71,13 +65,6 @@ namespace md_files {
 				char const* what() const throw() { return "After parsing of the xyz system molecules an atom(s) was left unaccounted for"; }
 			};
 
-			template <typename U>
-				class AtomPtr_In_List : public std::binary_function<AtomPtr,U,bool> {
-					public:
-						bool operator () (const AtomPtr ap, const U u) const {
-							return find(u.begin(), u.end(), ap) != u.end();
-						}
-				};
 
 			//! Loads the next frame of an MD simulation data set
 			virtual void LoadNext ();
@@ -105,6 +92,18 @@ namespace md_files {
 			virtual int size () const { return _xyzfile.size(); }
 
 
+			vector_map_it begin_wanniers () const { return _wanniers.begin(); }
+			vector_map_it end_wanniers () const { return _wanniers.end(); }
+
+
+			template <typename U>
+				class AtomPtr_In_List : public std::binary_function<AtomPtr,U,bool> {
+					public:
+						bool operator () (const AtomPtr ap, const U u) const {
+							return find(u.begin(), u.end(), ap) != u.end();
+						}
+				};
+
 	};	// xyz system class
 
 
@@ -116,16 +115,18 @@ namespace md_files {
 
 				if ((*it)->Element() != central_elmt) continue;
 
-				// for every S in the system, see if 2 oxygens are connected, for every O see if two Hs are connected, etc.
+				// grab all the atoms connected to the central atom
 				Atom_ptr_vec outers = graph.BondedAtoms (*it, bondgraph::covalent, outer_elmt);
 				if (outers.size() != numOuter) continue;
 
 				int molIndex = _mols.size();
 
+				// save the central atom
 				outers.push_back(*it);
-				T * newmol = new T();
 
+				T * newmol = new T();
 				_mols.push_back (newmol);
+
 				newmol->MolID (molIndex);
 
 				for (Atom_it jt = outers.begin(); jt != outers.end(); jt++) {

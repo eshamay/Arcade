@@ -49,6 +49,12 @@ namespace md_analysis {
 				std::string& Description () { return description; }
 				std::string& Filename () { return filename; }
 
+				void LoadAll () const { this->_system->LoadAll(); }
+				Atom_it begin () const { return this->_system->sys_atoms.begin(); }
+				Atom_it end () const { return this->_system->sys_atoms.end(); }
+				Mol_it begin_mols () const { return this->_system->sys_mols.begin(); }
+				Mol_it end_mols () const { return this->_system->sys_mols.end(); }
+
 			protected:
 
 				system_t * _system;
@@ -246,20 +252,17 @@ namespace md_analysis {
 		}
 
 
-	/*
-		 template <>
-		 extern void Analyzer<XYZSystem>::LoadNext () {
-		 this->sys->LoadNext();
-		 this->LoadAll();
-		 return;
-		 }
-		 */
-
-	template <>
-		extern void Analyzer<AmberSystem>::LoadNext () {
+	template <typename T>
+		void Analyzer<T>::LoadNext () {
 			this->sys->LoadNext();
 			return;
 		}
+
+	//template <>
+		//extern void Analyzer<AmberSystem>::LoadNext () {
+			//this->sys->LoadNext();
+			//return;
+		//}
 
 	/*
 		 template <>
@@ -425,6 +428,12 @@ namespace md_analysis {
 
 				// return the distance between the two molecules and the reference
 				bool operator()(const MolPtr left, const MolPtr right) const {
+					/*
+					left->Print();
+					left->SetAtoms();
+					left->ReferencePoint().Print();
+					_v.Print();
+					*/
 					double left_dist = MDSystem::Distance(left->ReferencePoint(), _v).norm();
 					double right_dist = MDSystem::Distance(right->ReferencePoint(), _v).norm();
 					return left_dist < right_dist;

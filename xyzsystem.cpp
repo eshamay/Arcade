@@ -29,14 +29,13 @@ namespace md_files {
 		 * *********************************************************************************/
 
 		// first things first - we need the interatomic distances!
-		try {
-			graph.UpdateGraph (_xyzfile.Atoms());
-		}
+		try { graph.UpdateGraph (_xyzfile.Atoms()); }
+
 		catch (bondgraph::BondGraph::graphex& ex) {
 			std::cout << "Caught an exception while updating the bond graph" << std::endl;
 		}
 
-		// Now let's do some house-cleaning to set us up for working with new molecules - these chnge a lot!
+		// Now let's do some house-cleaning to set us up for working with new molecules - these change a lot!
 		for (Mol_it it = _mols.begin(); it != _mols.end(); it++) {
 			delete *it;				// get rid of all the molecules in memory
 		}
@@ -158,10 +157,8 @@ void XYZSystem::_CheckForUnparsedAtoms () const {
  * What we'll do here is run through each of the wannier centers and find which molecule they belong to. For each center we'll check its distance against all the atoms and when we find the one it's bound to we'll shove it into the parent molecule.
  * ****************************/
 void XYZSystem::_ParseWanniers () {
-	// Then we've got to clear out all the wanniers already loaded into the molecules
-	for (Mol_it it = _mols.begin(); it != _mols.end(); it++) {
-		(*it)->ClearWanniers();
-	}
+	// we've got to clear out all the wanniers already loaded into the molecules
+	std::for_each (_mols.begin(), _mols.end(), std::mem_fun(&Molecule::ClearWanniers));
 
 	for (Atom_it it = _xyzfile.begin(); it != _xyzfile.end(); it++) {
 		// find every oxygen and sulfur atom (those are the ones that contain wanniers
@@ -170,7 +167,7 @@ void XYZSystem::_ParseWanniers () {
 		MolPtr mol = (*it)->ParentMolecule();
 
 		// and then go through all the wanniers in order to find the ones attached to the oxygen
-		for (VecR_it vi = _wanniers.begin(); vi != _wanniers.end(); vi++) {
+		for (WannierFile::Wannier_it vi = _wanniers.begin(); vi != _wanniers.end(); vi++) {
 
 			// we find the distance to the oxygen from the wannier center
 			double distance = MDSystem::Distance ((*it)->Position(), *vi).Magnitude();
@@ -185,24 +182,28 @@ void XYZSystem::_ParseWanniers () {
 	return;
 }	// Parse Wanniers
 
+void XYZSystem::Rewind () {
+	_xyzfile.Rewind();
+	this->LoadNext();
+}	// rewind
 
 
 void XYZSystem::LoadNext () {
 	_xyzfile.LoadNext();
 
+	if (_wanniers.Loaded()) {
+		_wanniers.LoadNext();
+	}
 	try {
 		if (++_reparse_step == _reparse_limit) {
 			this->_ParseMolecules();
+			if (_wanniers.Loaded())
+				this->_ParseWanniers();
 			_reparse_step = 0;
 		}
 	} catch (xyzsysex& ex) {
 		std::cout << "Exception caught while parsing the molecules of the XYZ system" << std::endl;
 		throw;
-	}
-
-	if (_wanniers.Loaded()) {
-		_wanniers.LoadNext();
-		this->_ParseWanniers();
 	}
 } // Load Next
 
@@ -214,13 +215,14 @@ void XYZSystem::LoadNext () {
 VecR XYZSystem::SystemDipole () {
 
 	VecR dipole;
+	dipole.Set(0.0,0.0,0.0);
 
 	for (Atom_it it = _xyzfile.begin(); it != _xyzfile.end(); it++) {
 		VecR ri = (*it)->Position();
 		dipole += ri * (*it)->Charge();
 	}
 
-	for (VecR_it it = _wanniers.begin(); it != _wanniers.end(); it++) {
+	for (WannierFile::Wannier_it it = _wanniers.begin(); it != _wanniers.end(); it++) {
 		dipole -= (*it) * 2.0;
 	}
 

@@ -16,16 +16,17 @@ namespace md_files {
 					exit(1);
 				}
 				else {
-					printf ("Using the Wannier File -- %s\n", wannierpath.c_str());
 					this->_eof = false;
 					// grab info from the header: number of centers, and frame number
 					fscanf (this->_file, " %d 1_%d ", &(this->_size), &(this->_frame));
 					this->_coords.resize(this->_size*3, 0.0);
-					this->LoadNext();
+					for (int i = 0; i < this->_size; i++) {
+						_wanniers.push_back (Eigen::Map<VecR> (&(this->_coords[3*i])));
+					}
 				}
 			}
 			else {
-				this->eof = true;
+				this->_eof = true;
 				printf ("No wannier file specified - continuing without wannier centers\n");
 			}
 
@@ -33,23 +34,26 @@ namespace md_files {
 		}
 
 
-	WannierFile::~WannierFile () { fclose(_file); }
+	WannierFile::~WannierFile () { 
+		fclose(_file); 
+		_file = (FILE *)NULL;
+	}
 
 	void WannierFile::LoadNext () {
 
 		//double a, b, c;
 		// grab each coordinate vector for each wannier center until the size of the system is processed
-		for (int i = 0; i < _coords.size(); i++) {
+		for (int i = 0; i < this->_size; i++) {
 			//printf ("% 8.4f % 8.4f % 8.4f\n", a,b,c);
-			_eof = (fscanf (_file, "X %lf %lf %lf %*f ", &_coords[3*i], &_coords[3*i+1], &_coords[3*i+2]) == EOF) 
-		}
+			//this->_eof = (fscanf (_file, "X %lf %lf %lf %*f ", &this->_coords[3*i], &this->_coords[3*i+1], &this->_coords[3*i+2]) == EOF);
 		//	if (fscanf (_file, "X %lf %lf %lf %*f ", &_coords[3*i], &_coords[3*i+1], &_coords[3*i+2]) == EOF) 
 		//		_eof=true;
-		//if (fscanf (_file, " %*s %lf %lf %lf %*f %*f %*f ", &a, &b, &c) == EOF) _eof=true;
-		//_coords.push_back(VecR (a, b, c));
+		this->_eof = (fscanf (_file, " X %lf %lf %lf %*f %*f %*f ", &this->_coords[3*i], &this->_coords[3*i+1], &this->_coords[3*i+2]) == EOF);
+		}
+
 		if (!_eof)
 			// grab info from the header: number of centers, and frame number
-			fscanf (_file, " %d 1_%d ", &_size, &_frame);
+			fscanf (this->_file, " %d 1_%d ", &this->_size, &this->_frame);
 
 		return;
 	}

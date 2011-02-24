@@ -6,6 +6,10 @@
 namespace so2_analysis {
 
 	using namespace md_analysis;
+	typedef SulfurDioxide*								so2_ptr;
+	typedef std::vector<SulfurDioxide *>	so2_vec;
+	typedef so2_vec::iterator							so2_it;
+	typedef so2_vec::reverse_iterator			so2_rit;
 
 
 	// a convenience class for working with systems comprised of at least 1 SO2 molecule and a whole bunch of waters
@@ -59,8 +63,10 @@ namespace so2_analysis {
 				AtomPtr O2 () { return o2; }
 
 
-				std::vector<SulfurDioxide *>::iterator	begin () { return so2s.begin(); }
-				std::vector<SulfurDioxide *>::iterator	end () { return so2s.end(); }
+				so2_it begin () { return so2s.begin(); }
+				so2_it end ()		{ return so2s.end(); }
+				so2_rit rbegin () { return so2s.rbegin(); }
+				so2_rit rend () { return so2s.rend(); }
 
 			protected:
 				SulfurDioxide * so2;	// the sulfur dioxide of interest
@@ -103,7 +109,24 @@ namespace so2_analysis {
 		}
 
 
-	}	// namespace so2_analysis
+
+	// functor takes a water and returns the values of the cos(angles) formed between the two oh-vectors. The first value of the pair is always the greater (magnitude) of the two values.
+	class SOAngleCalculator : public std::unary_function <SulfurDioxide*,std::pair<double,double> > {
+		private:
+			VecR axis;	// the reference axis to which the angles will be formed
+		public:
+			SOAngleCalculator (const VecR ax) : axis(ax) { }
+			std::pair<double,double> operator() (const SulfurDioxide* so2) {
+				double angle1 = so2->SO1() < axis;
+				double angle2 = so2->SO2() < axis;
+				std::pair<double,double> p = (fabs(angle1) > fabs(angle2)) 
+					? std::make_pair(angle1,angle2) 
+					: std::make_pair(angle2,angle1);
+				return p;
+			}
+	};
+
+}	// namespace so2_analysis
 
 
 #endif

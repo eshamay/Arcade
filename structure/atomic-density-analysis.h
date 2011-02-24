@@ -37,7 +37,8 @@ namespace md_analysis {
 				AtomicDensityAnalysis (system_t * t) : 
 					AnalysisSet<T> (t,
 							std::string("An analysis of the density of atoms in a system based on atomic position"),
-							WaterSystem<T>::SystemParameterLookup("analysis.density.filename")) { }
+							std::string("atomic-density.dat")),
+					h2os(t) { } 
 
 				virtual ~AtomicDensityAnalysis () { }
 
@@ -50,26 +51,41 @@ namespace md_analysis {
 				std::vector<std::string> atom_name_list;
 				// Every atom-name will have its own histogram of positions in the system. Each position is held as a vector to the atom site.
 				typedef histogram_utilities::Histogram1D<double>	histogram_t;
-				typedef std::vector<histogram_t>									histogram_set;
-				typedef std::pair<std::string, histogram_set>			histogram_map_elmt;
-				typedef std::map<std::string, histogram_set>			histogram_map;
-				histogram_map histograms;
+				typedef std::pair<std::string, histogram_t>				histogram_map_elmt;
+				typedef std::map<std::string, histogram_t>				histogram_map;
+				histogram_map																			histograms;
+				h2o_analysis::H2OSystemManipulator<T>							h2os;
 
-				class atomic_position_binner : public std::binary_function<AtomPtr,histogram_map *,void> {
+				class atomic_position_binner : public std::unary_function<AtomPtr,void> {
+					private:
+						double surface_location;
+						histogram_map * histos;
+						bool top_surface;
 					public:
-						void operator() (AtomPtr atom, histogram_map * histos) const {
-							histogram_set& hs = histos->operator[] (atom->Name());
-							hs[0].operator() (atom->X());
-							hs[1].operator() (atom->Y());
-							hs[2].operator() (atom->Z());
+						atomic_position_binner (const double surface, histogram_map * hs, bool top) 
+							: surface_location (surface), histos(hs), top_surface(top) { }
+						void operator() (AtomPtr atom) const {
+							histogram_map::iterator it = histos->find(atom->Name());
+							if (it == histos->end()) std::cout << "couldn't find the atom named: " << atom->Name() << std::endl;
+							//histogram_t* hs = &(histos->operator[] (atom->Name()));
+							else {
+								double distance;
+								if (top_surface)
+									distance = system_t::Position(atom) - surface_location;	// distance above the water surface
+								else 
+									distance = surface_location - system_t::Position(atom);	
+								(it->second.operator()) (distance);
+							}
 						}
-				} binner;
+				};	// atomic density binner
 
-		};
+		};	// atomic density class
 
 
 	template <class T>
 		void AtomicDensityAnalysis<T>::Setup () {
+
+			AnalysisSet<T>::Setup();
 
 			this->_system->LoadAll();
 
@@ -80,7 +96,7 @@ namespace md_analysis {
 				std::string atom_name = atom_names[i];
 				atom_name_list.push_back(atom_name);
 
-				histogram_set hs (3, histogram_t(-10.0, WaterSystem<T>::posmax+10.0, WaterSystem<T>::SystemParameterLookup("analysis.resolution.position")));
+				histogram_t hs (histogram_t(system_t::posmin, system_t::posmax, system_t::posres));
 				histograms.insert(histogram_map_elmt(atom_name, hs));
 			}
 
@@ -93,12 +109,10 @@ namespace md_analysis {
 	template <class T>
 		void AtomicDensityAnalysis<T>::Analysis () { 
 
-			//for (Atom_it it = t.int_atoms.begin(); it != t.int_atoms.end(); it++) {
-			//VecR pos = (*it)->Position();
-			//histograms[(*it)->Name()].push_back (pos);
-			//}
+			h2os.FindWaterSurfaceLocation();
 
-			std::for_each (this->_system->int_atoms.begin(), this->_system->int_atoms.end(), std::bind2nd(binner, &histograms));
+			atomic_position_binner binner (h2os.SurfaceLocation(), &histograms, h2os.TopSurface());
+			std::for_each (this->_system->int_atoms.begin(), this->_system->int_atoms.end(), binner);
 		}
 
 	template <class T>
@@ -107,24 +121,24 @@ namespace md_analysis {
 			rewind(this->output);
 
 			// first output the header of all the atom-names
+			fprintf (this->output, "position ");
 			for (std::vector<std::string>::const_iterator it = atom_name_list.begin(); it != atom_name_list.end(); it++) {
-				fprintf (this->output, "%s_x %s_y %s_z ", it->c_str(), it->c_str(), it->c_str());
+				fprintf (this->output, " %s ", it->c_str());
 			}
 			fprintf (this->output, "\n");
-			fflush(this->output);
 
 			// output the data from the histograms
-			double dr = histograms.begin()->second[0].Resolution();
-			double min = histograms.begin()->second[0].Min();
-			double max = histograms.begin()->second[0].Max();
+			double dr = system_t::posres;
+			double min = system_t::posmin;
+			double max = system_t::posmax;
 
 			for (double r = min; r < max; r+=dr) {
+				fprintf (this->output, "% 8.4f ", r);	// print the position
+
 				for (std::vector<std::string>::const_iterator name = atom_name_list.begin(); name != atom_name_list.end(); name++) {
 
-					histogram_set& hs = histograms[*name];
-					for (int ax = 0; ax < 3; ax++) {
-						fprintf (this->output, "% 8.3f % 8.3f ", r, hs[ax].Population(r)/this->_system->timestep);
-					}
+					histogram_t * hs = &histograms.find(*name)->second;
+					fprintf (this->output, "% 8.3f ", hs->Population(r)/this->_system->timestep);
 				}
 				fprintf (this->output, "\n");
 			}

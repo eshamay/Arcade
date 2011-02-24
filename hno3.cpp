@@ -42,7 +42,7 @@ namespace md_system {
 
 		// we've got all the atoms, now let's find the wannier centers that match those atoms of O1, O2, and N
 		_no2wanniers.clear();
-		for (VecR_it it = _wanniers.begin(); it != _wanniers.end(); it++) {
+		for (vector_map_it it = _wanniers.begin(); it != _wanniers.end(); it++) {
 
 			// check for O1 wans
 			double distance = (_o1->Position() - *it).Magnitude();

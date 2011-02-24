@@ -236,7 +236,7 @@ namespace md_system {
 
 		if (_wanniers.size()) {
 			printf ("Wannier) ");
-			std::for_each (this->_wanniers.begin(), this->_wanniers.end(), std::mem_fun_ref(&VecR::Print));
+			std::for_each (this->_wanniers.begin(), this->_wanniers.end(), std::mem_fun_ref(&vector_map::Print));
 			//printf ("wan)\t%d\n", _wanniers.size());
 		}
 		printf ("\n");

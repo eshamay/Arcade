@@ -200,7 +200,7 @@ namespace coordinate_conversion {
 	//		theta = tilt from z-axis
 	//		phi = twist about the z-axis, referenced from the x-axis
 
-	void CartesianToSpherical (double *coord);
+	void CartesianToSpherical (double * coord);
 	void DCM2EulerAngles_ZXZ (double * m, double * angles);
 	void DCM2EulerAngles_YZY (double * m, double * angles);
 	void DCM2EulerAngles_ZXY (double * m, double * angles);

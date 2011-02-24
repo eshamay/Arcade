@@ -64,7 +64,14 @@ namespace neighbor_analysis {
 					while (it != end() && (*it)->Element() != elmt) { it++; }
 				}
 
+				// retrieve the closest atoms to the given reference_atom
+				Atom_range GetClosestAtoms (AtomPtr a, const int num) {
+					this->OrderAtomsByDistance(a);
+					return std::make_pair(this->analysis_atoms.begin(), this->analysis_atoms.begin() + num);
+				}
+
 				void next_closest (Atom_it& it) { it++; }
+
 
 			private:
 				AtomPtr									reference_atom;
@@ -210,7 +217,7 @@ namespace neighbor_analysis {
 				for (AtomPtr a = *gray_source; a != ref_atom; a = graph.Parent(a)) {
 					new_cycle.push_back(a);
 				}
-				
+
 				// the first atom in the cycle is the reference. Here we get the atom connected to the reference - the first non-ref atom - and the last atom in the cycle
 				// based on the molecules these are connected to, we discover the type of cycle they're involved in
 				cycle_it _first = new_cycle.begin(); _first++;	
@@ -495,6 +502,147 @@ namespace neighbor_analysis {
 			fprintf (this->output, " %5d\n", cm.NumReferenceAtomHBonds());
 
 		}	// so2 h bonding analysis
+
+
+
+	//******************** Find out some things about so2's nearest neighbor **************************/
+
+
+	template <typename T>
+		class SO2NearestNeighborAnalysis : public AnalysisSet<T> {
+			public:
+				typedef Analyzer<T> system_t;
+
+				SO2NearestNeighborAnalysis (system_t * t) :
+					AnalysisSet<T>(t,
+							std::string ("Track SO2's nearest neighbors"),
+							std::string ("so2-neighbors.dat")),
+					neighbors (t),
+					so2s (t), h2os (t),
+					first_pass (true) {
+						h2os.ReferencePoint(WaterSystem<T>::SystemParameterLookup("analysis.reference-location")); 
+					}
+
+				~SO2NearestNeighborAnalysis() { }
+				void AnglePrintout (Atom_it first, Atom_it last, AtomPtr ref, const MatR& dcm) const;
+
+				void Analysis();
+
+			protected:
+				NeighborManipulator<T>	neighbors;
+				h2o_analysis::H2OSystemManipulator<T>	h2os;
+				so2_analysis::SO2SystemManipulator<T>	so2s;
+
+				Atom_ptr_vec nearest_atoms;
+				Atom_ptr_vec first_os;
+				Atom_ptr_vec first_hs_o1;
+				Atom_ptr_vec first_hs_o2;
+				Mol_ptr_vec	nearest_neighbors;
+				bondgraph::BondGraph	graph;
+
+				bool first_pass;
+
+		};	// nearest neighbor analysis
+
+
+
+	template <typename T>
+		void SO2NearestNeighborAnalysis<T>::Analysis () {
+
+			h2os.FindWaterSurfaceLocation();
+
+			// At first we iterate through and find the several atoms that bind to the SO2
+			// To do this we check each atom (S, O1, O2) for any hbonds/interactions, and if we find them 
+			// and add it into our list of the first several that bind. 
+			if (first_pass) {
+				Atom_ptr_vec graph_atoms;
+				std::copy (h2os.begin_atoms(), h2os.end_atoms(), std::back_inserter(graph_atoms));
+				graph_atoms.push_back (so2s.S());
+				graph_atoms.push_back (so2s.O1());
+				graph_atoms.push_back (so2s.O2());
+				graph.UpdateGraph(graph_atoms.begin(), graph_atoms.end());
+
+				// find any oxygens bound to the S
+				Atom_ptr_vec bound_atoms = graph.BondedAtoms (so2s.S(), bondgraph::interaction);
+
+				// add in any unaccounted-for atoms that have bound to the S
+				if (!bound_atoms.empty()) {
+					for (Atom_it it = bound_atoms.begin(); it != bound_atoms.end(); ++it) {
+						if (std::find (first_os.begin(), first_os.end(), *it) != first_os.end()) {
+							first_os.push_back(*it);
+							std::cout << "found an O on S" << std::endl;
+						}
+					}
+				}
+
+				// do the same for the first and second oxygens
+				bound_atoms = graph.BondedAtoms (so2s.O1(), bondgraph::hbond);
+
+				// add in any unaccounted-for atoms that have bound
+				if (!bound_atoms.empty()) {
+					for (Atom_it it = bound_atoms.begin(); it != bound_atoms.end(); ++it) {
+						if (std::find (first_hs_o1.begin(), first_hs_o1.end(), *it) != first_hs_o1.end()){
+							first_hs_o1.push_back(*it);
+							std::cout << "found an H on O1" << std::endl;
+						}
+					}
+				}
+
+				bound_atoms = graph.BondedAtoms (so2s.O2(), bondgraph::hbond);
+
+				// add in any unaccounted-for atoms that have bound
+				if (!bound_atoms.empty()) {
+					for (Atom_it it = bound_atoms.begin(); it != bound_atoms.end(); ++it) {
+						if (std::find (first_hs_o2.begin(), first_hs_o2.end(), *it) != first_hs_o2.end()) {
+							first_hs_o2.push_back(*it);
+							std::cout << "found an H on O2" << std::endl;
+						}
+					}
+				}
+
+				if (first_hs_o1.size() >= 2 && first_hs_o2.size() >= 2 && first_os.size() >= 2) {
+					first_pass = false;
+					printf ("\n***Rewinding***\n");
+					this->_system->Rewind();
+				}
+
+			} else if (!first_pass) {
+
+				// now after going back in time, grab the position of the bound atoms and find their positions relative to the ... Sulfur
+				// first get the distance vector to the oxygen
+				so2s.SO2()->SetOrderAxes();
+				// we need the DCM from lab frame to SO2 frame
+				MatR dcm = so2s.SO2()->DCMToLab();
+
+				// print out the distance of the so2 to the surface
+				double distance = system_t::Position(so2s.S()) - h2os.SurfaceLocation(); // top surface
+				fprintf (this->output, "% 12.5f ", distance);
+
+				AnglePrintout (first_os.begin(), first_os.end(), so2s.S(), dcm);
+				AnglePrintout (first_hs_o1.begin(), first_hs_o1.end(), so2s.O1(), dcm);
+				AnglePrintout (first_hs_o2.begin(), first_hs_o2.end(), so2s.O2(), dcm);
+
+				fprintf (this->output, "\n");
+			}
+
+		} // analysis
+
+	template <typename T>
+		void SO2NearestNeighborAnalysis<T>::AnglePrintout (Atom_it first, Atom_it last, AtomPtr ref, const MatR& dcm) const {
+			VecR bound_atom;
+			for (Atom_it it = first; it != last; ++it) {
+				bound_atom = MDSystem::Distance(ref, *it);
+				// then find the position of the atom in the so2 frame
+				bound_atom = dcm.transpose() * bound_atom;
+
+				// now get the spherical coordinates of the atom
+				double coords[3] = {bound_atom[x],bound_atom[y],bound_atom[z]};
+				coordinate_conversion::CartesianToSpherical (coords);
+				// now print the 3 spherical coords
+				fprintf (this->output, "% 12.5f % 12.5f % 12.5f ", coords[0], coords[1]*180.0/M_PI, coords[2]*180.0/M_PI);
+			}
+		}
+
 
 }	// namespace md analysis
 

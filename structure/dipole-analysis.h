@@ -6,6 +6,7 @@
 
 namespace md_analysis {
 
+	/*
 	template <typename T>
 	class h2o_dipole_magnitude_histogram_analyzer : public histogram_analyzer<T> {
 		public:
@@ -32,6 +33,67 @@ namespace md_analysis {
 
 		return;
 	}
+
+	*/
+	template <typename T>
+		class SystemDipoleAnalyzer : public AnalysisSet<T> {
+
+			public:
+				typedef Analyzer<T> system_t;
+				SystemDipoleAnalyzer (system_t * t) :
+					AnalysisSet<T> (t,
+							std::string ("System Dipole Analysis"),
+							std::string ("system-dipole.dat")) { }
+
+				void Analysis ();
+
+				VecR_vec dipoles;
+
+				typedef Atom_ptr_vec::iterator	Atom_ncit;	// non-const iterators
+
+				class FixAtomCharges : public std::unary_function <AtomPtr, void> {
+					public:
+						void operator() (AtomPtr a) const {
+							switch (a->Element()) {
+								case Atom::H : a->Charge(0.365); break;
+								case Atom::O : a->Charge(-0.73); break;
+								case Atom::S : a->Charge(0.47); break;
+								default: break;
+							}
+						}
+				};
+
+		}; // system dipole analyzer
+
+	template <>
+		void SystemDipoleAnalyzer<AmberSystem>::Analysis () {
+			dipoles.clear();
+			this->LoadAll();
+			this->_system->LoadWaters();
+
+			std::for_each (WaterSystem<AmberSystem>::sys_atoms.begin(), WaterSystem<AmberSystem>::sys_atoms.end(), FixAtomCharges());
+
+			std::transform (WaterSystem<AmberSystem>::int_wats.begin(), WaterSystem<AmberSystem>::int_wats.end(), std::back_inserter(dipoles), std::ptr_fun(&MDSystem::CalcClassicDipole));
+			VecR dipole = std::accumulate (dipoles.begin(), dipoles.end(), VecR(0.0,0.0,0.0), vecr_add());
+
+			//dipole.Print();
+			fprintf (this->output, "% 12.8f % 12.8f % 12.8f\n", dipole[x], dipole[y], dipole[z]);
+
+		}	// analysis for amber systems
+
+
+
+	template <>
+		void SystemDipoleAnalyzer<XYZSystem>::Analysis () {
+			dipoles.clear();
+			this->LoadAll();
+
+			std::transform (this->begin_mols(), this->end_mols(), std::back_inserter(dipoles), std::ptr_fun(&MDSystem::CalcWannierDipole));
+			VecR dipole = std::accumulate (dipoles.begin(), dipoles.end(), VecR(0.0,0.0,0.0), vecr_add());
+
+			//dipole.Print();
+			fprintf (this->output, "% 12.8f % 12.8f % 12.8f\n", dipole[x], dipole[y], dipole[z]);
+		}	// analysis	for XYZ systems
 
 }	// namespace md_analysis
 

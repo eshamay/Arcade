@@ -10,6 +10,8 @@
 
 namespace md_files {
 
+	using namespace md_system;
+
 	class AmberSystem : public md_system::MDSystem {
 
 		protected:
@@ -47,15 +49,15 @@ namespace md_files {
 			//! An iterator to the end of the set of molecules
 			Mol_it end_mols () const { return _mols.end(); }
 			//! An indexing method for retrieving specific molecules in a system
-			MolPtr Molecules (int index) { return _mols[index]; }
+			MolPtr Molecules (int index) const { return _mols[index]; }
 			//! Returns the total number of molecules in a system
 			int NumMols () const { return _mols.size(); }
 
 			Atom_ptr_vec& Atoms () { return _atoms; }
-			Atom_it begin () { return _atoms.begin(); }
-			Atom_it end () { return _atoms.end(); }
-			AtomPtr Atoms (const int index) { return _atoms[index]; }
-			AtomPtr operator[] (int index) { return _atoms[index]; }
+			Atom_it begin () const { return _atoms.begin(); }
+			Atom_it end () const { return _atoms.end(); }
+			AtomPtr Atoms (const int index) const { return _atoms[index]; }
+			AtomPtr operator[] (int index) const { return _atoms[index]; }
 			int NumAtoms ()	const { return (int)_atoms.size(); }
 
 			int size () const { return (int)_atoms.size(); }

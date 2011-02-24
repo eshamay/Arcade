@@ -1,7 +1,7 @@
 include ../Makefile
 
 STRUCTURE				= $(ANALYZER)
-SYSTEMANALYSES	= $(STRUCTURE) ../bondgraph.o structure-analyzer.o
+SYSTEMANALYSES	= $(STRUCTURE) structure-analyzer.o
 
 structure-analyzer : $(SYSTEMANALYSES)
 	$(CXX) $(SYSTEMANALYSES) $(LIBS) -lpthread -lgsl -lgslcblas -o ../bin/structure-analyzer

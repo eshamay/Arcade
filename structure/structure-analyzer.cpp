@@ -19,9 +19,9 @@ int main (int argc, char**argv) {
 
 	if (system_choice == AMBER)
 		md_analysis::StructureAnalyzer<md_files::AmberSystem> sa(analysis_choice);
-	/*
 	else if (system_choice == XYZ)
-		md_analysis::StructureAnalyzer<XYZSystem> sa(analysis_choice);
+		md_analysis::StructureAnalyzer<md_files::XYZSystem> sa(analysis_choice);
+	/*
 	else if (system_choice == TRR)
 		md_analysis::StructureAnalyzer<gromacs::GMXSystem< gromacs::TRRFile> > sa(analysis_choice);
 	else if (system_choice == XTC)

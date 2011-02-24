@@ -56,7 +56,7 @@ namespace md_system {
 			void Force (coord const axis, double const value) { _force.Set (axis, value); }
 
 			void ID (const int id) { _ID = id; }
-			//void Charge (double charge) { _charge = charge; }
+			void Charge (double charge) { _charge = charge; }
 			void SetAtomProperties ();
 			void Residue (const std::string& residue) { _residue = residue; }
 
@@ -132,6 +132,7 @@ namespace md_system {
 	typedef Atom::Atom_it Atom_it;
 	typedef Atom::Atom_it_non_const Atom_it_non_const;
 	typedef Atom::Atom_rit Atom_rit;
+	typedef std::pair<Atom_it, Atom_it> Atom_range;
 
 }	// namespace md system
 #endif

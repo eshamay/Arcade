@@ -1,4 +1,3 @@
-#pragma once
 #ifndef XYZFILE_H_
 #define XYZFILE_H_
 
@@ -31,7 +30,7 @@ namespace md_files {
 			AtomPtr front () const { return _atoms.front(); }
 			AtomPtr back () const { return _atoms.back(); }
 
-			AtomPtr operator[] (int index) { return _atoms[index]; }
+			AtomPtr operator[] (int index) const { return _atoms[index]; }
 
 		protected:
 

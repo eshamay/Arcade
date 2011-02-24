@@ -42,7 +42,7 @@ inline void Print () const
 	if (cols() > 1)
 		std::cout << *this << std::endl;
 	else
-		printf ("[% 8.3f% 8.3f% 8.3f ]\n", this->x(), this->y(), this->z());
+		printf ("[% 9.5f% 9.5f% 9.5f ]\n", this->x(), this->y(), this->z());
 }
 
 

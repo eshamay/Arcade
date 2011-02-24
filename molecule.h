@@ -52,16 +52,12 @@ namespace md_system {
 			/* Dealing with atoms in the molecule */
 			Atom_ptr_vec Atoms () const			{ return _atoms; }
 
-			Atom_it begin() const {
-				return _atoms.begin();
-			}
-			Atom_it end() const {
-				return _atoms.end();
-			}
+			Atom_it begin() const { return _atoms.begin(); }
+			Atom_it end() const { return _atoms.end(); }
 
-			const VecR_vec& Wanniers ()		const { return _wanniers; }
-			VecR_it wanniers_begin ()			const { return _wanniers.begin(); }
-			VecR_it wanniers_end ()				const { return _wanniers.end(); }
+			const vector_map_vec& Wanniers ()		const { return _wanniers; }
+			vector_map_it wanniers_begin ()			const { return _wanniers.begin(); }
+			vector_map_it wanniers_end ()				const { return _wanniers.end(); }
 
 			double Mass ()				const 			{ return _mass; }					// Returns the molecular mass
 			int size ()						const				{ return _atoms.size(); }
@@ -111,7 +107,7 @@ namespace md_system {
 			//int operator+= (Molecule& mol);					// Joins two molecules
 
 			// Some stuff to work with wannier centers
-			void AddWannier (const VecR& wannier) { _wanniers.push_back(wannier); } // adds a wannier center into the molecule
+			void AddWannier (const vector_map& wannier) { _wanniers.push_back(wannier); } // adds a wannier center into the molecule
 			void ClearWanniers () { _wanniers.clear(); }	// clear out the entire list
 
 
@@ -195,10 +191,10 @@ namespace md_system {
 					
 
 		protected:
-			Atom_ptr_vec	_atoms;				// the list of the atoms in the molecule
-			VecR_vec			_wanniers;			// the wannier centers in the molecule
-			VecR					_dipole;			// the molecular dipole
-			VecR					_x, _y, _z;			// molecular frame axes
+			Atom_ptr_vec			_atoms;					// the list of the atoms in the molecule
+			vector_map_vec		_wanniers;			// the wannier centers in the molecule
+			VecR							_dipole;				// the molecular dipole
+			VecR							_x, _y, _z;			// molecular frame axes
 
 			// this is broken last I checked - not updated with coordinate updates
 			VecR			_centerofmass;		// calculate by 1/M * Sum(m[i]*r[i])	where M = total mass, m[i] and r[i] are atom mass and pos

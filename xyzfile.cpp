@@ -14,7 +14,7 @@ namespace md_files {
 				}
 
 				// Initialize the atoms
-				this->LoadNext();
+				//this->LoadNext();
 			}
 
 	XYZFile::~XYZFile () {
@@ -47,7 +47,7 @@ namespace md_files {
 
 			// if we haven't already done so, let's create all the atoms we'll need
 			if (!_initialized) {
-				double * frc;
+				double * frc = (double *)NULL;
 				_atoms.push_back ( new Atom (std::string(name), &_coords[3*i], frc) );
 				_atoms.back()->ID (i);
 				_atoms.back()->SetAtomProperties();

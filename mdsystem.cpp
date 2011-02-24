@@ -9,13 +9,14 @@ namespace md_system {
 		_size(c_size),
 		_coords (_size*3, 0.0),
 		_frame(0),
-		_eof(false) {
+		_eof(true) {
 
 			_file = fopen64 (path.c_str(), "r");
 			if (_file == (FILE *)NULL) {
 				printf ("Couldn't load the Coordinate file %s\n", path.c_str());
 				exit(1);
 			}
+			_eof = false;
 
 		}
 
@@ -24,7 +25,7 @@ namespace md_system {
 		_file ((FILE *)NULL),
 		_path(path),
 		_frame(0),
-		_eof(false) {
+		_eof(true) {
 
 			_file = fopen64 (path.c_str(), "r");
 			if (_file == (FILE *)NULL)
@@ -32,12 +33,13 @@ namespace md_system {
 				printf ("Couldn't load the Coordinate file %s\n", path.c_str());
 				exit(1);
 			}
+			_eof = false;
 		}
 
 	CoordinateFile::CoordinateFile () :
 		_file ((FILE *)NULL),
 		_frame(0),
-		_eof(false) { }
+		_eof(true) { }
 
 
 	// The system size for periodic boundary calculations
@@ -119,9 +121,10 @@ namespace md_system {
 		VecR dipole = CalcClassicDipole(mol);
 
 		VecR com = mol->CenterOfMass();
+		//VecR com (0.0,0.0,0.0);
 
 		// wannier centers have a charge of -2
-		for (VecR_it vt = mol->wanniers_begin(); vt != mol->wanniers_end(); vt++) {
+		for (vector_map_it vt = mol->wanniers_begin(); vt != mol->wanniers_end(); vt++) {
 			VecR r (MDSystem::Distance(com, *vt));
 			r *= 2.0;
 			dipole -= r;

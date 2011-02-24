@@ -1,4 +1,3 @@
-#pragma once
 #ifndef GRAPH_H_
 #define GRAPH_H_
 
@@ -142,6 +141,7 @@ namespace bondgraph {
 			static PropertyMap<Atom::Element_t,VertexProperties>::Type	v_elmt;
 			static PropertyMap<AtomPtr,VertexProperties>::Type		v_parent;
 
+			void _ParseAtoms (Atom_it first, Atom_it last);
 			void _ParseAtoms (const Atom_ptr_vec& atoms);
 			void _ParseBonds ();
 			void _ClearBonds ();
@@ -166,7 +166,8 @@ namespace bondgraph {
 			graph_t& Graph() { return _graph; }
 
 			void SysType (std::string sys_type) { _sys_type = sys_type; }
-			void UpdateGraph (const Atom_ptr_vec& atoms);
+			void UpdateGraph (Atom_it, Atom_it);
+			void UpdateGraph (const Atom_ptr_vec&);
 
 			Atom_ptr_vec BondedAtoms (
 					const AtomPtr ap,
