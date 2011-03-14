@@ -401,8 +401,6 @@ namespace neighbor_analysis {
 			cm.BuildGraph();
 			fprintf (this->output, " %5d ", cm.NumReferenceInteractions());
 
-
-
 			cm.ParseCycles();
 
 			typename std::list<typename CycleManipulator<T>::cycle_list>::const_iterator	cycle = cm.cycle_begin();	
@@ -460,19 +458,24 @@ namespace neighbor_analysis {
 				SO2HBondingAnalysis (system_t * t) :
 					AnalysisSet<T>(t,
 							std::string ("SO2 H-bonding analysis"),
-							std::string ("so2-h-bonding.dat")),
-					cm(t),
-					so2s (t), h2os(t)
-			{ h2os.ReferencePoint(WaterSystem<T>::SystemParameterLookup("analysis.reference-location")); }
+							std::string ("")),
+					so2s(t), h2os(t),
+					histo (std::string("hbonding.dat"), system_t::posmin, system_t::posmax, system_t::posres) { 
+						h2os.ReferencePoint(WaterSystem<T>::SystemParameterLookup("analysis.reference-location")); 
+					}
 
 				~SO2HBondingAnalysis() { }
 
 				void Analysis();
+				void DataOutput () { histo.OutputData(); }
 
 			protected:
-				CycleManipulator<T>								cm;
+				bondgraph::BondGraph									graph;
+				Atom_ptr_vec													nearest, bonded;
 				h2o_analysis::H2OSystemManipulator<T>	h2os;
 				so2_analysis::SO2SystemManipulator<T>	so2s;
+				Histogram1DAgent histo;
+
 
 		};	// h-bonding analysis
 
@@ -483,23 +486,58 @@ namespace neighbor_analysis {
 			//h2os.FindWaterSurfaceLocation(true);	// top surface
 			h2os.FindWaterSurfaceLocation();	// bottom surface
 			//double distance = system_t::Position(so2s.S()) - h2os.SurfaceLocation();	// top surface
-			double distance = h2os.SurfaceLocation() - system_t::Position(so2s.S());	// bottom surface
-			fprintf (this->output, " % 8.3f ", distance);
+			double distance;
+			if (h2os.TopSurface())
+				distance = system_t::Position(so2s.S()) - h2os.SurfaceLocation();	// bottom surface
+			else
+				distance = h2os.SurfaceLocation() - system_t::Position(so2s.S());	// top surface
 
-			// select the reference atom to use for determining h-bonding to the so2.
-			cm.SetReferenceAtom(so2s.O1());
-			cm.SetCycleSize (15);
+			this->LoadAll();
+			// sort the atoms in the system in order of distance from the SO2
+			std::sort(
+					this->begin(), 
+					this->end(), 
+					system_t::atomic_distance_cmp (so2s.S()));
 
-			cm.BuildGraph();
+			//nearest.clear();
+			//std::copy (this->begin(), this->begin+20, std::back_inserter(nearest));
+			// build the graph using a handful of the closest atoms
+			graph.UpdateGraph(this->begin(), this->begin() + 20);
 
-			// output the number of bonds on the first oxygen
-			fprintf (this->output, " %5d ", cm.NumReferenceAtomHBonds());
+			// grab the number of atoms connected to the reference atom through bonding, and check if the bond looks right.
+			bonded.clear();
 
-			cm.SetReferenceAtom(so2s.O2());
-			cm.BuildGraph();
+			// check for when the so2 has a single bond on the S and no other bonds
+			// O2S-OH2
+			/*
+			bonded = graph.BondedAtoms (so2s.S(), bondgraph::interaction, Atom::O);
+			bool good = false;
+			if (bonded.size() == 1 && bonded[0]->ParentMolecule()->MolType() == Molecule::H2O) {
+				good = true;
+			}
+			bonded = graph.BondedAtoms (so2s.O1(), bondgraph::hbond, Atom::H);
+			if (bonded.size() >= 1)
+				good = false;
+			bonded = graph.BondedAtoms (so2s.O2(), bondgraph::hbond, Atom::H);
+			if (bonded.size() >= 1)
+				good = false;
 
-			// then for the 2nd oxygen
-			fprintf (this->output, " %5d\n", cm.NumReferenceAtomHBonds());
+			if (good)
+				histo(distance);
+			*/
+
+			// checking for the OSO--HOH interaction on a single water - only a 1:1 interaction
+			// One O bond, and no S bonds
+			int bonds = 0;
+			bonded = graph.BondedAtoms (so2s.O1(), bondgraph::hbond, Atom::H);
+			if (bonded.size() == 1 && bonded[0]->ParentMolecule()->MolType() == Molecule::H2O)
+				++bonds;
+			bonded = graph.BondedAtoms (so2s.O2(), bondgraph::hbond, Atom::H);
+			if (bonded.size() == 1 && bonded[0]->ParentMolecule()->MolType() == Molecule::H2O)
+				++bonds;
+			bonded = graph.BondedAtoms (so2s.S(), bondgraph::hbond, Atom::H);
+			if (bonds == 1 && bonded.empty())
+				histo(distance);
 
 		}	// so2 h bonding analysis
 
