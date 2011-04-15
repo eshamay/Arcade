@@ -45,10 +45,10 @@ namespace md_files {
 		// grab each coordinate vector for each wannier center until the size of the system is processed
 		for (int i = 0; i < this->_size; i++) {
 			//printf ("% 8.4f % 8.4f % 8.4f\n", a,b,c);
-			//this->_eof = (fscanf (_file, "X %lf %lf %lf %*f ", &this->_coords[3*i], &this->_coords[3*i+1], &this->_coords[3*i+2]) == EOF);
+			this->_eof = (fscanf (_file, "X %lf %lf %lf %*f ", &this->_coords[3*i], &this->_coords[3*i+1], &this->_coords[3*i+2]) == EOF);
+			//this->_eof = (fscanf (_file, " X %lf %lf %lf %*f %*f %*f ", &this->_coords[3*i], &this->_coords[3*i+1], &this->_coords[3*i+2]) == EOF);
 		//	if (fscanf (_file, "X %lf %lf %lf %*f ", &_coords[3*i], &_coords[3*i+1], &_coords[3*i+2]) == EOF) 
 		//		_eof=true;
-		this->_eof = (fscanf (_file, " X %lf %lf %lf %*f %*f %*f ", &this->_coords[3*i], &this->_coords[3*i+1], &this->_coords[3*i+2]) == EOF);
 		}
 
 		if (!_eof)

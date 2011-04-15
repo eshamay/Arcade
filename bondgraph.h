@@ -38,12 +38,15 @@ namespace bondgraph {
 
 	// various bondlengths to be used
 	const double OHBONDLENGTH = 1.2;				// used to be 1.1
-	const double HBONDLENGTH  = 2.6;				// used to be 2.46
+	const double HBONDLENGTH  = 2.46;				// used to be 2.46
 	//const double HBONDANGLECOS	= cos(30.0*M_PI/180.0);		// bonding angle has to be bigger than this cos (i.e. smaller than ~30 degrees
 	const double NOBONDLENGTH = 2.0;
 	const double NHBONDLENGTH = 1.3;		// uhmm... check this?
-	const double SOBONDLENGTH = 1.9;
-	const double SOINTERACTIONLENGTH = 3.0;		// S not covalently bound to O
+	const double SOBONDLENGTH = 1.8;
+	const double SOINTERACTIONLENGTH = 3.5;		// S not covalently bound to O
+	const double COBONDLENGTH = 1.5;
+	const double CHBONDLENGTH = 1.5;
+	const double CCBONDLENGTH = 2.0;
 
 
 
@@ -174,6 +177,8 @@ namespace bondgraph {
 					const bondtype btype = null,
 					const Atom::Element_t elmt = Atom::NO_ELEMENT
 					) const;
+
+			Atom_ptr_vec InteractingAtoms ( const AtomPtr ap) const;
 
 			Vertex_it _FindVertex (const AtomPtr atom) const;
 			// Given a molecule, find the atom (of an optionally given name) that is closest to the molecule but not part of it.

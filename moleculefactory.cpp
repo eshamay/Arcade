@@ -18,8 +18,8 @@ namespace md_system {
 			mol = new SulfurDioxide;
 		//else if (name == "no3")
 		//mol = new Nitrate;
-		else if (name == "ctc")
-			mol = new CarbonTetrachloride;
+		//else if (name == "ctc")
+			//mol = new CarbonTetrachloride;
 
 		else {
 			mol = new Molecule;

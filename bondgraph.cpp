@@ -156,6 +156,22 @@ namespace bondgraph {
 					}	// process S-O interactions (sorta h-bonds)
 				}
 
+				else if (Atom::ElementCombo (ai,aj, Atom::C, Atom::O)) {
+					if (bondlength < COBONDLENGTH) {
+						btype = covalent;
+					}
+				}
+				else if (Atom::ElementCombo (ai,aj, Atom::C, Atom::H)) {
+					if (bondlength < CHBONDLENGTH) {
+						btype = covalent;
+					}
+				}
+				else if (Atom::ElementCombo (ai,aj, Atom::C, Atom::C)) {
+					if (bondlength < CCBONDLENGTH) {
+						btype = covalent;
+					}
+				}
+
 				// add in the bond between two atoms
 				if (btype != unbonded)
 					this->_SetBond (*vi, *vj, bondlength, btype);
@@ -214,7 +230,7 @@ namespace bondgraph {
 
 	void BondGraph::UpdateGraph (const Atom_ptr_vec& atoms) {
 		this->UpdateGraph (atoms.begin(), atoms.end());
-		this->_ParseAtoms(atoms.begin(), atoms.end());
+		//this->_ParseAtoms(atoms.begin(), atoms.end());
 		return;
 	}
 
@@ -280,8 +296,12 @@ namespace bondgraph {
 		return (atoms);
 	}	// Bonded atoms
 
+	Atom_ptr_vec BondGraph::InteractingAtoms (const AtomPtr ap) const {
+		return this->BondedAtoms(ap, interaction);
+	}
+
 	int BondGraph::NumInteractions (const AtomPtr ap) const {
-		return (this->BondedAtoms(ap, interaction).size());
+		return (this->InteractingAtoms(ap).size());
 	}
 
 	int BondGraph::NumHBonds (const AtomPtr ap) const {

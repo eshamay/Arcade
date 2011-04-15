@@ -55,9 +55,9 @@ namespace md_system {
 			Atom_it begin() const { return _atoms.begin(); }
 			Atom_it end() const { return _atoms.end(); }
 
-			const vector_map_vec& Wanniers ()		const { return _wanniers; }
-			vector_map_it wanniers_begin ()			const { return _wanniers.begin(); }
-			vector_map_it wanniers_end ()				const { return _wanniers.end(); }
+			vector_map_vec& Wanniers ()					{ return _wanniers; }
+			vector_map_it wanniers_begin ()			{ return _wanniers.begin(); }
+			vector_map_it wanniers_end ()				{ return _wanniers.end(); }
 
 			double Mass ()				const 			{ return _mass; }					// Returns the molecular mass
 			int size ()						const				{ return _atoms.size(); }
@@ -142,9 +142,9 @@ namespace md_system {
 					}
 				};
 
-			// returns an iterator to the first occurence of a member with the given name
-			static MolPtr FindByType (const Mol_ptr_vec& mols, const Molecule_t& type) {
-				Mol_it it = std::find_if (mols.begin(), mols.end(), member_functional::mem_fun_eq(&Molecule::MolType,type));
+			// returns an iterator to the first occurence of a member with the given molecule type
+			static MolPtr FindByType (const Mol_it& first, const Mol_it& last, const Molecule_t& type) {
+				Mol_it it = std::find_if (first, last, member_functional::mem_fun_eq(&Molecule::MolType,type));
 				return *it;
 			}
 

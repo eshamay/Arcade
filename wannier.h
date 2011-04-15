@@ -18,9 +18,17 @@ namespace md_files {
 			WannierFile (std::string wannierpath);
 			~WannierFile ();
 
-			typedef vec_vec_map::const_iterator Wannier_it;
-			Wannier_it begin () const { return _wanniers.begin(); }
-			Wannier_it end () const { return _wanniers.end(); }
+			typedef vector_map_it Wannier_it;
+			Wannier_it begin () { return _wanniers.begin(); }
+			Wannier_it end () { return _wanniers.end(); }
+
+			vector_map& operator[] (const int index) { 
+				if (index < 0 || index > _wanniers.size()-1) {
+					std::cerr << "bad wannier file index -> " << index << " of " << _wanniers.size() << std::endl;
+					exit(1);
+				}
+				return _wanniers[index]; 
+			}
 
 			// Various control functions
 			void LoadNext ();

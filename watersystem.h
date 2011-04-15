@@ -60,6 +60,9 @@ namespace md_system {
 
 				static Mol_ptr_vec	int_wats;		// interfacial waters, or just all the waters in the system depending on the function call
 
+				wannier_it begin_wanniers() const;
+				wannier_it end_wanniers() const;
+
 				void OpenFile ();
 
 
@@ -324,6 +327,14 @@ namespace md_system {
 				return;
 			}
 
+		template <>
+			wannier_it WaterSystem<XYZSystem>::begin_wanniers() const { return this->sys->begin_wanniers(); }
+		template <>
+			wannier_it WaterSystem<XYZSystem>::end_wanniers() const { return this->sys->end_wanniers(); }
+		template <>
+			wannier_it WaterSystem<AmberSystem>::begin_wanniers() const { std::cerr << "Tried to get wanniers from amber system!" << std::endl; exit(1); return; }
+		template <>
+			wannier_it WaterSystem<AmberSystem>::end_wanniers() const { std::cerr << "Tried to get wanniers from amber system!" << std::endl; exit(1); return; }
 
 }	// namespace
 

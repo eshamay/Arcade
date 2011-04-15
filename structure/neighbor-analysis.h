@@ -682,6 +682,85 @@ namespace neighbor_analysis {
 		}
 
 
-}	// namespace md analysis
+
+	/*
+	 * Find what atoms are bound to the S, and to the Os.
+	 */
+	template <typename T>
+		class SO2BondingAnalysis : public AnalysisSet<T> {
+			public:
+				typedef Analyzer<T> system_t;
+
+				SO2BondingAnalysis (system_t * t) :
+					AnalysisSet<T>(t,
+							std::string ("Find out what atoms are bound the the SO2"),
+							std::string ("so2-bonding.dat")) {
+					}
+
+				void Analysis ();
+				void FindSO2 ();
+				void BuildBondingGraph ();
+				void FindBonds (const AtomPtr&);
+				void PrintBondingInformation ();
+
+			private:
+				SulfurDioxide * so2;	// reference molecule
+				bondgraph::BondGraph		graph;	// connectivity/bonding graph
+				std::vector<int>				bonds;
+		}; // so2 bonding analysis
+
+	template <typename T>
+		void SO2BondingAnalysis<T>::Analysis () {
+			FindSO2();
+			BuildBondingGraph();
+
+			bonds.clear();
+			FindBonds(so2->S());
+			FindBonds(so2->O1());
+			FindBonds(so2->O2());
+
+			PrintBondingInformation();
+			return;
+		}
+
+	template <typename T>
+		void SO2BondingAnalysis<T>::FindSO2 () {
+			this->LoadAll();
+			MolPtr mol = Molecule::FindByType (this->begin_mols(), this->end_mols(), Molecule::SO2);
+			so2 = static_cast<SulfurDioxide *>(mol);
+			so2->SetAtoms();
+		}
+
+	template <typename T>
+		void SO2BondingAnalysis<T>::BuildBondingGraph () {
+			graph.UpdateGraph(this->begin(), this->end());
+		}
+
+	template <typename T>
+		void SO2BondingAnalysis<T>::FindBonds (const AtomPtr& atom) {
+			// get the atoms bound to the reference atom
+			int atom_bonds;
+			if (atom->Element() == Atom::S) {
+				Atom_ptr_vec inters = graph.InteractingAtoms (atom);
+				std::for_each (inters.begin(), inters.end(), std::mem_fun(&Atom::Print));
+				atom_bonds = inters.size();
+			}
+
+			if (atom->Element() == Atom::O)
+				atom_bonds = graph.NumHBonds (atom);
+
+			bonds.push_back(atom_bonds);
+		}
+
+	template <typename T>
+		void SO2BondingAnalysis<T>::PrintBondingInformation () {
+			for (int i = 0; i < bonds.size(); i++) {
+				printf ("%d  ", bonds[i]);
+			}
+			printf ("\n");
+			//std::copy (bonds.begin(), bonds.end(), std::ostream_iterator<int>(std::cout));
+		}
+
+}	// namespace neighbor analysis
 
 #endif

@@ -55,6 +55,10 @@ namespace md_analysis {
 				Mol_it begin_mols () const { return this->_system->sys_mols.begin(); }
 				Mol_it end_mols () const { return this->_system->sys_mols.end(); }
 
+				wannier_it begin_wanniers () const { return this->_system->begin_wanniers(); }
+				wannier_it end_wanniers () const { return this->_system->end_wanniers(); }
+
+
 			protected:
 
 				system_t * _system;

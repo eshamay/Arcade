@@ -36,7 +36,7 @@ namespace md_analysis {
 
 				AtomicDensityAnalysis (system_t * t) : 
 					AnalysisSet<T> (t,
-							std::string("An analysis of the density of atoms in a system based on atomic position"),
+							std::string("An analysis of the density of atoms in a system relative to surface position"),
 							std::string("atomic-density.dat")),
 					h2os(t) { } 
 
@@ -147,7 +147,120 @@ namespace md_analysis {
 
 		}	// Data Output
 
+	//********************* Atomic System Density - not correlated to surface location ********************/
+	template <typename T>
+		class SystemDensitiesAnalysis : public AnalysisSet<T> {
+			public:
+				typedef Analyzer<T> system_t;
 
+				SystemDensitiesAnalysis (system_t * t) : 
+					AnalysisSet<T> (t,
+							std::string("An analysis of the density of atoms in a system based on atomic position"),
+							std::string("system-densities.dat")) { }
+
+				virtual ~SystemDensitiesAnalysis () { }
+
+				void Setup ();
+				void Analysis ();
+				// For each atom type (name) in the system, the histograms in each direction will be output
+				void DataOutput ();
+
+			protected:
+				std::vector<std::string> atom_name_list;
+				// Every atom-name will have its own histogram of positions in the system. Each position is held as a vector to the atom site.
+				typedef histogram_utilities::Histogram1D<double>	histogram_t;
+				typedef std::pair<std::string, histogram_t>				histogram_map_elmt;
+				typedef std::map<std::string, histogram_t>				histogram_map;
+				histogram_map																			histograms;
+
+				class atomic_position_binner : public std::unary_function<AtomPtr,void> {
+					private:
+						histogram_map * histos;
+					public:
+						atomic_position_binner (histogram_map * hs) : histos(hs) { }
+
+						void operator() (AtomPtr atom) const {
+							histogram_map::iterator it = histos->find(atom->Name());
+							if (it == histos->end()) std::cout << "couldn't find the atom named: " << atom->Name() << std::endl;
+							else { 
+								double position = system_t::Position (atom);
+								it->second.operator()(position);
+							}
+						}
+				};	// atomic density binner
+
+
+
+		};	// atomic density class
+
+
+	template <class T>
+		void SystemDensitiesAnalysis<T>::Setup () {
+
+			AnalysisSet<T>::Setup();
+
+			this->_system->LoadAll();
+
+			// grab the list of atomic names/types that will be used for the analysis and create the vector-histograms
+			libconfig::Setting &atom_names = WaterSystem<T>::SystemParameterLookup("analysis.density.atom-names");
+			for (int i = 0; i < atom_names.getLength(); i++)
+			{
+				std::string atom_name = atom_names[i];
+				atom_name_list.push_back(atom_name);
+
+				histogram_t hs (histogram_t(system_t::posmin, system_t::posmax, system_t::posres));
+				histograms.insert(histogram_map_elmt(atom_name, hs));
+			}
+
+			// narrow down the system atoms to just those with names we're looking for
+			md_name_utilities::KeepByNames (this->_system->int_atoms, atom_name_list);
+
+		}	// Setup
+
+
+	template <class T>
+		void SystemDensitiesAnalysis<T>::Analysis () { 
+
+			this->_system->LoadAll();
+			std::for_each (this->_system->int_atoms.begin(), this->_system->int_atoms.end(), atomic_position_binner (&histograms));
+		}
+
+	template <class T>
+		void SystemDensitiesAnalysis<T>::DataOutput () {
+
+			rewind(this->output);
+
+			// first output the header of all the atom-names
+			fprintf (this->output, "position ");
+			for (std::vector<std::string>::const_iterator it = atom_name_list.begin(); it != atom_name_list.end(); it++) {
+				fprintf (this->output, " %s ", it->c_str());
+			}
+			fprintf (this->output, "\n");
+
+			// output the data from the histograms
+			double dr = system_t::posres;
+			double min = system_t::posmin;
+			double max = system_t::posmax;
+
+			for (double r = min; r < max; r+=dr) {
+				fprintf (this->output, "% 8.4f ", r);	// print the position
+
+				for (std::vector<std::string>::const_iterator name = atom_name_list.begin(); name != atom_name_list.end(); name++) {
+
+					histogram_t * hs = &histograms.find(*name)->second;
+					fprintf (this->output, "% 8.3f ", hs->Population(r)/this->_system->timestep);
+				}
+				fprintf (this->output, "\n");
+			}
+
+			fflush(this->output);
+
+		}	// Data Output
+
+
+
+
+	//********************** H2O Surface Statistics ***************/
 
 	// output some statistics about the water surface - i.e. standard deviation of the position of the top several waters
 	template <typename T>
@@ -181,7 +294,7 @@ namespace md_analysis {
 
 			// find the standard deviation of the overall surface locations
 			surface_locations.push_back(h2os.SurfaceLocation());
-			// record the mean location and the standard deviation of the water positions
+			// record the mean location and the standard deviation of the water positions, and the running SD of the surface widths
 		  fprintf (this->output, "% 8.3f % 8.3f % 8.3f\n", surface_locations.back(), h2os.SurfaceWidth(), gsl_stats_sd(&surface_locations[0], 1, surface_locations.size()));
 		}	// analysis
 
