@@ -268,17 +268,16 @@ VecR XYZSystem::SystemDipole () {
 
 void XYZSystem::_ParseAlkanes () {
 
-	//for (Atom_it_non_const it = _unparsed.begin(); it != _unparsed.end(); it++) {
-	for (int i = 0; i < _unparsed.size(); i++) {
-		AtomPtr it = _unparsed[i];
+	for (Atom_it it = _xyzfile.begin(); it != _xyzfile.end(); it++) {
 		// form all the remaining atoms, find a carbon atom that it likely part of an alkane
-		//if ((*it)->Element() != Atom::C) continue;
-		if (it->Element() != Atom::C) continue;
+		if ((*it)->Element() != Atom::C) continue;
+		// check that it's still not parsed
+		if (!_Unparsed(*it)) continue;
 
 		int molIndex = (int)_mols.size();	// set the molecule index
 		alkane::Alkane * alk = new alkane::Alkane ();
 		alk->MolID (molIndex);
-		alk->InitializeAlkane (it, graph);	// build the alkane molecule
+		alk->InitializeAlkane (*it, graph);	// build the alkane molecule
 		_mols.push_back(alk);
 
 		// remove all the atoms in the alkane from the unparsed list
@@ -288,7 +287,11 @@ void XYZSystem::_ParseAlkanes () {
 	}
 }	// parse alkane
 
-		
+bool XYZSystem::_Unparsed (const AtomPtr atom) const {
+	bool ret;
+	ret = (std::find (_unparsed.begin(), _unparsed.end(), atom) != _unparsed.end());
+	return ret;
+}
 
 void XYZSystem::_ParseProtons () {
 

@@ -4,6 +4,7 @@
 #include "mdsystem.h"
 #include "xyzfile.h"
 #include "wannier.h"
+#include "molgraph.h"
 #include "bondgraph.h"
 #include <ext/algorithm>
 #include <exception>
@@ -44,6 +45,7 @@ namespace md_files {
 
 
 			void _UpdateUnparsedList (Atom_ptr_vec& parsed);	// fixes the list of unparsed atoms
+			bool _Unparsed (const AtomPtr atom) const;
 			void _CheckForUnparsedAtoms () const;
 
 		public:
