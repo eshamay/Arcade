@@ -5,6 +5,7 @@
 #include "xyzfile.h"
 #include "wannier.h"
 #include "molgraph.h"
+#include "molgraphfactory.h"
 #include "bondgraph.h"
 #include <ext/algorithm>
 #include <exception>

@@ -40,8 +40,6 @@ namespace molgraph {
 			graph_t	_graph;
 
 			void BuildGraph (Vertex v, const bondgraph::BondGraph& graph);
-			Vertex AddAtomToGraph (AtomPtr const atom);
-			bool InGraph (AtomPtr const atom) const;
 
 		public:
 			MoleculeGraph ();			// a default constructor
@@ -50,7 +48,10 @@ namespace molgraph {
 
 			static int numMoleculeGraphs;			// total number of carbon chains in the system
 
-			void InitializeMoleculeGraph (AtomPtr const atom, const bondgraph::BondGraph& graph);
+			Vertex AddAtomToGraph (AtomPtr const atom);
+			bool InGraph (AtomPtr const atom) const;
+
+			void Initialize (AtomPtr const atom, const bondgraph::BondGraph& graph);
 
 			Atom_ptr_vec Atoms () const;
 	};

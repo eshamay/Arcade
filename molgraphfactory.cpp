@@ -3,8 +3,10 @@
 namespace molgraph {
 
 	typedef std::map<Atom::Element_t, int>	atomcounter;
+
+
 	// given a molgraph, find out what molecule it is, and then create a new one
-	MolPtr CreateMolecule (MoleculeGraph& molgraph) {
+	MolPtr MoleculeGraph2Molecule (MoleculeGraph& molgraph) {
 
 		atomcounter atomcount;
 		MolPtr newmol;
@@ -49,10 +51,16 @@ namespace molgraph {
 			newmol = new SulfurDioxide ();
 		}
 
-		else if (H_count == 1) {
-			newmol = new Proton();
-		}
+		//else if (H_count == 1) {
+			//newmol = new Proton();
+		//}
 
+		else {
+			std::cerr << "MoleculeGraphFactory :: Couldn't figure out the molecule based on the graph given" << std::endl;
+			std::for_each (atoms.begin(), atoms.end(), std::mem_fun(&Atom::Print));
+			exit(1);
+		}
+			
 		// add all the atoms into the new molecule
 		for (Atom_it at = atoms.begin(); at != atoms.end(); at++) {
 			newmol.AddAtom(*at);

@@ -27,7 +27,7 @@ namespace molgraph {
 
 
 	// given one of the atoms of an molgraph (i.e. a carbon), this takes that atom and a graph structure (boost-graph) and builds the entire molgraph (Graph)
-	void MoleculeGraph::InitializeMoleculeGraph (AtomPtr const atom, const bondgraph::BondGraph& graph) {
+	void MoleculeGraph::Initialize (AtomPtr const atom, const bondgraph::BondGraph& graph) {
 		//printf ("new molgraph with top atom = "); atom->Print();
 		Vertex v = AddAtomToGraph(atom);
 		BuildGraph (v, graph);

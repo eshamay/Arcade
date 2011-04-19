@@ -6,7 +6,7 @@
 namespace molgraph {
 
 	// given a molgraph, find out what molecule it is, and then create a new one
-	MolPtr CreateMolecule (MoleculeGraph& molgraph);
+	MolPtr MoleculeGraph2Molecule (MoleculeGraph& molgraph);
 
 };	// namespace mol graph
 

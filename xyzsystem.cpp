@@ -53,6 +53,19 @@ namespace md_files {
 		_unparsed.clear();
 		std::copy (_xyzfile.begin(), _xyzfile.end(), std::back_inserter(_unparsed));
 
+		std::vector<AtomPtr> parsed;
+		while (!_unparsed.empty()) {
+			// build the molecule graph of whatever is at the front of the unparsed list
+			molgraph::MoleculeGraph molgraph;
+			molgraph.Initialize(_unparsed.front(), graph);
+
+			// then generate the molecule from the molecule graph
+			MolPtr newmol = molgraph::MoleculeGraph2Molecule (molgraph);
+
+			this->_UpdateUnparsedList (molgraph.Atoms());
+		}
+
+		/*
 		this->_ParseSimpleMolecule<Hydronium> (Atom::O, Atom::H, 3);
 		this->_ParseSimpleMolecule<Water> (Atom::O, Atom::H, 2);
 		// parse NO3- ions
@@ -63,7 +76,9 @@ namespace md_files {
 		this->_ParseSimpleMolecule<Hydroxide> (Atom::O, Atom::H, 1);
 		this->_ParseProtons ();
 		this->_ParseAlkanes ();
+		*/
 
+		/*
 		try {
 			this->_CheckForUnparsedAtoms ();
 		}
@@ -71,9 +86,10 @@ namespace md_files {
 			std::cerr << "Exception thrown while checking for unparsed atoms in the system - some atoms were not parsed into molecules" << std::endl;
 			throw;
 		}
+		*/
 
 		return;
-	}
+	}	// parse molecules
 
 
 
