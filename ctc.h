@@ -1,4 +1,3 @@
-#pragma once
 #ifndef CTC_H_
 #define CTC_H_
 

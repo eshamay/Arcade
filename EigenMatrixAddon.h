@@ -1,4 +1,3 @@
-#pragma once
 #ifndef EIGEN_MATRIX_ADDON_H_
 #define EIGEN_MATRIX_ADDON_H_
 

@@ -1,4 +1,3 @@
-#pragma once
 #ifndef	WATERSYSTEM_H_
 #define	WATERSYSTEM_H_
 

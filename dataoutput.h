@@ -3,6 +3,7 @@
 
 #include "patterns.h"
 #include <iostream>
+#include <stdio.h>
 #include <sstream>
 #include <cmath>
 

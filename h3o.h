@@ -1,4 +1,3 @@
-#pragma once
 #ifndef H3O_H_
 #define H3O_H_
 

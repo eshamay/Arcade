@@ -14,7 +14,7 @@
 #include <boost/graph/depth_first_search.hpp>
 
 //#include <boost/property_map/property_map.hpp>
-#include <boost/property_map.hpp>
+#include <boost/property_map/property_map.hpp>
 
 #include <exception>
 

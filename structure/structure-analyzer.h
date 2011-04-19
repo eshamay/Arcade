@@ -1,7 +1,7 @@
 #ifndef TEST_H_
 #define TEST_H_
 
-#define EIGEN_MATRIXBASE_PLUGIN "/home/eshamay/md/src/EigenMatrixAddon.h"
+#define EIGEN_MATRIXBASE_PLUGIN "/home/eric/src/Arcade/EigenMatrixAddon.h"
 #include <Eigen/Core>
 USING_PART_OF_NAMESPACE_EIGEN
 

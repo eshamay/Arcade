@@ -1,4 +1,3 @@
-#pragma once
 #ifndef SO2_H_
 #define SO2_H_
 

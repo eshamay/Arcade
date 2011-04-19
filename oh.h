@@ -1,4 +1,3 @@
-#pragma once
 #ifndef OH_H_
 #define OH_H_
 
