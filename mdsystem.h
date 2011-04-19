@@ -122,7 +122,7 @@ namespace md_system {
 			/* Beyond simple system stats, various computations are done routinely in a molecular dynamics system: */
 
 			// Calculate the distance between two points within a system that has periodic boundaries
-			static VecR Distance (const VecR v1, const VecR v2);
+			static VecR Distance (const VecR& v1, const VecR& v2);
 
 			// Calculate the distance between two atoms given the periodic boundaries of the system
 			static VecR Distance (const AtomPtr atom1, const AtomPtr atom2);

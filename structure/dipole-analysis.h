@@ -51,6 +51,8 @@ namespace md_analysis {
 
 				typedef Atom_ptr_vec::iterator	Atom_ncit;	// non-const iterators
 
+
+
 				class FixAtomCharges : public std::unary_function <AtomPtr, void> {
 					public:
 						void operator() (AtomPtr a) const {
@@ -71,6 +73,10 @@ namespace md_analysis {
 			this->LoadAll();
 			this->_system->LoadWaters();
 
+			//for (wannier_it wi = begin_wanniers(); wi != end_wanniers(); wi++) {
+				//wi->Print();
+			//}
+
 			std::for_each (WaterSystem<AmberSystem>::sys_atoms.begin(), WaterSystem<AmberSystem>::sys_atoms.end(), FixAtomCharges());
 
 			std::transform (WaterSystem<AmberSystem>::int_wats.begin(), WaterSystem<AmberSystem>::int_wats.end(), std::back_inserter(dipoles), std::ptr_fun(&MDSystem::CalcClassicDipole));
@@ -82,16 +88,62 @@ namespace md_analysis {
 		}	// analysis for amber systems
 
 
+	class WaterToSO2Distance_cmp : public std::binary_function <WaterPtr, WaterPtr, bool> {
+		private:
+			SulfurDioxide * so2;
+		public:
+			WaterToSO2Distance_cmp (SulfurDioxide * s) : so2(s) { }
+
+			// compare the distances between the waters
+			bool operator () (const WaterPtr w1, const WaterPtr w2) {
+				double distance_1 = MDSystem::Distance (so2->S(), w1->O()).Magnitude();
+				double distance_2 = MDSystem::Distance (so2->S(), w2->O()).Magnitude();
+
+				bool ret = (distance_1 < distance_2) ? true : false;
+				return ret;
+			}
+
+	};
 
 	template <>
 		void SystemDipoleAnalyzer<XYZSystem>::Analysis () {
 			dipoles.clear();
 			this->LoadAll();
 
-			std::transform (this->begin_mols(), this->end_mols(), std::back_inserter(dipoles), std::ptr_fun(&MDSystem::CalcWannierDipole));
-			VecR dipole = std::accumulate (dipoles.begin(), dipoles.end(), VecR(0.0,0.0,0.0), vecr_add());
+			std::for_each (this->begin_mols(), this->end_mols(), std::mem_fun(&Molecule::Print));
 
-			//dipole.Print();
+			// calculate the dipole of each molecule
+			std::transform (this->begin_mols(), this->end_mols(), std::back_inserter(dipoles), std::ptr_fun(&MDSystem::CalcWannierDipole));
+
+			// set the system waters
+			Water_ptr_vec wats;
+			for (Mol_it it = this->begin_mols(); it != this->end_mols(); it++) {
+				if ((*it)->MolType() == Molecule::H2O) {
+					WaterPtr wat = static_cast<WaterPtr>(*it);
+					wat->SetAtoms();
+					wats.push_back(wat);
+				}
+			}
+
+			// grab the so2
+			SulfurDioxide * so2;
+			for (Mol_it it = this->begin_mols(); it != this->end_mols(); it++) {
+				if ((*it)->MolType() == Molecule::SO2) {
+					so2 = static_cast<SulfurDioxide *>(*it);
+					so2->SetAtoms();
+				}
+			}
+
+			// then grab the 5 waters nearest the so2
+			// by sorting them according to the distance to the so2
+			std::sort (wats.begin(), wats.end(), WaterToSO2Distance_cmp (so2));
+
+			//VecR dipole = std::accumulate (dipoles.begin(), dipoles.end(), VecR(0.0,0.0,0.0), vecr_add());
+			VecR dipole (0.,0.,0.);
+			dipole += so2->Dipole();
+			for (int i = 0; i < 5; i++) {
+					dipole += wats[i]->Dipole();
+			}
 			fprintf (this->output, "% 12.8f % 12.8f % 12.8f\n", dipole[x], dipole[y], dipole[z]);
 		}	// analysis	for XYZ systems
 

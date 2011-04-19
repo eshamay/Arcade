@@ -401,8 +401,6 @@ namespace neighbor_analysis {
 			cm.BuildGraph();
 			fprintf (this->output, " %5d ", cm.NumReferenceInteractions());
 
-
-
 			cm.ParseCycles();
 
 			typename std::list<typename CycleManipulator<T>::cycle_list>::const_iterator	cycle = cm.cycle_begin();	
@@ -460,19 +458,24 @@ namespace neighbor_analysis {
 				SO2HBondingAnalysis (system_t * t) :
 					AnalysisSet<T>(t,
 							std::string ("SO2 H-bonding analysis"),
-							std::string ("so2-h-bonding.dat")),
-					cm(t),
-					so2s (t), h2os(t)
-			{ h2os.ReferencePoint(WaterSystem<T>::SystemParameterLookup("analysis.reference-location")); }
+							std::string ("")),
+					so2s(t), h2os(t),
+					histo (std::string("hbonding.dat"), system_t::posmin, system_t::posmax, system_t::posres) { 
+						h2os.ReferencePoint(WaterSystem<T>::SystemParameterLookup("analysis.reference-location")); 
+					}
 
 				~SO2HBondingAnalysis() { }
 
 				void Analysis();
+				void DataOutput () { histo.OutputData(); }
 
 			protected:
-				CycleManipulator<T>								cm;
+				bondgraph::BondGraph									graph;
+				Atom_ptr_vec													nearest, bonded;
 				h2o_analysis::H2OSystemManipulator<T>	h2os;
 				so2_analysis::SO2SystemManipulator<T>	so2s;
+				Histogram1DAgent histo;
+
 
 		};	// h-bonding analysis
 
@@ -483,23 +486,58 @@ namespace neighbor_analysis {
 			//h2os.FindWaterSurfaceLocation(true);	// top surface
 			h2os.FindWaterSurfaceLocation();	// bottom surface
 			//double distance = system_t::Position(so2s.S()) - h2os.SurfaceLocation();	// top surface
-			double distance = h2os.SurfaceLocation() - system_t::Position(so2s.S());	// bottom surface
-			fprintf (this->output, " % 8.3f ", distance);
+			double distance;
+			if (h2os.TopSurface())
+				distance = system_t::Position(so2s.S()) - h2os.SurfaceLocation();	// bottom surface
+			else
+				distance = h2os.SurfaceLocation() - system_t::Position(so2s.S());	// top surface
 
-			// select the reference atom to use for determining h-bonding to the so2.
-			cm.SetReferenceAtom(so2s.O1());
-			cm.SetCycleSize (15);
+			this->LoadAll();
+			// sort the atoms in the system in order of distance from the SO2
+			std::sort(
+					this->begin(), 
+					this->end(), 
+					system_t::atomic_distance_cmp (so2s.S()));
 
-			cm.BuildGraph();
+			//nearest.clear();
+			//std::copy (this->begin(), this->begin+20, std::back_inserter(nearest));
+			// build the graph using a handful of the closest atoms
+			graph.UpdateGraph(this->begin(), this->begin() + 20);
 
-			// output the number of bonds on the first oxygen
-			fprintf (this->output, " %5d ", cm.NumReferenceAtomHBonds());
+			// grab the number of atoms connected to the reference atom through bonding, and check if the bond looks right.
+			bonded.clear();
 
-			cm.SetReferenceAtom(so2s.O2());
-			cm.BuildGraph();
+			// check for when the so2 has a single bond on the S and no other bonds
+			// O2S-OH2
+			/*
+			bonded = graph.BondedAtoms (so2s.S(), bondgraph::interaction, Atom::O);
+			bool good = false;
+			if (bonded.size() == 1 && bonded[0]->ParentMolecule()->MolType() == Molecule::H2O) {
+				good = true;
+			}
+			bonded = graph.BondedAtoms (so2s.O1(), bondgraph::hbond, Atom::H);
+			if (bonded.size() >= 1)
+				good = false;
+			bonded = graph.BondedAtoms (so2s.O2(), bondgraph::hbond, Atom::H);
+			if (bonded.size() >= 1)
+				good = false;
 
-			// then for the 2nd oxygen
-			fprintf (this->output, " %5d\n", cm.NumReferenceAtomHBonds());
+			if (good)
+				histo(distance);
+			*/
+
+			// checking for the OSO--HOH interaction on a single water - only a 1:1 interaction
+			// One O bond, and no S bonds
+			int bonds = 0;
+			bonded = graph.BondedAtoms (so2s.O1(), bondgraph::hbond, Atom::H);
+			if (bonded.size() == 1 && bonded[0]->ParentMolecule()->MolType() == Molecule::H2O)
+				++bonds;
+			bonded = graph.BondedAtoms (so2s.O2(), bondgraph::hbond, Atom::H);
+			if (bonded.size() == 1 && bonded[0]->ParentMolecule()->MolType() == Molecule::H2O)
+				++bonds;
+			bonded = graph.BondedAtoms (so2s.S(), bondgraph::hbond, Atom::H);
+			if (bonds == 1 && bonded.empty())
+				histo(distance);
 
 		}	// so2 h bonding analysis
 
@@ -644,6 +682,85 @@ namespace neighbor_analysis {
 		}
 
 
-}	// namespace md analysis
+
+	/*
+	 * Find what atoms are bound to the S, and to the Os.
+	 */
+	template <typename T>
+		class SO2BondingAnalysis : public AnalysisSet<T> {
+			public:
+				typedef Analyzer<T> system_t;
+
+				SO2BondingAnalysis (system_t * t) :
+					AnalysisSet<T>(t,
+							std::string ("Find out what atoms are bound the the SO2"),
+							std::string ("so2-bonding.dat")) {
+					}
+
+				void Analysis ();
+				void FindSO2 ();
+				void BuildBondingGraph ();
+				void FindBonds (const AtomPtr&);
+				void PrintBondingInformation ();
+
+			private:
+				SulfurDioxide * so2;	// reference molecule
+				bondgraph::BondGraph		graph;	// connectivity/bonding graph
+				std::vector<int>				bonds;
+		}; // so2 bonding analysis
+
+	template <typename T>
+		void SO2BondingAnalysis<T>::Analysis () {
+			FindSO2();
+			BuildBondingGraph();
+
+			bonds.clear();
+			FindBonds(so2->S());
+			FindBonds(so2->O1());
+			FindBonds(so2->O2());
+
+			PrintBondingInformation();
+			return;
+		}
+
+	template <typename T>
+		void SO2BondingAnalysis<T>::FindSO2 () {
+			this->LoadAll();
+			MolPtr mol = Molecule::FindByType (this->begin_mols(), this->end_mols(), Molecule::SO2);
+			so2 = static_cast<SulfurDioxide *>(mol);
+			so2->SetAtoms();
+		}
+
+	template <typename T>
+		void SO2BondingAnalysis<T>::BuildBondingGraph () {
+			graph.UpdateGraph(this->begin(), this->end());
+		}
+
+	template <typename T>
+		void SO2BondingAnalysis<T>::FindBonds (const AtomPtr& atom) {
+			// get the atoms bound to the reference atom
+			int atom_bonds;
+			if (atom->Element() == Atom::S) {
+				Atom_ptr_vec inters = graph.InteractingAtoms (atom);
+				std::for_each (inters.begin(), inters.end(), std::mem_fun(&Atom::Print));
+				atom_bonds = inters.size();
+			}
+
+			if (atom->Element() == Atom::O)
+				atom_bonds = graph.NumHBonds (atom);
+
+			bonds.push_back(atom_bonds);
+		}
+
+	template <typename T>
+		void SO2BondingAnalysis<T>::PrintBondingInformation () {
+			for (int i = 0; i < bonds.size(); i++) {
+				printf ("%d  ", bonds[i]);
+			}
+			printf ("\n");
+			//std::copy (bonds.begin(), bonds.end(), std::ostream_iterator<int>(std::cout));
+		}
+
+}	// namespace neighbor analysis
 
 #endif

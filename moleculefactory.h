@@ -8,8 +8,8 @@
 #include "h3o.h"
 #include "hno3.h"
 #include "so2.h"
-#include "ctc.h"
-#include "decane.h"
+//#include "ctc.h"
+#include "alkane.h"
 
 namespace md_system {
 

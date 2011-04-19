@@ -2,12 +2,7 @@
 #define __UTIL_H
 
 #include <algorithm>
-#include <numeric>
-#include <utility>
-#include <functional>
-#include <iterator>
 #include <iostream>
-#include <cctype>
 #include <cstdio>
 #include <vector>
 #include <cmath>

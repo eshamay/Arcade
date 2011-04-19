@@ -50,10 +50,14 @@ namespace md_analysis {
 				std::string& Filename () { return filename; }
 
 				void LoadAll () const { this->_system->LoadAll(); }
-				Atom_it begin () const { return this->_system->sys_atoms.begin(); }
-				Atom_it end () const { return this->_system->sys_atoms.end(); }
+				Atom_it_non_const begin () const { return this->_system->sys_atoms.begin(); }
+				Atom_it_non_const end () const { return this->_system->sys_atoms.end(); }
 				Mol_it begin_mols () const { return this->_system->sys_mols.begin(); }
 				Mol_it end_mols () const { return this->_system->sys_mols.end(); }
+
+				wannier_it begin_wanniers () const { return this->_system->begin_wanniers(); }
+				wannier_it end_wanniers () const { return this->_system->end_wanniers(); }
+
 
 			protected:
 

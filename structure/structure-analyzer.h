@@ -59,6 +59,7 @@ namespace md_analysis {
 
 			a = new H2OAngleBondAnalysis<T>(this);									analyses.push_back(a);
 			a = new AtomicDensityAnalysis<T>(this);									analyses.push_back(a);
+			a = new SystemDensitiesAnalysis<T>(this);						analyses.push_back(a);
 			a = new angle_analysis::H2OAngleAnalysis<T>(this);			analyses.push_back(a);
 			a = new angle_analysis::SO2AngleAnalysis<T>(this);			analyses.push_back(a);
 			a = new angle_analysis::ReferenceSO2AngleAnalysis<T>(this);			analyses.push_back(a);
@@ -70,6 +71,7 @@ namespace md_analysis {
 			a = new so2_analysis::SO2PositionRecorder<T>(this);						analyses.push_back(a);
 			a = new angle_analysis::SOAngleAnalysis<T>(this);						analyses.push_back(a);
 			a = new neighbor_analysis::SO2NearestNeighborAnalysis<T>(this);						analyses.push_back(a);
+
 
 //			a = new md_analysis::SystemDipoleAnalyzer<T>(this);				analyses.push_back(a);
 		}
@@ -115,6 +117,8 @@ namespace md_analysis {
 			AnalysisSet<T> * a;
 
 			a = new md_analysis::SystemDipoleAnalyzer<T>(this);				analyses.push_back(a);
+			a = new neighbor_analysis::SO2BondingAnalysis<T>(this);					analyses.push_back(a);
+			a = new so2_analysis::SO2DipoleAnalyzer<T>(this);					analyses.push_back(a);
 
 		}
 

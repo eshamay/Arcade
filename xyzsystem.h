@@ -4,6 +4,8 @@
 #include "mdsystem.h"
 #include "xyzfile.h"
 #include "wannier.h"
+#include "molgraph.h"
+#include "molgraphfactory.h"
 #include "bondgraph.h"
 #include <ext/algorithm>
 #include <exception>
@@ -40,9 +42,11 @@ namespace md_files {
 			void _ParseNitricAcids ();
 			void _ParseProtons ();
 			void _ParseWanniers ();
+			void _ParseAlkanes ();
 
 
 			void _UpdateUnparsedList (Atom_ptr_vec& parsed);	// fixes the list of unparsed atoms
+			bool _Unparsed (const AtomPtr atom) const;
 			void _CheckForUnparsedAtoms () const;
 
 		public:
@@ -92,8 +96,9 @@ namespace md_files {
 			virtual int size () const { return _xyzfile.size(); }
 
 
-			vector_map_it begin_wanniers () const { return _wanniers.begin(); }
-			vector_map_it end_wanniers () const { return _wanniers.end(); }
+			typedef WannierFile::Wannier_it wannier_it;
+			wannier_it begin_wanniers () { return _wanniers.begin(); }
+			wannier_it end_wanniers () { return _wanniers.end(); }
 
 
 			template <typename U>
@@ -111,18 +116,20 @@ namespace md_files {
 	template <typename T>
 		void XYZSystem::_ParseSimpleMolecule (const Atom::Element_t central_elmt, const Atom::Element_t outer_elmt, const unsigned numOuter) {
 
-			for (Atom_it it = _xyzfile.begin(); it != _xyzfile.end(); it++) {
+			//for (Atom_it it = _unparsed.begin(); it != _unparsed.end(); it++) {
+			for (int i = 0; i < _unparsed.size(); i++) {
 
-				if ((*it)->Element() != central_elmt) continue;
+				AtomPtr it = _unparsed[i];
+				if (it->Element() != central_elmt) continue;
 
 				// grab all the atoms connected to the central atom
-				Atom_ptr_vec outers = graph.BondedAtoms (*it, bondgraph::covalent, outer_elmt);
+				Atom_ptr_vec outers = graph.BondedAtoms (it, bondgraph::covalent, outer_elmt);
 				if (outers.size() != numOuter) continue;
 
 				int molIndex = _mols.size();
 
 				// save the central atom
-				outers.push_back(*it);
+				outers.push_back(it);
 
 				T * newmol = new T();
 				_mols.push_back (newmol);
@@ -138,6 +145,20 @@ namespace md_files {
 
 			return;
 		}	// parse simple molecule	
+
+	// comparator for sorting vectors based on their distance to a given reference point
+		class vecr_distance_cmp : public std::binary_function <VecR,VecR,bool> {
+			private:
+				VecR reference;
+			public:
+				vecr_distance_cmp (VecR ref) : reference(ref) { }
+				bool operator() (const VecR& v1, const VecR& v2) const {
+					double d1 = MDSystem::Distance (v1, reference).Magnitude();
+					double d2 = MDSystem::Distance (v2, reference).Magnitude();
+					bool ret = (d1 < d2) ? true : false;
+					return ret;
+				};
+		};
 
 }	// namespace md files
 

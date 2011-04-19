@@ -129,6 +129,8 @@ namespace md_system {
 
 	typedef Atom::AtomPtr AtomPtr;
 	typedef Atom::Atom_ptr_vec Atom_ptr_vec;
+	typedef std::list<AtomPtr> Atom_ptr_list;
+	typedef Atom_ptr_list::iterator Atom_list_it;
 	typedef Atom::Atom_it Atom_it;
 	typedef Atom::Atom_it_non_const Atom_it_non_const;
 	typedef Atom::Atom_rit Atom_rit;

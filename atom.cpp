@@ -14,8 +14,8 @@ namespace md_system {
 		_name(oldAtom._name), _residue(oldAtom._residue), _ID(oldAtom._ID), _molid(oldAtom._molid),
 		_pmolecule(oldAtom._pmolecule),
 		_mass(oldAtom._mass), _charge(oldAtom._charge),
-		_position(oldAtom._position), _force(oldAtom._force),
-		_element(oldAtom._element)	
+		_element(oldAtom._element),
+		_position(oldAtom._position), _force(oldAtom._force)
 	{ this->SetAtomProperties (); }
 
 
@@ -165,11 +165,13 @@ namespace md_system {
 	}
 
 
+	/*
 	void Atom::KeepByElement (Atom_ptr_vec& u, const Element_t& elmt) {
 		u.erase(
 				remove_if(u.begin(), u.end(), std::not1(member_functional::ptr_mem_fun_eq<Atom,Atom::Element_t>(&Atom::Element, elmt))), u.end());
 		return;
 	}
+	*/
 
 	bool Atom::ElementCombo (const AtomPtr& ai, const AtomPtr& aj, const Element_t element_a, const Element_t element_b) {
 		return 
