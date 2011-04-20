@@ -53,7 +53,7 @@ namespace molgraph {
 		//}
 
 		else {
-			std::cerr << "MoleculeGraphFactory :: Couldn't figure out the molecule based on the graph given" << std::endl;
+			std::cerr << "MoleculeGraphFactory :: Couldn't figure out the molecule based on the graph of the following atoms:" << std::endl;
 			std::for_each (atoms.begin(), atoms.end(), std::mem_fun(&Atom::Print));
 			exit(1);
 		}
@@ -65,7 +65,6 @@ namespace molgraph {
 
 		return newmol;
 	}
-
 
 
 	// see if the atomcount map has the given atom
