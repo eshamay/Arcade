@@ -116,6 +116,7 @@ namespace md_system {
 	}
 
 	void Molecule::FixAtoms () {
+		this->_mass = 0.0;
 		for (Atom_it atom = _atoms.begin(); atom != _atoms.end(); atom++) {
 			this->FixAtom(*atom);
 		}

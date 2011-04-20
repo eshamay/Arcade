@@ -34,15 +34,15 @@ namespace md_files {
 			void _ParseMolecules ();		// take the atoms we have and stick them into molecules - general umbrella routine
 
 			//! Parses a simple molecule that is composed of a central atom, and all other atoms are connected to it - i.e. h2o, no3, ccl4, etc
-			template <typename T>
-				void _ParseSimpleMolecule (const Atom::Element_t central_elmt, const Atom::Element_t outer_elmt, const unsigned numOuter);
+			//template <typename T>
+				//void _ParseSimpleMolecule (const Atom::Element_t central_elmt, const Atom::Element_t outer_elmt, const unsigned numOuter);
 
 			/* more specialized parsing routines that don't fall under "simple molecules" */
 
-			void _ParseNitricAcids ();
-			void _ParseProtons ();
+			//void _ParseNitricAcids ();
+			//void _ParseProtons ();
 			void _ParseWanniers ();
-			void _ParseAlkanes ();
+			//void _ParseAlkanes ();
 
 
 			void _UpdateUnparsedList (Atom_ptr_vec& parsed);	// fixes the list of unparsed atoms
@@ -113,6 +113,7 @@ namespace md_files {
 
 
 
+	/*
 	template <typename T>
 		void XYZSystem::_ParseSimpleMolecule (const Atom::Element_t central_elmt, const Atom::Element_t outer_elmt, const unsigned numOuter) {
 
@@ -145,6 +146,7 @@ namespace md_files {
 
 			return;
 		}	// parse simple molecule	
+		*/
 
 	// comparator for sorting vectors based on their distance to a given reference point
 		class vecr_distance_cmp : public std::binary_function <VecR,VecR,bool> {

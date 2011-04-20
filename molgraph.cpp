@@ -59,7 +59,7 @@ namespace molgraph {
 	Vertex MoleculeGraph::AddAtomToGraph (AtomPtr const atom) { 
 		Vertex v = add_vertex(_graph);
 		_graph[v].atom = atom;
-		_graph[v].type = null;
+		//_graph[v].type = null;
 
 		this->AddAtom(atom);
 		return v;

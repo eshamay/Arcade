@@ -1,6 +1,7 @@
 #ifndef __UTIL_H
 #define __UTIL_H
 
+#include <numeric>
 #include <algorithm>
 #include <iostream>
 #include <cstdio>

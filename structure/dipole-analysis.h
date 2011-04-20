@@ -110,7 +110,7 @@ namespace md_analysis {
 			dipoles.clear();
 			this->LoadAll();
 
-			std::for_each (this->begin_mols(), this->end_mols(), std::mem_fun(&Molecule::Print));
+			//std::for_each (this->begin_mols(), this->end_mols(), std::mem_fun(&Molecule::Print));
 
 			// calculate the dipole of each molecule
 			std::transform (this->begin_mols(), this->end_mols(), std::back_inserter(dipoles), std::ptr_fun(&MDSystem::CalcWannierDipole));

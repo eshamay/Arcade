@@ -28,7 +28,7 @@ namespace md_files {
 		 * This is the top-level parsing routine to give the overall idea of what's going on
 		 * *********************************************************************************/
 
-		// first things first - we need the interatomic distances!
+		// first things first - we need the interatomic distances and bonding information - atomic bonding graph
 		try { graph.UpdateGraph (_xyzfile.Atoms()); }
 
 		catch (bondgraph::BondGraph::graphex& ex) {
@@ -53,6 +53,8 @@ namespace md_files {
 		_unparsed.clear();
 		std::copy (_xyzfile.begin(), _xyzfile.end(), std::back_inserter(_unparsed));
 
+		// now do the work of parsing out the molecules. The idea is to grab sub-graphs of the atomic bondgraph that was built that represent covalently bound atom groups.
+		// For each subgraph we tease out the type of molecule it is, then we set the molid and add it to the list of molecules.
 		std::vector<AtomPtr> parsed;
 		while (!_unparsed.empty()) {
 			// build the molecule graph of whatever is at the front of the unparsed list
@@ -62,7 +64,12 @@ namespace md_files {
 			// then generate the molecule from the molecule graph
 			MolPtr newmol = molgraph::MoleculeGraph2Molecule (molgraph);
 
-			this->_UpdateUnparsedList (molgraph.Atoms());
+			parsed = molgraph.Atoms();
+			this->_UpdateUnparsedList (parsed);
+
+			newmol->MolID((int)_mols.size());
+			newmol->FixAtoms();
+			_mols.push_back(newmol);
 		}
 
 		/*
@@ -93,8 +100,8 @@ namespace md_files {
 
 
 
-	void XYZSystem::_ParseNitricAcids () { }
 	/*
+	void XYZSystem::_ParseNitricAcids () { }
 
 		 for (Mol_it mol = _mols.begin(); mol != _mols.end(); mol++) {
 		 if ((*mol)->MolType() != Molecule::NO3) continue;
@@ -282,6 +289,7 @@ VecR XYZSystem::SystemDipole () {
 	return (dipole);
 }
 
+/*
 void XYZSystem::_ParseAlkanes () {
 
 	for (Atom_it it = _xyzfile.begin(); it != _xyzfile.end(); it++) {
@@ -293,7 +301,7 @@ void XYZSystem::_ParseAlkanes () {
 		int molIndex = (int)_mols.size();	// set the molecule index
 		alkane::Alkane * alk = new alkane::Alkane ();
 		alk->MolID (molIndex);
-		alk->InitializeAlkane (*it, graph);	// build the alkane molecule
+		alk->Initialize (*it, graph);	// build the alkane molecule
 		_mols.push_back(alk);
 
 		// remove all the atoms in the alkane from the unparsed list
@@ -302,6 +310,7 @@ void XYZSystem::_ParseAlkanes () {
 		this->_UpdateUnparsedList (parsed);
 	}
 }	// parse alkane
+*/
 
 bool XYZSystem::_Unparsed (const AtomPtr atom) const {
 	bool ret;
@@ -309,6 +318,7 @@ bool XYZSystem::_Unparsed (const AtomPtr atom) const {
 	return ret;
 }
 
+/*
 void XYZSystem::_ParseProtons () {
 
 	Atom_ptr_vec parsed;
@@ -350,6 +360,7 @@ void XYZSystem::_ParseProtons () {
 	_UpdateUnparsedList (parsed);
 	return;
 }
+	*/
 
 } // namespace md_files
 

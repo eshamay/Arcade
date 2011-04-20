@@ -2,9 +2,6 @@
 
 namespace molgraph {
 
-	typedef std::map<Atom::Element_t, int>	atomcounter;
-
-
 	// given a molgraph, find out what molecule it is, and then create a new one
 	MolPtr MoleculeGraph2Molecule (MoleculeGraph& molgraph) {
 
@@ -24,7 +21,7 @@ namespace molgraph {
 
 		// check for organics/alkanes
 		if (C_count == 3 && O_count == 4) {
-			newmol = new Alkane ();
+			newmol = new alkane::Alkane ();
 		}
 
 		// check for nitrates
@@ -63,7 +60,7 @@ namespace molgraph {
 			
 		// add all the atoms into the new molecule
 		for (Atom_it at = atoms.begin(); at != atoms.end(); at++) {
-			newmol.AddAtom(*at);
+			newmol->AddAtom(*at);
 		}
 
 		return newmol;
@@ -73,8 +70,8 @@ namespace molgraph {
 
 	// see if the atomcount map has the given atom
 	bool HasAtom (atomcounter& atomcount, Atom::Element_t elmt) {
-		ret = false;
-		if (atomcount.find(elmt) != std::map::end)
+		bool ret = false;
+		if (atomcount.find(elmt) != atomcount.end())
 			ret = true;
 		return ret;
 	}
