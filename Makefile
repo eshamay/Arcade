@@ -1,5 +1,6 @@
-CXX			= icpc  -I$(BOOST) #-wd981,444,383,177,1418,1782,869,1572
-OPTIMIZE 	= -finline-functions -finline -funroll-all-loops -O3 -DNDEBUG -m64 -fast -restrict
+CXX			= icpc  -I$(BOOST) -wd981,444,383,177,1418,1782,869,1572
+OPTIMIZE 	= -finline-functions -finline -funroll-all-loops -O2 -DNDEBUG -m64 -fast -restrict
+#OPTIMIZE 	= -finline-functions -finline -funroll-all-loops -O2 -DNDEBUG -m64 
 DEBUG		= -O0 -g3 -ggdb -D_GLIBCXX_DEBUG -Wno-deprecated -debug #-wd981,1599,1572,383
 
 CPPFLAGS    = -Wall -ftemplate-depth-100 $(OPTIMIZE)

@@ -23,7 +23,7 @@ namespace md_files {
 			Wannier_it end () { return _wanniers.end(); }
 
 			vector_map& operator[] (const int index) { 
-				if (index < 0 || index > _wanniers.size()-1) {
+				if (index < 0 || index > (int)_wanniers.size()-1) {
 					std::cerr << "bad wannier file index -> " << index << " of " << _wanniers.size() << std::endl;
 					exit(1);
 				}
