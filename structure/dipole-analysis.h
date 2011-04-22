@@ -134,6 +134,9 @@ namespace md_analysis {
 			// calculate the dipole of each molecule
 			std::transform (this->begin_mols(), this->end_mols(), std::back_inserter(dipoles), std::ptr_fun(&MDSystem::CalcWannierDipole));
 
+			// calculate the dipole of each molecule
+			std::transform (this->begin_mols(), this->end_mols(), std::back_inserter(dipoles), std::ptr_fun(&MDSystem::CalcWannierDipole));
+
 			// then grab the 5 waters nearest the so2
 			// by sorting them according to the distance to the so2
 			std::sort (wats.begin(), wats.end(), WaterToSO2Distance_cmp (so2));

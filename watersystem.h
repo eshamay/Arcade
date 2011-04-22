@@ -331,9 +331,9 @@ namespace md_system {
 		template <>
 			wannier_it WaterSystem<XYZSystem>::end_wanniers() const { return this->sys->end_wanniers(); }
 		template <>
-			wannier_it WaterSystem<AmberSystem>::begin_wanniers() const { std::cerr << "Tried to get wanniers from amber system!" << std::endl; exit(1); return; }
+			wannier_it WaterSystem<AmberSystem>::begin_wanniers() const { std::cerr << "Tried to get wanniers from amber system!" << std::endl; exit(1); return (wannier_it)NULL; }
 		template <>
-			wannier_it WaterSystem<AmberSystem>::end_wanniers() const { std::cerr << "Tried to get wanniers from amber system!" << std::endl; exit(1); return; }
+			wannier_it WaterSystem<AmberSystem>::end_wanniers() const { std::cerr << "Tried to get wanniers from amber system!" << std::endl; exit(1); return (wannier_it)NULL; }
 
 }	// namespace
 

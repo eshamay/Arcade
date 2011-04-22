@@ -39,7 +39,7 @@ namespace neighbor_analysis {
 					std::sort(
 							this->analysis_atoms.begin(), 
 							this->analysis_atoms.end(), 
-							system_t::atomic_distance_cmp (ap));
+							typename system_t::atomic_distance_cmp (ap));
 				}
 
 				// iterate over the atoms sorted by distance - but only over a particular element.
@@ -154,14 +154,14 @@ namespace neighbor_analysis {
 			private:
 				NeighborManipulator<T>	nm;
 
-				bondgraph::BondGraph		graph;
-				AtomPtr						ref_atom;
 				int							cycle_size;
+				AtomPtr						ref_atom;
+				std::list<cycle_t>					cycle_type;
 
+				bondgraph::BondGraph		graph;
 				std::list<cycle_list>							cycle;				// all the atoms comprising the cycle
 				Atom_ptr_vec						unique_cycle_atoms;	// only unique atoms in the cycle
 				Mol_ptr_vec							unique_cycle_mols;
-				std::list<cycle_t>					cycle_type;
 
 		}; // cycle manipulator
 
@@ -313,7 +313,7 @@ namespace neighbor_analysis {
 
 	// go through the cycle and find the location of the atom that attaches the cycle to the bridge from the so2 leg. Return the first and second occurrence.
 	template <typename T>
-		CycleManipulator<T>::cycle_pair_t CycleManipulator<T>::CyclePointAtom (const cycle_list& _cycle) {
+		typename CycleManipulator<T>::cycle_pair_t CycleManipulator<T>::CyclePointAtom (const cycle_list& _cycle) {
 			cycle_it it = _cycle.begin(); it++;	// first non-ref atom
 			cycle_it jt = _cycle.end(); jt--;		// last atom
 			cycle_it i_point = it;
@@ -363,8 +363,8 @@ namespace neighbor_analysis {
 
 			protected:
 				CycleManipulator<T>								cm;
-				h2o_analysis::H2OSystemManipulator<T>	h2os;
 				so2_analysis::SO2SystemManipulator<T>	so2s;
+				h2o_analysis::H2OSystemManipulator<T>	h2os;
 
 		};	// cycle bonding analysis
 
@@ -472,8 +472,8 @@ namespace neighbor_analysis {
 			protected:
 				bondgraph::BondGraph									graph;
 				Atom_ptr_vec													nearest, bonded;
-				h2o_analysis::H2OSystemManipulator<T>	h2os;
 				so2_analysis::SO2SystemManipulator<T>	so2s;
+				h2o_analysis::H2OSystemManipulator<T>	h2os;
 				Histogram1DAgent histo;
 
 
@@ -497,7 +497,7 @@ namespace neighbor_analysis {
 			std::sort(
 					this->begin(), 
 					this->end(), 
-					system_t::atomic_distance_cmp (so2s.S()));
+					typename system_t::atomic_distance_cmp (so2s.S()));
 
 			//nearest.clear();
 			//std::copy (this->begin(), this->begin+20, std::back_inserter(nearest));
@@ -568,8 +568,8 @@ namespace neighbor_analysis {
 
 			protected:
 				NeighborManipulator<T>	neighbors;
-				h2o_analysis::H2OSystemManipulator<T>	h2os;
 				so2_analysis::SO2SystemManipulator<T>	so2s;
+				h2o_analysis::H2OSystemManipulator<T>	h2os;
 
 				Atom_ptr_vec nearest_atoms;
 				Atom_ptr_vec first_os;
@@ -754,7 +754,7 @@ namespace neighbor_analysis {
 
 	template <typename T>
 		void SO2BondingAnalysis<T>::PrintBondingInformation () {
-			for (int i = 0; i < bonds.size(); i++) {
+			for (int i = 0; i < (int)bonds.size(); i++) {
 				printf ("%d  ", bonds[i]);
 			}
 			printf ("\n");

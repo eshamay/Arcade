@@ -125,16 +125,16 @@ namespace h2o_analysis {
 			// get rid of everything above (or below) the reference point
 			if (top_surface) {
 				analysis_waters.erase(
-						remove_if(analysis_waters.begin(), analysis_waters.end(), system_t::MoleculeAbovePosition(reference_point, system_t::axis)), analysis_waters.end());
+						remove_if(analysis_waters.begin(), analysis_waters.end(), typename system_t::MoleculeAbovePosition(reference_point, system_t::axis)), analysis_waters.end());
 			}
 
 			else if (!top_surface) {
 				analysis_waters.erase(
-						remove_if(analysis_waters.begin(), analysis_waters.end(), system_t::MoleculeBelowPosition(reference_point, system_t::axis)), analysis_waters.end()); // bottom surface
+						remove_if(analysis_waters.begin(), analysis_waters.end(), typename system_t::MoleculeBelowPosition(reference_point, system_t::axis)), analysis_waters.end()); // bottom surface
 			}
 
 			// sort the waters by position along the reference axis - first waters are lowest, last are highest
-			std::sort (analysis_waters.begin(), analysis_waters.end(), system_t::molecule_position_pred(Atom::O));
+			std::sort (analysis_waters.begin(), analysis_waters.end(), typename system_t::molecule_position_pred(Atom::O));
 
 			if (top_surface) {
 				// get the surface waters at the beginning of the list
@@ -179,7 +179,7 @@ namespace h2o_analysis {
 	template <typename T>
 		void H2OSystemManipulator<T>::FindClosestWaters (const AtomPtr a) {
 			this->Reload();
-			std::sort(analysis_waters.begin(), analysis_waters.end(), system_t::molecule_distance_cmp(a));
+			std::sort(analysis_waters.begin(), analysis_waters.end(), typename system_t::molecule_distance_cmp(a));
 		} // find closest waters
 
 
