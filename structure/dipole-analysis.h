@@ -112,9 +112,6 @@ namespace md_analysis {
 
 			//std::for_each (this->begin_mols(), this->end_mols(), std::mem_fun(&Molecule::Print));
 
-			// calculate the dipole of each molecule
-			std::transform (this->begin_mols(), this->end_mols(), std::back_inserter(dipoles), std::ptr_fun(&MDSystem::CalcWannierDipole));
-
 			// set the system waters
 			Water_ptr_vec wats;
 			for (Mol_it it = this->begin_mols(); it != this->end_mols(); it++) {
@@ -133,6 +130,9 @@ namespace md_analysis {
 					so2->SetAtoms();
 				}
 			}
+			
+			// calculate the dipole of each molecule
+			std::transform (this->begin_mols(), this->end_mols(), std::back_inserter(dipoles), std::ptr_fun(&MDSystem::CalcWannierDipole));
 
 			// then grab the 5 waters nearest the so2
 			// by sorting them according to the distance to the so2
@@ -141,7 +141,7 @@ namespace md_analysis {
 			//VecR dipole = std::accumulate (dipoles.begin(), dipoles.end(), VecR(0.0,0.0,0.0), vecr_add());
 			VecR dipole (0.,0.,0.);
 			dipole += so2->Dipole();
-			for (int i = 0; i < 5; i++) {
+			for (int i = 0; i < 10; i++) {
 					dipole += wats[i]->Dipole();
 			}
 			fprintf (this->output, "% 12.8f % 12.8f % 12.8f\n", dipole[x], dipole[y], dipole[z]);
