@@ -144,7 +144,7 @@ namespace md_analysis {
 			//VecR dipole = std::accumulate (dipoles.begin(), dipoles.end(), VecR(0.0,0.0,0.0), vecr_add());
 			VecR dipole (0.,0.,0.);
 			dipole += so2->Dipole();
-			for (int i = 0; i < 10; i++) {
+			for (int i = 0; i < 5; i++) {
 					dipole += wats[i]->Dipole();
 			}
 			fprintf (this->output, "% 12.8f % 12.8f % 12.8f\n", dipole[x], dipole[y], dipole[z]);

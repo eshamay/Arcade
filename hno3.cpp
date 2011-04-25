@@ -132,7 +132,6 @@ namespace md_system {
 		// lastly, let's set the OH vector (pointing from O to H)
 		_voh = _h->Position() - _oh->Position();
 		//_voh = _oh->Position().MinVector(_h->Position(), Atom::Size());
-		this->FixAtoms();
 
 		return;
 	}
@@ -194,7 +193,6 @@ namespace md_system {
 		_no3 = _o3->Position() - _n->Position();
 		//_no1 = _n->Position().MinVector(_o1->Position(), Atom::Size());
 
-		this->FixAtoms();
 
 		_set = true;
 

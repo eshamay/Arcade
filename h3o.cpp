@@ -35,9 +35,6 @@ namespace md_system {
 		_oh2 = _h2->Position() - _o->Position();
 		_oh3 = _h3->Position() - _o->Position();
 
-		this->FixAtoms();
-
-
 		return;
 	}
 

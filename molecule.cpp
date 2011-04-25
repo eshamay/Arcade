@@ -120,7 +120,6 @@ namespace md_system {
 		for (Atom_it atom = _atoms.begin(); atom != _atoms.end(); atom++) {
 			this->FixAtom(*atom);
 		}
-		this->SetAtoms();
 	}
 
 

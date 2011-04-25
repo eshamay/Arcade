@@ -16,7 +16,6 @@ namespace md_system {
 
 	void Proton::SetAtoms () {
 		_h = this->GetAtom("H");
-		this->FixAtoms();
 		return;
 	}
 
