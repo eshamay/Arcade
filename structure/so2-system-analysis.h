@@ -217,7 +217,7 @@ namespace so2_analysis {
 				ClosestWaterBondlengths (system_t * t) :
 					AnalysisSet<T> (t,
 							std::string ("so2's bound water oh bondlengths"),
-							std::string ("closest-water-bondlengths.dat")),
+							std::string ("top-water-bondlengths.dat")),
 					so2s(t) { so2s.Initialize(); }
 
 				void Analysis ();
@@ -239,16 +239,25 @@ namespace so2_analysis {
 					wats.push_back(wat);
 				}
 			}
-			std::sort (wats.begin(), wats.end(), WaterToSO2Distance_cmp (so2s.SO2()));
+			//std::sort (wats.begin(), wats.end(), WaterToSO2Distance_cmp (so2s.SO2()));
+			//std::sort (wats.begin(), wats.end(), WaterToSO2Distance_cmp (so2s.SO2()));
+			// sort the waters by position along the reference axis - first waters are lowest, last are highest
+			std::sort (wats.begin(), wats.end(), typename system_t::molecule_position_pred(Atom::O));
 
-			double oh1, oh2;
-			for (int i = 0; i < 3; i++) {
+			VecR oh1, oh2;
+			double tally = 0.0;
+			for (int i = 0; i < 10; i++) {
 				WaterPtr wat = wats[i];
-				oh1 = wat->OH1().Magnitude();
-				oh2 = wat->OH2().Magnitude();
-				fprintf (this->output, "% 12.7f % 12.7f", oh1, oh2);
+				// calculate the component of the oh bonds in the Z-direction
+				oh1 = wat->OH1();
+				oh2 = wat->OH2();
+
+				tally += oh1[z];
+				tally += oh2[z];
+
+				//fprintf (this->output, "% 12.7f % 12.7f", oh1, oh2);
 			}
-			fprintf (this->output, "\n");
+			fprintf (this->output, "% 12.7f\n", tally);
 		}
 
 
@@ -271,10 +280,10 @@ namespace so2_analysis {
 	};
 
 	template <typename T>
-	class WaterBondLengthAnalyzer : public AnalysisSet<T> {
+	class WaterAngleAnalyzer : public AnalysisSet<T> {
 		public:
 			typedef Analyzer<T> system_t;
-			WaterBondLengthAnalyzer (system_t * t) : 
+			WaterAngleAnalyzer (system_t * t) : 
 				AnalysisSet<T> (t, 
 						std::string ("Water's HOH Angle"),
 						std::string ("h2o-angle.dat")),
@@ -287,7 +296,7 @@ namespace so2_analysis {
 	};
 
 	template <typename T>
-		void WaterBondLengthAnalyzer<T>::Analysis () {
+		void WaterAngleAnalyzer<T>::Analysis () {
 			so2s.UpdateSO2();
 			this->LoadAll();
 
