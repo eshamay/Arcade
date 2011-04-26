@@ -210,6 +210,50 @@ namespace so2_analysis {
 		}
 
 
+	template <typename T>
+		class ClosestWaterBondlengths : public AnalysisSet<T> {
+			public:
+				typedef Analyzer<T> system_t;
+				ClosestWaterBondlengths (system_t * t) :
+					AnalysisSet<T> (t,
+							std::string ("so2's bound water oh bondlengths"),
+							std::string ("closest-water-bondlengths.dat")),
+					so2s(t) { so2s.Initialize(); }
+
+				void Analysis ();
+
+			protected:
+				XYZSO2Manipulator<T>	so2s;
+		};	// closest water bondlengths 
+
+	template <typename T>
+		void ClosestWaterBondlengths<T>::Analysis () { 
+			so2s.UpdateSO2();
+			this->LoadAll();
+
+			Water_ptr_vec wats;
+			for (Mol_it it = this->begin_mols(); it != this->end_mols(); it++) {
+				if ((*it)->MolType() == Molecule::H2O) {
+					WaterPtr wat = static_cast<WaterPtr>(*it);
+					wat->SetAtoms();
+					wats.push_back(wat);
+				}
+			}
+			std::sort (wats.begin(), wats.end(), WaterToSO2Distance_cmp (so2s.SO2()));
+
+			double oh1, oh2;
+			for (int i = 0; i < 3; i++) {
+				WaterPtr wat = wats[i];
+				oh1 = wat->OH1().Magnitude();
+				oh2 = wat->OH2().Magnitude();
+				fprintf (this->output, "% 12.7f % 12.7f", oh1, oh2);
+			}
+			fprintf (this->output, "\n");
+		}
+
+
+
+
 	// functor takes a water and returns the values of the cos(angles) formed between the two oh-vectors. The first value of the pair is always the greater (magnitude) of the two values.
 	class SOAngleCalculator : public std::unary_function <SulfurDioxide*,std::pair<double,double> > {
 		private:
@@ -226,6 +270,45 @@ namespace so2_analysis {
 			}
 	};
 
+	template <typename T>
+	class WaterBondLengthAnalyzer : public AnalysisSet<T> {
+		public:
+			typedef Analyzer<T> system_t;
+			WaterBondLengthAnalyzer (system_t * t) : 
+				AnalysisSet<T> (t, 
+						std::string ("Water's HOH Angle"),
+						std::string ("h2o-angle.dat")),
+				so2s(t) { so2s.Initialize(); }
+
+			void Analysis ();
+
+		private:
+			XYZSO2Manipulator<T>	so2s;
+	};
+
+	template <typename T>
+		void WaterBondLengthAnalyzer<T>::Analysis () {
+			so2s.UpdateSO2();
+			this->LoadAll();
+
+			Water_ptr_vec wats;
+			for (Mol_it it = this->begin_mols(); it != this->end_mols(); it++) {
+				if ((*it)->MolType() == Molecule::H2O) {
+					WaterPtr wat = static_cast<WaterPtr>(*it);
+					wat->SetAtoms();
+					wats.push_back(wat);
+				}
+			}
+			std::sort (wats.begin(), wats.end(), WaterToSO2Distance_cmp (so2s.SO2()));
+
+			double angle;
+			for (int i = 0; i < 3; i++) {
+				WaterPtr wat = wats[i];
+				angle = wat->Angle();
+				fprintf (this->output, "% 12.7f", angle);
+			}
+			fprintf (this->output, "\n");
+		}
 
 	/*
 		 template <typename t>

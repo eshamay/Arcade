@@ -122,6 +122,8 @@ namespace md_analysis {
 			//a = new so2_analysis::SO2DipoleAnalyzer<T>(this);					analyses.push_back(a);
 			a = new so2_analysis::SO2BondLengthAnalyzer<T>(this);					analyses.push_back(a);
 			a = new so2_analysis::SO2AngleAnalyzer<T>(this);					analyses.push_back(a);
+			a = new so2_analysis::ClosestWaterBondlengths<T>(this);					analyses.push_back(a);
+			a = new so2_analysis::WaterBondLengthAnalyzer <T>(this);					analyses.push_back(a);
 
 		}
 

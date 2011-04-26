@@ -200,7 +200,8 @@ namespace h2o_analysis {
 			}
 	};
 
-}	// namespace md analysis
+
+}	// namespace h2o analysis
 
 
 
