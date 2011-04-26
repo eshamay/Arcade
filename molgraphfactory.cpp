@@ -63,6 +63,8 @@ namespace molgraph {
 			newmol->AddAtom(*at);
 		}
 
+		newmol->FixAtoms();
+
 		return newmol;
 	}
 

@@ -16,7 +16,6 @@ namespace md_system {
 	}
 
 	void Hydroxide::SetAtoms () {
-		this->FixAtoms();
 		_o = this->GetAtom("O");
 		_h = this->GetAtom("H");
 

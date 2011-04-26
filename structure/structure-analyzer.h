@@ -1,8 +1,8 @@
 #ifndef TEST_H_
 #define TEST_H_
 
-//#define EIGEN_MATRIXBASE_PLUGIN "/home/eric/md/Arcade/EigenMatrixAddon.h"
-#define EIGEN_MATRIXBASE_PLUGIN "/home/eshamay/md/src/Arcade/EigenMatrixAddon.h"
+#define EIGEN_MATRIXBASE_PLUGIN "/home/eric/md/Arcade/EigenMatrixAddon.h"
+//#define EIGEN_MATRIXBASE_PLUGIN "/home/eshamay/md/src/Arcade/EigenMatrixAddon.h"
 #include <Eigen/Core>
 USING_PART_OF_NAMESPACE_EIGEN
 
@@ -14,7 +14,7 @@ USING_PART_OF_NAMESPACE_EIGEN
 #include "atomic-density-analysis.h"
 //#include "rdf-analysis.threads.h"
 #include "angle-analysis.h"
-//#include "so2-system-analysis.h"
+#include "so2-system-analysis.h"
 
 
 typedef std::vector<double> double_vec;
@@ -119,7 +119,11 @@ namespace md_analysis {
 
 			a = new md_analysis::SystemDipoleAnalyzer<T>(this);				analyses.push_back(a);
 			a = new neighbor_analysis::SO2BondingAnalysis<T>(this);					analyses.push_back(a);
-			a = new so2_analysis::SO2DipoleAnalyzer<T>(this);					analyses.push_back(a);
+			//a = new so2_analysis::SO2DipoleAnalyzer<T>(this);					analyses.push_back(a);
+			a = new so2_analysis::SO2BondLengthAnalyzer<T>(this);					analyses.push_back(a);
+			a = new so2_analysis::SO2AngleAnalyzer<T>(this);					analyses.push_back(a);
+			a = new so2_analysis::ClosestWaterBondlengths<T>(this);					analyses.push_back(a);
+			a = new so2_analysis::WaterBondLengthAnalyzer <T>(this);					analyses.push_back(a);
 
 		}
 

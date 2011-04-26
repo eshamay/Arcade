@@ -12,7 +12,6 @@ namespace md_files {
 	void CRDFile::LoadNext () {
 
 		// grab each coordinate from the file
-		int i = 0;
 		for (std::vector<double>::iterator it = _coords.begin(); it != _coords.end(); it++) {
 			_eof = (fscanf (_file, "%lf ", &(*it)) == EOF);
 		}

@@ -130,7 +130,7 @@ namespace md_analysis {
 					so2->SetAtoms();
 				}
 			}
-
+			
 			// calculate the dipole of each molecule
 			std::transform (this->begin_mols(), this->end_mols(), std::back_inserter(dipoles), std::ptr_fun(&MDSystem::CalcWannierDipole));
 
@@ -141,7 +141,7 @@ namespace md_analysis {
 			//VecR dipole = std::accumulate (dipoles.begin(), dipoles.end(), VecR(0.0,0.0,0.0), vecr_add());
 			VecR dipole (0.,0.,0.);
 			dipole += so2->Dipole();
-			for (int i = 0; i < 10; i++) {
+			for (int i = 0; i < 5; i++) {
 					dipole += wats[i]->Dipole();
 			}
 			fprintf (this->output, "% 12.8f % 12.8f % 12.8f\n", dipole[x], dipole[y], dipole[z]);
