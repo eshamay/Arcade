@@ -6,6 +6,7 @@
 #include "sfgunits.h"
 
 namespace morita {
+	using namespace md_system;
 
 	// a new water that has all the needed pieces for our calculations
 	class MoritaH2O : public Water {

@@ -1,5 +1,5 @@
-#ifndef MORITA2002_H_
-#define MORITA2002_H_
+#ifndef MORITA2008_H_
+#define MORITA2008_H_
 
 #include "analysis.h"
 #include "sfgunits.h"
@@ -15,27 +15,34 @@
 
 namespace morita {
 
+	using namespace md_system;
+	using namespace md_analysis;
 	typedef std::pair<double,double> sfgdata_pair_t;
 
 	USING_PART_OF_NAMESPACE_EIGEN
 
 		/*!
-		 * A pure virtual base class for performing an SFG analysis based on the method of Morita/Hynes (J. Phys. Chem. B 2002, 106, 673-685). Depending on the specific MD system used (Amber, CP2K, etc) the pure virtual methods define the actions to be taken to alter how various components are defined, and customize the analysis.
+		 * A pure virtual base class for performing an SFG analysis based on the method of Morita/Hynes (J. Phys. Chem. B 2008, 106, 673-685). Depending on the specific MD system used (Amber, CP2K, etc) the pure virtual methods define the actions to be taken to alter how various components are defined, and customize the analysis.
 		 */
-		template <class U>
-		class Morita2002Analysis : public AnalysisSet< Analyzer<U> >{
+		template <class T>
+		class Morita2008Analysis : public AnalysisSet<T>{
 			public:
-				Morita2002Analysis (std::string, std::string);
-				virtual ~Morita2002Analysis ();
+				typedef Analyzer<T> system_t;
 
-				typedef Analyzer<U> system_t;
+				Morita2008Analysis (system_t * t, std::string desc, std::string filename) :
+					AnalysisSet<T> (t,
+							std::string (desc),
+							std::string (filename)),
+						_p(0), _alpha(0,0), _IDENT(0,0), _g(0,0), _g_trans(0,0) { }
 
-				virtual void Analysis (system_t&);
+				virtual ~Morita2008Analysis ();
+
+				virtual void Analysis ();
 
 			protected:
 				//! all the waters in the MD system
 				Morita_ptr_vec		all_wats;		
-				//! Water molecules that will be analyzed by the morita 2002 routines
+				//! Water molecules that will be analyzed by the morita 2008 routines
 				Morita_ptr_vec		analysis_wats;	
 				//! Total system dipole moment (3Nx1 tensor)
 				VectorXd				_p;
@@ -43,10 +50,11 @@ namespace morita {
 				MatrixXd		_alpha;
 				//! System dipole field tensor
 				MatrixXd		 _T;	
-				//! Identity matrix used in calculation of eq.23 of the Morita/Hynes 2002 method
+				//! Identity matrix used in calculation of eq.23 of the Morita/Hynes 2008 method
 				MatrixXd	 	_IDENT;	
 				//! Local field correction tensor
 				MatrixXd		_g;	
+				MatrixXd		_g_trans;	
 
 				//! total system polarizability
 				MatR			_A;		
@@ -56,7 +64,7 @@ namespace morita {
 				/*!
 				 * Copies all the waters in the system into a separate container in order to differentiate between those that will be analyzed and the rest. Also, the waters and converted into a special Morita water class that makes it cleaner to calculate the dipole and polarizability tensors
 				 */
-				void SetupSystemWaters (system_t& t);
+				void SetupSystemWaters ();
 
 				/*!
 				 * Determines which of the molecules (waters) in the system are to be used for the ensuing analysis. Only waters that have been copied into the analysis_wats container will be used.
@@ -90,18 +98,7 @@ namespace morita {
 		};	// sfg-analyzer
 
 
-	template <class U>
-		Morita2002Analysis<U>::Morita2002Analysis (std::string desc, std::string fn)
-		: 
-			AnalysisSet< Analyzer<U> > (desc, fn),
-			_p(0), _alpha(0,0), _IDENT(0,0), _g(0,0)
-	{ 
-		return; 
-	}
-
-
-
-	template <class U> Morita2002Analysis<U>::~Morita2002Analysis () {
+	template <class U> Morita2008Analysis<U>::~Morita2008Analysis () {
 		for (Morita_it it = all_wats.begin(); it != all_wats.end(); it++) {
 			delete *it;
 		}
@@ -109,10 +106,10 @@ namespace morita {
 
 
 	template <class U>
-		void Morita2002Analysis<U>::SetupSystemWaters (system_t& t) {
+		void Morita2008Analysis<U>::SetupSystemWaters () {
 
 			// load all the waters into the int_wats container
-			t.LoadWaters();
+			this->_system->LoadWaters();
 			//std::for_each(t.int_wats.begin(), t.int_wats.end(), std::mem_fun(&Molecule::Print));
 
 			for (Morita_it it = all_wats.begin(); it != all_wats.end(); it++) {
@@ -121,8 +118,9 @@ namespace morita {
 			all_wats.clear();
 
 			// load up the all_wats with new derived Morita waters that have some extra functionality
-			for (Mol_it it = t.int_wats.begin(); it != t.int_wats.end(); it++) {
+			for (Mol_it it = this->_system->int_wats.begin(); it != this->_system->int_wats.end(); it++) {
 				MoritaH2O_ptr ptr (new MoritaH2O (*it));
+				ptr->SetAtoms();
 				all_wats.push_back(ptr);
 			}
 
@@ -132,17 +130,17 @@ namespace morita {
 			// here filter out the waters to use for analysis
 			this->SelectAnalysisWaters ();
 
-
 			return;
 		}
 
 	template <class U>
-		void Morita2002Analysis<U>::Analysis (system_t& t) {
+		void Morita2008Analysis<U>::Analysis () {
 
-			this->SetupSystemWaters (t);
+			this->SetupSystemWaters ();
 
 			int N = 3*analysis_wats.size();
 			_g.setZero(N,N);
+			_g_trans.setZero(N,N);
 			_T.setZero(N,N);
 			_p.setZero(N);
 			_alpha.setZero(N,N);
@@ -160,19 +158,18 @@ namespace morita {
 			this->CalculateTotalPolarizability ();
 
 
-
 			for (unsigned int i = 0; i < 3; i++) {
-				fprintf (t.Output(), "% 13.4f ", _M(i));
+				fprintf (this->output, "% 20.7f ", _M(i));
 			} 
 			// output in row-major order
 			for (unsigned int i = 0; i < 3; i++) {
 				for (unsigned int j = 0; j < 3; j++) {
-					fprintf (t.Output(), "% 13.4f ", _A(i,j));
+					fprintf (this->output, "% 20.7f ", _A(i,j));
 				}
 			}
-			fprintf (t.Output(),"\n");
+			fprintf (this->output,"\n");
 
-			fflush(t.Output());
+			fflush(this->output);
 
 		} // Analysis
 
@@ -180,7 +177,7 @@ namespace morita {
 	// calculates the ssp and sps value of the autocorrelation function for a given set of pqr space-frame coordinates
 	/*
 		 template <class U>
-		 sfgdata_pair_t Morita2002Analysis<U>::SSP_SPS_Result (const int s1, const int s2, const int p, const MatR& a) const {
+		 sfgdata_pair_t Morita2008Analysis<U>::SSP_SPS_Result (const int s1, const int s2, const int p, const MatR& a) const {
 	// for now, only output the SSP and SPS components of the correlation function
 	double a_sps, m_sps;
 	double a_ssp, m_ssp;
@@ -202,7 +199,7 @@ namespace morita {
 
 
 	//template <class U>
-	//void Morita2002Analysis<U>::DataOutput (system_t& t) {
+	//void Morita2008Analysis<U>::DataOutput () {
 
 
 	// try this - for each timestep, output the vector dipole, and the matrix polarizability of the system
@@ -278,7 +275,7 @@ namespace morita {
 	//} // Data Output
 
 template <class U>
-void Morita2002Analysis<U>::CalculateTensors() {
+void Morita2008Analysis<U>::CalculateTensors() {
 
 	// Calculate the dipole moment of each water
 	this->SetAnalysisWaterDipoleMoments ();
@@ -302,7 +299,17 @@ void Morita2002Analysis<U>::CalculateTensors() {
 
 		for (unsigned int j = i+1; j < analysis_wats.size(); j++) {
 			// Calculate the tensor 'T' which is formed of 3x3 matrix elements
+			printf ("the two waters:\n");
+			analysis_wats[i]->Print();
+			analysis_wats[j]->Print();
+			printf ("\n");
+
 			MatR dft (DipoleFieldTensor(analysis_wats[i], analysis_wats[j]));
+
+			printf ("dipole field tensor: \n");
+			dft.Print();
+			printf ("\n");
+
 			_T.block(3*i,3*j,3,3) = dft;
 			_T.block(3*j,3*i,3,3) = dft;
 		}
@@ -311,16 +318,15 @@ void Morita2002Analysis<U>::CalculateTensors() {
 }	// Calculate Tensors
 
 
-	template <class U>
-MatR Morita2002Analysis<U>::DipoleFieldTensor (const MoritaH2O_ptr wat1, const MoritaH2O_ptr wat2)
-{
+template <class U>
+MatR Morita2008Analysis<U>::DipoleFieldTensor (const MoritaH2O_ptr wat1, const MoritaH2O_ptr wat2) {
+
 	VecR r = MDSystem::Distance(wat1->GetAtom(Atom::O), wat2->GetAtom(Atom::O));
 	// work in atomic units (au)
-	double distance = pow(r.Magnitude() * sfg_units::ANG2BOHR, 3.0);
+	double distance = r.Magnitude() * sfg_units::ANG2BOHR;
 	double ir3 = 1.0/pow(distance,3.0);
-	//double ir5 = 3.0/pow(distance,5.0);
 
-	// calculate T as in eq. 10 of the Morita/Hynes 2002 paper
+	// calculate T as in eq. 10 of the Morita/Hynes 2008 paper
 	MatR dft = Matrix3d::Identity();
 
 	for (unsigned i = 0; i < 3; i++) {
@@ -332,9 +338,10 @@ MatR Morita2002Analysis<U>::DipoleFieldTensor (const MoritaH2O_ptr wat1, const M
 	return dft;
 } //dipole field tensor
 
+
 // take care of the polarization calculations for the first timestep
 template <class U>
-void Morita2002Analysis<U>::CalculateTotalDipole () {
+void Morita2008Analysis<U>::CalculateTotalDipole () {
 
 	// first calculate the corrected (for local field) _p tensor
 	// This is done as with the polarizability, alpha, by means of the dgemm blas routine
@@ -352,11 +359,32 @@ void Morita2002Analysis<U>::CalculateTotalDipole () {
 		 dgemm (&transa, &transb, &N, &n, &N, &scalea, &_g(0,0), &N, &_p(0,0), &N, &scaleb, &_p(0,0), &N);
 	// _p now holds the local-field corrected dipole moments
 	*/
-	_p = _g.transpose() * _p;
+
+	_g_trans = _g.transpose();
+	_p = _g_trans * _p;
 
 	// perform the summation of the total system dipole moment
 	_M.setZero();
 	int N = analysis_wats.size();
+	/*
+		 double tally;
+		 VecR mu;
+		 MatR g;
+		 for (int p = 0; p < N; ++p) {
+		 for (int q = 0; q < N; ++q) {
+		 mu = _p.block(3*q,0,3,1);
+		 g = _g_trans.block(3*p,3*q,3,3);
+		 for (int i = 0; i < 3; i++) {
+		 tally = 0.0;
+		 for (int j = 0; j < 3; j++) {
+		 tally += mu[j] * g[i][j];
+		 } 
+		 _M[i] += tally;
+		 }
+		 }
+		 }
+		 */
+
 	for (int i = 0; i < N; i++) {
 		//VecR mu = _p.block(3*i,0,3,1);
 		//_M += mu;
@@ -378,7 +406,7 @@ void Morita2002Analysis<U>::CalculateTotalDipole () {
 
 
 template <class U>
-void Morita2002Analysis<U>::CalculateLocalFieldCorrection () {
+void Morita2008Analysis<U>::CalculateLocalFieldCorrection () {
 	// following equation 23 - (1 + T*alpha) f = h.
 	// first, set up _g = (1 + T*alpha)
 	// then solve the equation for f with a lapack routine
@@ -438,10 +466,12 @@ void Morita2002Analysis<U>::CalculateLocalFieldCorrection () {
 
 	//_f = _g;
 	/******** Solve for the inverse of _g through LU decomposition and direct application of the lapack _getri routine *******/
-	int ipiv[N];
+	int ipiv[N+1];
 	int info = 0;
 	// perform LU decomposition
 	dgetrf (&N, &N, &_g(0,0), &N, ipiv, &info);
+
+
 	// before continuing, find out the best working memory chunk size
 	double lwork_query[10];
 	int lwork = -1;	// tell dgetri to perform a query of the optimal workspace size, instead of performing the inversion
@@ -449,6 +479,9 @@ void Morita2002Analysis<U>::CalculateLocalFieldCorrection () {
 	dgetri (&N, &_g(0,0), &N, ipiv, lwork_query, &lwork, &info);
 	lwork = (int)lwork_query[0];
 	double work[lwork];
+
+
+
 	// and do the inverse calculation to get the real g in Eq. 19 of the 2008 Morita/Ishiyama paper
 	dgetri (&N, &_g(0,0), &N, ipiv, work, &lwork, &info);
 	if (info != 0) {
@@ -484,7 +517,7 @@ void Morita2002Analysis<U>::CalculateLocalFieldCorrection () {
 
 // calculates A for the current timestep
 template <class U>
-void Morita2002Analysis<U>::CalculateTotalPolarizability () {
+void Morita2008Analysis<U>::CalculateTotalPolarizability () {
 
 	int N = analysis_wats.size();
 	/*
@@ -498,7 +531,7 @@ void Morita2002Analysis<U>::CalculateTotalPolarizability () {
 	double scaleb = 0.0;
 	*/
 
-	_alpha = _g.transpose() * _alpha * _g;
+	_alpha = _g_trans * _alpha * _g;
 	//_alpha *= _g;
 
 	// alpha_1 = trans(g)*alpha_0
@@ -531,28 +564,37 @@ void pdgesv_ (int *n, int *nrhs, double *A, int *ia, int *ja, int *desca, int* i
 
 /************* helper class for morita analysis based on lookup tables *************/
 template <class T>
-class Morita2008LookupAnalysis : public Morita2002Analysis<T> {
+class Morita2008LookupAnalysis : public Morita2008Analysis<T> {
 
 	public:
-		Morita2008LookupAnalysis (const std::string description, const std::string output_file) :
-			Morita2002Analysis<T>(description, output_file),
-			pdf ("h2o_polarizability.dat"),
-			ddf ("h2o_dipole.dat") { }
+		typedef Analyzer<T> system_t;
+		Morita2008LookupAnalysis (system_t * t) : 
+			Morita2008Analysis<T>(t,
+					std::string ("SFG Analysis via M/I 2008 w/ polarizability lookup"),
+					std::string ("sfg.dat")),
+			pdf ("h2o_polarizability.dat") { }
+		//ddf ("h2o_dipole.dat") { }
 
 	protected:
 		//! Selects the waters to be analyzed by loading the entire set of molecules above a particular cutoff location
 		virtual void SelectAnalysisWaters () = 0;
-		//! sets the dipole moments of all the system waters by means of the parameterized model of Morita/Hynes 2002
-		virtual void SetAnalysisWaterDipoleMoments () { };
+		//! sets the dipole moments of all the system waters by means of the parameterized model of Morita/Hynes 2008
+		virtual void SetAnalysisWaterDipoleMoments ();
 
 		virtual void SetAnalysisWaterPolarizability ();
 
 		//! Data file containing pre-calculated polarizabilities of different geometries of water molecule
 		datafile_parsers::PolarizabilityDataFile pdf;	
-		datafile_parsers::DipoleDataFile ddf;	
+		//datafile_parsers::DipoleDataFile ddf;	
 
 };	// class lookup analysis
 
+
+
+template <>
+void Morita2008LookupAnalysis<XYZSystem>::SetAnalysisWaterDipoleMoments () {
+	std::for_each (this->analysis_wats.begin(), this->analysis_wats.end(), MDSystem::CalcWannierDipole);
+}
 
 template <class T>
 void Morita2008LookupAnalysis<T>::SetAnalysisWaterPolarizability () {
@@ -573,11 +615,11 @@ void Morita2008LookupAnalysis<T>::SetAnalysisWaterPolarizability () {
 		(*it)->SetAtoms();	// first get the atoms and bonds set in the water
 
 		dcm = MatR::Zero();
-		dcm = (*it)->DCMToLabMorita(1);	// set up the direction cosine matrix for rotating the polarizability to the lab-frame
+		dcm = (*it)->DCMToLab();	// set up the direction cosine matrix for rotating the polarizability to the lab-frame
 
 		// bondlengths are in angstroms
-		oh1 = (*it)->OH1()->Magnitude();
-		oh2 = (*it)->OH2()->Magnitude();
+		oh1 = (*it)->OH1().Magnitude();
+		oh2 = (*it)->OH2().Magnitude();
 		// angle in degrees
 		theta = acos((*it)->Angle()) * 180.0/M_PI;
 
@@ -586,16 +628,18 @@ void Morita2008LookupAnalysis<T>::SetAnalysisWaterPolarizability () {
 		// The polarizability lookup value is given in angstrom units (not atomic units)
 		alpha = pdf.Value(oh1, oh2, theta);	// using the polarizability data file for lookup (pdf)
 		// rotate the polarizability tensor into the lab-frame
-		alpha = dcm.transpose() * alpha * dcm;
+		alpha = dcm * alpha * dcm.transpose();
 		(*it)->SetPolarizability (alpha);
 
-		mu = VecR::Zero();
+		/*
+			 mu = VecR::Zero();
 		// dipole moment is given in Debye units
 		mu = ddf.Value(oh1, oh2, theta);	// using the dipole data file (ddf)
 		// rotate the polarizability tensor into the lab-frame
 		mu = dcm * mu;
 		(*it)->SetDipoleMoment (mu);
 		//std::cout << mu.Magnitude() << std::endl;
+		*/
 
 		/*
 			 (*it)->Print();
@@ -610,24 +654,25 @@ void Morita2008LookupAnalysis<T>::SetAnalysisWaterPolarizability () {
 		//(*it)->Print();
 		*/
 	}
-}	// lookup tables
+
+}	// lookup analysis - polarizability
 
 
 
 /************* Methods for calculating dipoles and polarizabilities ****************/
 
 template <class U>
-void Morita2002Analysis<U>::CalcWannierDipoles () {
+void Morita2008Analysis<U>::CalcWannierDipoles () {
 	std::for_each (analysis_wats.begin(), analysis_wats.end(), MDSystem::CalcWannierDipole);
 }
 
 template <class U>
-void Morita2002Analysis<U>::MoritaH2OPolarizabilities () {
+void Morita2008Analysis<U>::MoritaH2OPolarizabilities () {
 	std::for_each (analysis_wats.begin(), analysis_wats.end(), std::mem_fun<void,MoritaH2O>(&MoritaH2O::CalculateGeometricalPolarizability));
 }
 
 template <class U>
-void Morita2002Analysis<U>::MoritaH2ODipoles () {
+void Morita2008Analysis<U>::MoritaH2ODipoles () {
 	std::for_each (analysis_wats.begin(), analysis_wats.end(), std::mem_fun<void,MoritaH2O>(&MoritaH2O::CalculateGeometricalDipoleMoment));
 }
 

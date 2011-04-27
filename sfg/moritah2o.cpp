@@ -51,9 +51,9 @@ namespace morita {
 		this->SetAtoms();	// first get the bonds set in the water
 
 		// determine the bondlength displacements
-		dR1 = this->OH1()->Magnitude() - BONDLENGTH_EQ;	// in angstroms
+		dR1 = this->OH1().Magnitude() - BONDLENGTH_EQ;	// in angstroms
 		dR1 *= sfg_units::ANG2BOHR;	// now in atomic units
-		dR2 = this->OH2()->Magnitude() - BONDLENGTH_EQ;
+		dR2 = this->OH2().Magnitude() - BONDLENGTH_EQ;
 		dR2 *= sfg_units::ANG2BOHR;
 
 		// angle displacement from the equilibrium
