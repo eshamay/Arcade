@@ -130,11 +130,10 @@ namespace md_system {
 			r *= 2.0;
 			dipole -= r;
 		}
-		dipole = dipole * 4.8028;
 
 		//mol->Print();
 		//printf ("% 8.3f ) ", dipole.Magnitude()); dipole.Print();
-		mol->Dipole(dipole); //in units of debye
+		mol->Dipole(dipole); //in units of e * Angstroms
 
 		return (dipole);
 	}

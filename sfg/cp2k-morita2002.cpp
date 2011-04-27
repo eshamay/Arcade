@@ -3,19 +3,25 @@
 namespace morita {
 
 	// for the small cp2k systems, just use all the waters
-	void CP2KMorita2008Analysis::SelectAnalysisWaters () { return; }
+	void CP2KMorita2008Analysis::SelectAnalysisWaters () { 
+		this->analysis_wats.clear();
+		std::sort (this->all_wats.begin(), this->all_wats.end(), typename system_t::molecule_position_pred(Atom::O));
+		// testing a 2-water system
+		std::copy(this->all_wats.begin(), this->all_wats.begin()+2, back_inserter(this->analysis_wats));
+		return;
+	}
 
 	/*
-	void CP2KMorita2008Analysis::SetAnalysisWaterDipoleMoments () {
-		this->CalcWannierDipoles ();
-		return;
-	}
+		 void CP2KMorita2008Analysis::SetAnalysisWaterDipoleMoments () {
+		 this->CalcWannierDipoles ();
+		 return;
+		 }
 
-	void CP2KMorita2008Analysis::SetAnalysisWaterPolarizability () {
-		this->MoritaH2OPolarizabilities();
-		return;
-	}
-	*/
+		 void CP2KMorita2008Analysis::SetAnalysisWaterPolarizability () {
+		 this->MoritaH2OPolarizabilities();
+		 return;
+		 }
+		 */
 
 } // namespace morita
 

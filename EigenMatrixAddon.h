@@ -38,10 +38,10 @@ inline OtherDerived Unit () const // returns the unit vector (normalized)
 
 inline void Print () const
 {
-	if (cols() > 1)
+	//if (cols() > 1)
 		std::cout << *this << std::endl;
-	else
-		printf ("[% 9.5f% 9.5f% 9.5f ]\n", this->x(), this->y(), this->z());
+	//else
+		//printf ("[% 9.5f% 9.5f% 9.5f ]\n", this->x(), this->y(), this->z());
 }
 
 

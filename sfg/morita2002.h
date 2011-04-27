@@ -293,9 +293,9 @@ void Morita2008Analysis<U>::CalculateTensors() {
 	for (unsigned int i = 0; i < analysis_wats.size(); i++) {
 
 		// set the value for p_not 
-		_p.block(3*i,0,3,1) = analysis_wats[i]->Dipole();	// these are all in debye
+		_p.block(3*i,0,3,1) = analysis_wats[i]->Dipole() * sfg_units::ANG2BOHR;	// these are all in (a.u. charge) * bohr
 
-		_alpha.block(3*i,3*i,3,3) = analysis_wats[i]->Polarizability();
+		_alpha.block(3*i,3*i,3,3) = analysis_wats[i]->Polarizability();	// these are in atomic units (bohr)
 
 		for (unsigned int j = i+1; j < analysis_wats.size(); j++) {
 			// Calculate the tensor 'T' which is formed of 3x3 matrix elements
@@ -315,16 +315,24 @@ void Morita2008Analysis<U>::CalculateTensors() {
 		}
 	}
 
+	printf ("Dipole: \n\n");
+	_p.Print();
+	printf ("Polarizability: \n\n");
+	_alpha.Print();
+	printf ("Dipole field tensor: \n\n");
+	_T.Print();
+
 }	// Calculate Tensors
 
 
 template <class U>
 MatR Morita2008Analysis<U>::DipoleFieldTensor (const MoritaH2O_ptr wat1, const MoritaH2O_ptr wat2) {
 
-	VecR r = MDSystem::Distance(wat1->GetAtom(Atom::O), wat2->GetAtom(Atom::O));
-	// work in atomic units (au)
-	double distance = r.Magnitude() * sfg_units::ANG2BOHR;
-	double ir3 = 1.0/pow(distance,3.0);
+	VecR r = MDSystem::Distance(wat1->GetAtom(Atom::O), wat2->GetAtom(Atom::O));	// this is in angstroms
+	r = r * sfg_units::ANG2BOHR; // work in atomic units (bohr)
+	
+	double distance = r.Magnitude();	// units of bohr (a.u.)
+	double ir3 = 1.0/pow(distance,3.0);	// in units of 1/a_0^3 - a.u. (inverse bohr^3)
 
 	// calculate T as in eq. 10 of the Morita/Hynes 2008 paper
 	MatR dft = Matrix3d::Identity();
@@ -431,6 +439,9 @@ void Morita2008Analysis<U>::CalculateLocalFieldCorrection () {
 	//_g *= _alpha;
 	//_g += _IDENT;
 
+	printf ("\n\nT*alpha: \n\n");
+	(_T*_alpha).Print();
+	exit(1);
 	_g = _IDENT + _T*_alpha;
 
 	//std::cout << "blas matrix mult. " << t.elapsed() << std::endl;
@@ -625,7 +636,7 @@ void Morita2008LookupAnalysis<T>::SetAnalysisWaterPolarizability () {
 
 		// lookup the molecular (frame) polarizability from the data file
 		alpha = MatR::Zero();
-		// The polarizability lookup value is given in angstrom^3 units (not atomic units)
+		// The polarizability lookup value is given in atomic units (bohr^3)
 		alpha = pdf.Value(oh1, oh2, theta);	// using the polarizability data file for lookup (pdf)
 		// rotate the polarizability tensor into the lab-frame
 		alpha = dcm * alpha * dcm.transpose();
