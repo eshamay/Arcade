@@ -159,12 +159,12 @@ namespace morita {
 
 
 			for (unsigned int i = 0; i < 3; i++) {
-				fprintf (this->output, "% 20.7f ", _M(i));
+				fprintf (this->output, "% 12.7f ", _M(i));
 			} 
 			// output in row-major order
 			for (unsigned int i = 0; i < 3; i++) {
 				for (unsigned int j = 0; j < 3; j++) {
-					fprintf (this->output, "% 20.7f ", _A(i,j));
+					fprintf (this->output, "% 12.7f ", _A(i,j));
 				}
 			}
 			fprintf (this->output,"\n");
@@ -293,22 +293,22 @@ void Morita2008Analysis<U>::CalculateTensors() {
 	for (unsigned int i = 0; i < analysis_wats.size(); i++) {
 
 		// set the value for p_not 
-		_p.block(3*i,0,3,1) = analysis_wats[i]->Dipole();
+		_p.block(3*i,0,3,1) = analysis_wats[i]->Dipole();	// these are all in debye
 
 		_alpha.block(3*i,3*i,3,3) = analysis_wats[i]->Polarizability();
 
 		for (unsigned int j = i+1; j < analysis_wats.size(); j++) {
 			// Calculate the tensor 'T' which is formed of 3x3 matrix elements
-			printf ("the two waters:\n");
-			analysis_wats[i]->Print();
-			analysis_wats[j]->Print();
-			printf ("\n");
+			//printf ("the two waters:\n");
+			//analysis_wats[i]->Print();
+			//analysis_wats[j]->Print();
+			//printf ("\n");
 
 			MatR dft (DipoleFieldTensor(analysis_wats[i], analysis_wats[j]));
 
-			printf ("dipole field tensor: \n");
-			dft.Print();
-			printf ("\n");
+			//printf ("dipole field tensor: \n");
+			//dft.Print();
+			//printf ("\n");
 
 			_T.block(3*i,3*j,3,3) = dft;
 			_T.block(3*j,3*i,3,3) = dft;
@@ -625,7 +625,7 @@ void Morita2008LookupAnalysis<T>::SetAnalysisWaterPolarizability () {
 
 		// lookup the molecular (frame) polarizability from the data file
 		alpha = MatR::Zero();
-		// The polarizability lookup value is given in angstrom units (not atomic units)
+		// The polarizability lookup value is given in angstrom^3 units (not atomic units)
 		alpha = pdf.Value(oh1, oh2, theta);	// using the polarizability data file for lookup (pdf)
 		// rotate the polarizability tensor into the lab-frame
 		alpha = dcm * alpha * dcm.transpose();

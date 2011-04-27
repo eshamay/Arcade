@@ -116,6 +116,7 @@ namespace md_system {
 		return (dipole);
 	}
 
+	// Sets the dipole in Debye units
 	VecR MDSystem::CalcWannierDipole (MolPtr mol) {
 
 		VecR dipole = CalcClassicDipole(mol);
@@ -129,10 +130,11 @@ namespace md_system {
 			r *= 2.0;
 			dipole -= r;
 		}
+		dipole = dipole * 4.8028;
 
 		//mol->Print();
 		//printf ("% 8.3f ) ", dipole.Magnitude()); dipole.Print();
-		mol->Dipole(dipole);
+		mol->Dipole(dipole); //in units of debye
 
 		return (dipole);
 	}

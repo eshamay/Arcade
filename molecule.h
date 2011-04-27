@@ -83,7 +83,7 @@ namespace md_system {
 
 			//VecR CalcDipole ();	// calculate the dipole
 			virtual void Dipole (VecR& dip) { _dipole = dip; }
-			virtual VecR Dipole () const { return _dipole; }		// return the dipole of the molecule
+			virtual VecR Dipole () const { return _dipole; }		// return the dipole of the molecule in Debye units
 
 			virtual void Flip (const coord axis) { }
 			virtual VecR MolecularAxis () { return _z; }

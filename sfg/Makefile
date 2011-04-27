@@ -7,7 +7,7 @@ test : $(TEST)
 	$(CXX) $(TEST) -o test
 
 sfg : $(SFG)
-	$(CXX) $(SFG) $(LIBS) -lmkl_lapack -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lgsl -lgslcblas -o ../bin/structure-analyzer
+	$(CXX) $(SFG) $(LIBS) -lmkl_lapack -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lgsl -lgslcblas -o ../bin/morita-sfg
 
 cleansfg :
 	rm -f *.o test
