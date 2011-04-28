@@ -37,7 +37,7 @@ namespace md_files {
 	void AmberSystem::_ParseAtomInformation () {
 		double * frc;	// This isn't set yet!
 		for (int i = 0; i < _topfile.NumAtoms(); i++) {
-			_atoms[i] = new md_system::Atom(_topfile.AtomNames()[i], _coords(i), frc);
+			_atoms[i] = new md_system::Atom(_topfile.AtomNames()[i], _coords(i));//, frc);
 			_atoms[i]->ID(i);// set the atom's index number - because we may need to access ordered/list info elsewhere
 		}
 

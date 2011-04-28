@@ -27,7 +27,7 @@ namespace md_system {
 			} Element_t;
 
 			// constructors
-			Atom (const std::string& name, const double * position, const double * force);
+			Atom (const std::string& name, double * position);//, const double * force);
 			Atom (const Atom& oldAtom);				// copy constructor for deep copies
 			virtual ~Atom ();
 
@@ -51,9 +51,9 @@ namespace md_system {
 
 			void Position (coord const axis, double const value);
 
-			void Force (const vector_base& force) { _force = force; }
-			void Force (const double X, const double Y, const double Z) { _force.Set(X, Y, Z); }
-			void Force (coord const axis, double const value) { _force.Set (axis, value); }
+			//void Force (const vector_base& force) { _force = force; }
+			//void Force (const double X, const double Y, const double Z) { _force.Set(X, Y, Z); }
+			//void Force (coord const axis, double const value) { _force.Set (axis, value); }
 
 			void ID (const int id) { _ID = id; }
 			void Charge (double charge) { _charge = charge; }
@@ -79,8 +79,8 @@ namespace md_system {
 			int ID () const 		{ return _ID; }
 			const std::string& Residue () const { return _residue; }
 
-			const VecR& Position () const	{ return _position; }
-			const VecR& Force () const		{ return _force; }
+			const vector_map& Position () const	{ return _position; }
+			//const vector_map& Force () const		{ return _force; }
 
 			double X () const 		{ return _position.x(); }
 			double Y () const		{ return _position.y(); }
@@ -121,8 +121,8 @@ namespace md_system {
 
 			Element_t _element;			// the actual element based on the atom name - always upper-case and max length of two letters
 
-			VecR _position;				// Particle position
-			VecR _force;					// the external force on the atom at any given point in time
+			vector_map _position;				// Particle position
+			//vector_map _force;					// the external force on the atom at any given point in time
 
 	};	// class Atom
 

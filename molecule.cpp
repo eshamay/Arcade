@@ -160,9 +160,9 @@ namespace md_system {
 
 		for (Atom_it atom = _atoms.begin(); atom != _atoms.end(); atom++) {
 			VecR pos ((*atom)->Position());
-			VecR force ((*atom)->Force());
+			//VecR force ((*atom)->Force());
 			(*atom)->Position (axis, 2.0*plane - pos[axis]);
-			(*atom)->Force (axis, -force[axis]);
+			//(*atom)->Force (axis, -force[axis]);
 		}
 	}
 

@@ -44,8 +44,8 @@ namespace md_system {
 			// retrieves coordinates as VecR (3-element vectors)
 			//const coord_t& Coordinate (const int index) const { return _vectors[index]; }
 			//const coord_t& operator() (const int index) const { return _vectors[index]; }
-			const double * Coordinate (const int index) const { return &_coords[3*index]; }
-			const double * operator() (const int index) const { return &_coords[3*index]; }
+			double * Coordinate (const int index) { return &_coords[3*index]; }
+			double * operator() (const int index) { return &_coords[3*index]; }
 
 			//coord_it begin () const { return _vectors.begin(); }
 			//coord_it end () const { return _vectors.end(); }

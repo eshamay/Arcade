@@ -41,16 +41,17 @@ namespace md_files {
 			this->_coords.resize(3*_size, 0.0);
 		}
 
+		//double frc[3];
 		for (int i = 0; i < _size; i++) {
 			// now parse each line's information into the atoms
 			fscanf (_file, " %s %lf %lf %lf", name, &X, &Y, &Z);
 
 			// if we haven't already done so, let's create all the atoms we'll need
 			if (!_initialized) {
-				double * frc = (double *)NULL;
-				_atoms.push_back ( new Atom (std::string(name), &_coords[3*i], frc) );
-				_atoms.back()->ID (i);
-				_atoms.back()->SetAtomProperties();
+				AtomPtr new_atom = new Atom (std::string(name), &_coords[3*i]);//, frc);
+				_atoms.push_back (new_atom); 
+				new_atom->ID(i);
+				new_atom->SetAtomProperties();
 			}
 
 			// finally we set the position of each atom for the timestep

@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <vector>
 #include <cmath>
+#include <functional>
 
 
 namespace pair_utility {

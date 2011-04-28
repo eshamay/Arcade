@@ -17,9 +17,8 @@ namespace morita {
 
 	using namespace md_system;
 	using namespace md_analysis;
-	typedef std::pair<double,double> sfgdata_pair_t;
 
-	USING_PART_OF_NAMESPACE_EIGEN
+	typedef std::pair<double,double> sfgdata_pair_t;
 
 		/*!
 		 * A pure virtual base class for performing an SFG analysis based on the method of Morita/Hynes (J. Phys. Chem. B 2008, 106, 673-685). Depending on the specific MD system used (Amber, CP2K, etc) the pure virtual methods define the actions to be taken to alter how various components are defined, and customize the analysis.
@@ -313,18 +312,22 @@ void Morita2008Analysis<U>::CalculateTensors() {
 		}
 	}
 
+	/*
 	printf ("Dipole: \n\n");
 	for (int p = 0; p < N; ++p) {
 		_p[p].Print();
 	}
 	printf ("Polarizability: \n\n");
+	*/
+	/*
+	printf ("Dipole field tensor: \n\n");
 	for (int p = 0; p < N; ++p) {
 		for (int q = 0; q < N; ++q) {
-			_alpha[p][q].Print();
-			printf ("\n");
+			//_alpha[p][q].Print();
+			_T[p][q].Print();
+			//printf ("\n");
 		}}
-	//printf ("Dipole field tensor: \n\n");
-	//_T.Print();
+		*/
 
 }	// Calculate Tensors
 
@@ -341,9 +344,11 @@ MatR Morita2008Analysis<U>::DipoleFieldTensor (const MoritaH2O_ptr wat1, const M
 	// calculate T as in eq. 10 of the Morita/Hynes 2008 paper
 	MatR dft = Matrix3d::Identity();
 
+	double tmp;
 	for (unsigned i = 0; i < 3; i++) {
 		for (unsigned j = 0; j < 3; j++) {
-			dft(i,j) = ( dft(i,j) - 3.0*r[i]*r[j] ) * ir3;
+			tmp = ( dft(i,j) - 3.0*r[i]*r[j] ) * ir3;
+			dft(i,j) = tmp;
 		}
 	}
 
@@ -438,9 +443,11 @@ void Morita2008Analysis<U>::CalculateLocalFieldCorrection () {
 			}}}
 
 	// now perform the inverse on each piece of g
+	MatR g_inv;
 	for (int p = 0; p < N; ++p) {
 		for (int q = 0; q < N; ++q) {
-			_g[p][q] = _g[p][q].inverse();
+			g_inv = _g[p][q].inverse();	
+			_g[p][q] = g_inv; /** problem here **/
 		}}
 
 

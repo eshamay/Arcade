@@ -4,9 +4,9 @@
 #include "vecr.h"
 #include <list>
 
-#define EIGEN_MATRIXBASE_PLUGIN "/home/src/Arcade/EigenMatrixAddon.h"
-#include <Eigen/Core>
-#include <Eigen/Dense>
+//#define EIGEN_MATRIXBASE_PLUGIN "/home/src/Arcade/EigenMatrixAddon.h"
+//#include <Eigen/Core>
+//#include <Eigen/Dense>
 #include <Eigen/LU>
 //USING_PART_OF_NAMESPACE_EIGEN
 

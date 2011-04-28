@@ -45,8 +45,8 @@ inline void Print () const
 }
 
 
-template<typename OtherDerived>
-OtherDerived& Transpose() const { return this->transpose(); }
+//template<typename OtherDerived>
+//OtherDerived& Transpose() const { return this->transpose(); }
 
 #endif
 

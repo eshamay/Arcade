@@ -7,10 +7,6 @@
 #include <vector>
 #include <iostream>
 
-//#ifndef EIGEN2_SUPPORT
-//#define EIGEN2_SUPPORT_STAGE40_FULL_EIGEN3_STRICTNESS
-//#endif
-
 #ifndef EIGEN_INITIALIZE_MATRICES_BY_ZERO
 #define EIGEN_INITIALIZE_MATRICES_BY_ZERO
 #endif
