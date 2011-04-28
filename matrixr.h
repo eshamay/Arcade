@@ -4,9 +4,11 @@
 #include "vecr.h"
 #include <list>
 
-//#define EIGEN_MATRIXBASE_PLUGIN "/home/src/Arcade/EigenMatrixAddon.h"
+#define EIGEN_MATRIXBASE_PLUGIN "/home/src/Arcade/EigenMatrixAddon.h"
 #include <Eigen/Core>
-USING_PART_OF_NAMESPACE_EIGEN
+#include <Eigen/Dense>
+#include <Eigen/LU>
+//USING_PART_OF_NAMESPACE_EIGEN
 
 typedef enum {xx=0, yx=1, zx=2, xy=3, yy=4, zy=5, xz=6, yz=7, zz=8} element;
 

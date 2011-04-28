@@ -185,6 +185,7 @@ namespace md_system {
 */
 
 
+	/*
 	void Molecule::Rotate (VecR& origin, VecR& axis, double angle) {
 
 		double nx = 0.0, ny = 0.0, nz = 0.0;
@@ -225,6 +226,7 @@ namespace md_system {
 
 		return;
 	}
+	*/
 
 	void Molecule::Print () const {
 

@@ -93,6 +93,7 @@ namespace morita {
 
 
 	void MoritaH2O::CalculateGeometricalPolarizability () {
+		/*
 		this->SetBondAngleVars ();
 
 		_alpha1.Zero();
@@ -119,6 +120,8 @@ namespace morita {
 		//_alpha += (this->_DCM.transpose() * _alpha2 * this->_DCM);
 		_alpha += (this->_DCM.transpose() * _alpha2 * this->_DCM);
 
+		
+		*/
 
 	}	// Set Polarizability
 
@@ -156,12 +159,12 @@ namespace morita {
 
 		Molecule::DCMToLab ();
 
-		return _DCM;
+		return this->_DCM;
 	}
 
 	MatR const & MoritaH2O::DCMToLab () {
 		this->DCMToLabMorita();
-		return _DCM;
+		return this->_DCM;
 	}
 
 	// the alternative is to use the axes definition based on the molecular z-axis lying on the H2O bisector
@@ -170,22 +173,23 @@ namespace morita {
 
 		this->DCMToLab ();
 
-		return _DCM;
+		return this->_DCM;
 	}
 
 	// this should calculate the Euler Angles to get from the molecular frame to the lab frame
 	void MoritaH2O::CalcEulerAngles () {
+		/*
 
 		// First let's set up the direction cosine matrix. The values of the euler angles come from that.
 		// Don't forget to set the molecular axes before using this!
 		this->DCMToLab ();
 
 		// here is the direct calculation of the euler angles from the direction cosine matrix. This method comes from wikipedia of all places :)
-		double x3 = _DCM(0,2);
-		double y3 = _DCM(1,2);
-		double z1 = _DCM(2,0);
-		double z2 = _DCM(2,1);
-		double z3 = _DCM(2,2);
+		double x3 = this->_DCM(0,2);
+		double y3 = this->_DCM(1,2);
+		double z1 = this->_DCM(2,0);
+		double z2 = this->_DCM(2,1);
+		double z3 = this->_DCM(2,2);
 
 		/* If all three axes in the molecular (xyz) and lab (XYZ) frames are aligned, then the euler rotations work by rotating about the body-fixed
 		 * axes as follows based on the ZXZ convention:
@@ -193,6 +197,8 @@ namespace morita {
 		 * Second a rotation of beta about the x-axis. This is also known as the "tilt" angle because it is the angle between the z and Z axes.
 		 * Lastly a rotation of gamma about the body-fixed z-axis. This is the "twist" angle.
 		 */
+
+		/*
 		double alpha = atan2(x3,-y3);
 		double beta = acos(z3);
 		//double beta = atan2(sqrt(z1*z1+z2*z2), z3);
@@ -230,6 +236,7 @@ namespace morita {
 
 		MatR t (euler_matrix);
 		EulerMatrix = t.transpose();
+		*/
 
 		return;
 	}

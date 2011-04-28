@@ -39,7 +39,7 @@ namespace md_files {
 			bool eof () const { return _coords.eof(); }
 
 			// Output
-			const VecR&	Dimensions () 		const 	{ return _coords.Dimensions(); }		// returns the system size.
+			const VecR&	Dimensions () 		const { return _coords.Dimensions(); }		// returns the system size.
 
 			//! The set of all molecules in a system
 			Mol_ptr_vec& Molecules () { return _mols; }

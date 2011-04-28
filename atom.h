@@ -68,8 +68,8 @@ namespace md_system {
 			void MolID (const int mol) { _molid = mol; }	// sets the ID of the molecule containing this atom
 			void ParentMolecule (const MolPtr mol) { _pmolecule = mol;  }	// sets a pointer to the molecule that contains the atom
 
-			void Shift (vector_base& shift)			// shift the atom's position
-			{ _position += shift; }
+			//void Shift (vector_base& shift)			// shift the atom's position
+			//{ _position += shift; }
 
 			// Output
 			std::string Name () const 	{ return _name; }
@@ -79,8 +79,8 @@ namespace md_system {
 			int ID () const 		{ return _ID; }
 			const std::string& Residue () const { return _residue; }
 
-			const vector_map& Position () const	{ return _position; }
-			const vector_map& Force () const		{ return _force; }
+			const VecR& Position () const	{ return _position; }
+			const VecR& Force () const		{ return _force; }
 
 			double X () const 		{ return _position.x(); }
 			double Y () const		{ return _position.y(); }
@@ -121,8 +121,8 @@ namespace md_system {
 
 			Element_t _element;			// the actual element based on the atom name - always upper-case and max length of two letters
 
-			vector_map _position;				// Particle position
-			vector_map _force;					// the external force on the atom at any given point in time
+			VecR _position;				// Particle position
+			VecR _force;					// the external force on the atom at any given point in time
 
 	};	// class Atom
 

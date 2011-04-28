@@ -6,7 +6,8 @@ namespace md_system {
 		_name(name), _residue(""), 
 		_ID(-1), _molid(-1),
 		_pmolecule((Molecule *)NULL),
-		_position(Eigen::Map<VecR> (position)), _force(Eigen::Map<VecR> (force))
+		//_position(vector_map (position)), _force(vector_map (force))
+		_position(VecR::Map(position)), _force(VecR::Map(force))
 	{ this->SetAtomProperties (); }
 
 	// copy constructor will pull over all the member values, and copy over the vector values
@@ -125,7 +126,7 @@ namespace md_system {
 	}
 
 	Atom::Element_t Atom::String2Element (const std::string& name) {
-		const double * pos=(double *)NULL, * frc=(double *)NULL;
+		double * pos=(double *)NULL, * frc=(double *)NULL;
 		AtomPtr atom = new Atom(name,pos,frc);
 		Atom::Element_t elmt = atom->Element();
 		delete atom;

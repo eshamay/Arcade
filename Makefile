@@ -1,4 +1,4 @@
-CXX			= icpc  -I$(BOOST) -wd981,444,383,177,1418,1782,869,1572
+CXX			= icpc  -I$(BOOST) -wd981,444,383,177,1418,1782,869,1572,47
 OPTIMIZE 	= -finline-functions -finline -funroll-all-loops -O3 -DNDEBUG -m64 -fast -restrict
 #DEBUG		= -O0 -g3 -ggdb -D_GLIBCXX_DEBUG -Wno-deprecated -debug #-wd981,1599,1572,383
 DEBUG		= -O0 -g3 -ggdb -D_GLIBCXX_DEBUG -Wno-deprecated -DNDEBUG #-wd981,1599,1572,383

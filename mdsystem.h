@@ -117,7 +117,7 @@ namespace md_system {
 			virtual int size () const = 0;
 
 			static VecR Dimensions () { return MDSystem::_dimensions; }
-			static void Dimensions (const vector_base& dimensions) { MDSystem::_dimensions = dimensions; }
+			static void Dimensions (const VecR& dimensions) { MDSystem::_dimensions = dimensions; }
 
 			/* Beyond simple system stats, various computations are done routinely in a molecular dynamics system: */
 
