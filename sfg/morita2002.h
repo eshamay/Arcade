@@ -52,6 +52,8 @@ namespace morita {
 				tensor						_T;	
 				//! Local field correction tensor
 				tensor						_g;	
+				//! Local field correction tensor
+				std::vector<MatR>	_f;	
 
 				//! total system polarizability
 				MatR			_A;		
@@ -141,6 +143,7 @@ namespace morita {
 			_alpha.resize(N, std::vector<MatR>(N, MatR::Zero()));
 			_T.resize(N, std::vector<MatR>(N, MatR::Zero()));
 			_g.resize(N, std::vector<MatR>(N, MatR::Identity()));	// setting up the identity matrix early for ease later
+			_f.resize(N, MatR::Zero());	// setting up the identity matrix early for ease later
 
 			// Sets up the p, alpha, and T tensors by calculating through each water's dipole moment, polarizability, and dipole field contributions
 			this->CalculateTensors();
@@ -290,10 +293,11 @@ void Morita2008Analysis<U>::CalculateTensors() {
 	for (unsigned int i = 0; i < N; ++i) {
 
 		// set the value for p_not 
-		_p[i] = analysis_wats[i]->Dipole() * sfg_units::ANG2BOHR;	// these are all in (a.u. charge) * bohr
+		_p[i] = analysis_wats[i]->Dipole() * sfg_units::ANG2BOHR;	// these are all in (a.u. charge) * bohr after conversion
 
 		_alpha[i][i] = analysis_wats[i]->Polarizability();	// these are in atomic units (bohr)
 
+		/*
 		for (unsigned int j = i+1; j < N; ++j) {
 			// Calculate the tensor 'T' which is formed of 3x3 matrix elements
 			//printf ("the two waters:\n");
@@ -310,8 +314,22 @@ void Morita2008Analysis<U>::CalculateTensors() {
 			_T[i][j] = dft;
 			_T[j][i] = dft;
 		}
+		*/
 	}
 
+	/*
+	for (int i = 0; i < N; i++) {
+	for (int j = 0; j < N; j++) {
+		_alpha[i][j].Print();
+	}}
+
+	for (int i = 0; i < N; i++) {
+	for (int j = 0; j < N; j++) {
+		_T[i][j].Print();
+	}}
+	*/
+
+//	exit(1);
 	/*
 	printf ("Dipole: \n\n");
 	for (int p = 0; p < N; ++p) {
@@ -340,6 +358,7 @@ MatR Morita2008Analysis<U>::DipoleFieldTensor (const MoritaH2O_ptr wat1, const M
 
 	double distance = r.Magnitude();	// units of bohr (a.u.)
 	double ir3 = 1.0/pow(distance,3.0);	// in units of 1/a_0^3 - a.u. (inverse bohr^3)
+	double ir5 = 1.0/pow(distance,5.0);	// in units of 1/a_0^3 - a.u. (inverse bohr^3)
 
 	// calculate T as in eq. 10 of the Morita/Hynes 2008 paper
 	MatR dft = Matrix3d::Identity();
@@ -347,7 +366,7 @@ MatR Morita2008Analysis<U>::DipoleFieldTensor (const MoritaH2O_ptr wat1, const M
 	double tmp;
 	for (unsigned i = 0; i < 3; i++) {
 		for (unsigned j = 0; j < 3; j++) {
-			tmp = ( dft(i,j) - 3.0*r[i]*r[j] ) * ir3;
+			tmp = (dft(i,j)*ir3) - (3.0*r[i]*r[j]*ir5);
 			dft(i,j) = tmp;
 		}
 	}
@@ -379,12 +398,13 @@ void Morita2008Analysis<U>::CalculateTotalDipole () {
 
 	int N = analysis_wats.size();
 	_M.setZero();
-	MatR _g_t;
 	for (int p = 0; p < N; ++p) {
-		for (int q = 0; q < N; ++q) {
-			_g_t = _g[p][q].transpose(); 
-			_M += _g_t * _p[q];
-		}}
+		//for (int q = 0; q < N; ++q) {
+			//_g_t = _g[p][q].transpose(); 
+			//_M += _g_t * _p[q];
+			//_M += (_f[p].transpose()) * _p[p];
+			_M += _p[p];
+		}//}
 
 	// perform the summation of the total system dipole moment
 	/*
@@ -436,11 +456,19 @@ void Morita2008Analysis<U>::CalculateLocalFieldCorrection () {
 
 	int N = analysis_wats.size();
 
+	//for (int p = 0; p < N; ++p) {
+		//_g[p][p] = MatR::Identity();
+	//}
 	for (int p = 0; p < N; ++p) {
 		for (int q = 0; q < N; ++q) {
-			for (int r = 0; r < N; ++r) {
-				_g[p][r] += _T[p][q] * _alpha[q][r];
-			}}}
+				_g[p][q] += _T[p][q] * _alpha[q][q];
+			}}//}
+	/*
+	for (int p = 0; p < N; ++p) {
+		for (int q = 0; q < N; ++q) {
+			_g[p][q].Print();
+		}}
+		*/
 
 	// now perform the inverse on each piece of g
 	MatR g_inv;
@@ -449,6 +477,19 @@ void Morita2008Analysis<U>::CalculateLocalFieldCorrection () {
 			g_inv = _g[p][q].inverse();	
 			_g[p][q] = g_inv; /** problem here **/
 		}}
+
+	for (int p = 0; p < N; ++p) {
+		for (int q = 0; q < N; ++q) {
+			_f[p] += _g[p][q];
+		}
+	}
+
+	/*
+	for (int p = 0; p < N; ++p) {
+		for (int q = 0; q < N; ++q) {
+			_g[p][q].Print();
+		}}
+		*/
 
 
 	// first step: g = I
@@ -572,14 +613,17 @@ void Morita2008Analysis<U>::CalculateTotalPolarizability () {
 
 	// determine 'A', the summed (total) system polarizability.
 	_A.setZero();
-	MatR _g_t;
-	for (int p = 0; p < N; ++p) {
+	//MatR _g_t;
+	//for (int p = 0; p < N; ++p) {
 		for (int q = 0; q < N; ++q) {
-			for (int r = 0; r < N; ++r) {
+			//for (int r = 0; r < N; ++r) {
 				// grab the piece of the local field tensor and find the inner product with alpha
-				_g_t = _g[p][q].transpose(); 
-				_A += _g_t * _alpha[q][q] * _g[q][r];
-			}}}
+				//_g_t = _g[p][q].transpose(); 
+				//_A += _g_t * _alpha[q][q] * _g[q][r];
+				//_A += (_f[q].transpose()) * _alpha[q][q] * _f[q];
+				//_A += _alpha[q][q] * _f[q];
+				_A += _alpha[q][q];
+			}//}//}
 }	// Calculate total polarizability
 
 
