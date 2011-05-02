@@ -23,6 +23,10 @@ namespace molgraph {
 		if (C_count == 3 && O_count == 4) {
 			newmol = new alkane::Alkane ();
 		}
+		// parse out formaldehydes
+		if (C_count = 1 && O_count == 1 && H_count == 2) {
+			newmol = new alkane::Formaldehyde ();
+		}
 
 		// check for nitrates
 		else if (N_count == 1 && O_count == 3 && H_count == 1) {

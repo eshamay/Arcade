@@ -20,5 +20,13 @@ namespace alkane {
 			//virtual void SetAtoms () = 0;
 	};
 
+	class Formaldehyde : public Alkane {
+
+			Formaldehyde ();			// a default constructor
+			virtual ~Formaldehyde ();
+			Formaldehyde (const Molecule& molecule);		// copy constructor for casting from a molecule
+		static int numFormaldehyde;
+
+	};
 }
 #endif

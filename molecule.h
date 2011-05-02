@@ -27,7 +27,7 @@ namespace md_system {
 				H, OH, H2O, H3O,
 				NO3, HNO3,
 				SO2,
-				ALKANE, DECANE,
+				ALKANE, DECANE, FORMALDEHYDE,
 				CTC
 			} Molecule_t;
 
