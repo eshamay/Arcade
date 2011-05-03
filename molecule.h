@@ -7,6 +7,7 @@
 #include "atom.h"
 #include <string>
 #include <vector>
+#include <map>
 
 namespace md_system {
 
@@ -27,10 +28,9 @@ namespace md_system {
 				H, OH, H2O, H3O,
 				NO3, HNO3,
 				SO2,
-				ALKANE, DECANE, FORMALDEHYDE,
+				ALKANE, DECANE, FORMALDEHYDE, MALONIC,
 				CTC
 			} Molecule_t;
-
 
 			static int numMolecules;
 
@@ -47,7 +47,7 @@ namespace md_system {
 			// Output Functions
 			VecR CenterOfMass () const		{ return _centerofmass; }
 			// A reference point within the molecule for comparing positions
-			virtual VecR ReferencePoint () const { return _centerofmass; }
+			virtual VecR ReferencePoint () const = 0;
 
 			/* Dealing with atoms in the molecule */
 			Atom_ptr_vec Atoms () const			{ return _atoms; }

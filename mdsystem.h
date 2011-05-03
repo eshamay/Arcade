@@ -137,6 +137,22 @@ namespace md_system {
 			static VecR CalcWannierDipole (MolPtr mol);
 	};
 
+	// comparator for sorting a container of vectors based on distance to a given reference point
+	template <typename T>
+		class vecr_distance_cmp : public std::binary_function <T, T, bool> {
+			private:
+				VecR reference;
+			public:
+				vecr_distance_cmp (VecR& ref) : reference (ref) { }
+
+				bool operator() (const T& left, const T& right) {
+					double distance_left = MDSystem::Distance (left, reference).Magnitude();
+					double distance_right = MDSystem::Distance (right, reference).Magnitude();
+					bool ret = (left < right) ? true : false;
+					return ret;
+				}
+		};
+
 
 }	// namespace md system
 

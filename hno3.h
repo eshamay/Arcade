@@ -44,6 +44,7 @@ namespace md_system {
 			VecR& OH () { return _voh; }
 			const VecR_vec& NO2Wanniers () const { return _no2wanniers; }
 
+			VecR ReferencePoint () const { return _n->Position(); }
 	};
 
 
@@ -69,6 +70,8 @@ namespace md_system {
 			VecR const * NO1 () { return &_no1; }
 			VecR const * NO2 () { return &_no2; }
 			VecR const * NO3 () { return &_no3; }
+
+			VecR ReferencePoint () const { return _n->Position(); }
 
 			// Functions for analysis
 			VecR MolecularPlaneVector ();

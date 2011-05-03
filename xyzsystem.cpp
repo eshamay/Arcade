@@ -70,6 +70,7 @@ namespace md_files {
 			newmol->MolID((int)_mols.size());
 			newmol->FixAtoms();
 			_mols.push_back(newmol);
+			//newmol->SetAtoms();
 		}
 
 		/*
@@ -182,7 +183,27 @@ void XYZSystem::_CheckForUnparsedAtoms () const {
 void XYZSystem::_ParseWanniers () {
 	// we've got to clear out all the wanniers already loaded into the molecules
 	std::for_each (_mols.begin(), _mols.end(), std::mem_fun(&Molecule::ClearWanniers));
+	//std::for_each (_mols.begin(), _mols.end(), std::mem_fun(&Molecule::SetAtoms));
 
+	int num;
+	std::map<Molecule::Molecule_t, int>::iterator mapend = WannierFile::numWanniers.end();
+	std::map<Molecule::Molecule_t, int>::iterator it;
+	for (Mol_it mol = _mols.begin(); mol != _mols.end(); mol++) {
+
+		it = WannierFile::numWanniers.find((*mol)->MolType());
+
+		if (it == mapend) {
+			printf ("Couldn't find the number of wanniers for the molecule: %s. Add it into molecule.cpp.\n", (*mol)->Name().c_str());
+			fflush (stdout);
+			exit(1);
+		}
+
+		num = it->second;
+
+		AddWanniers (*mol, num);
+	}
+
+	/*
 	// keep track of the wanniers that have been parsed
 	for (Atom_it at = _xyzfile.begin(); at != _xyzfile.end(); at++) {
 		// find every oxygen and sulfur atom (those are the ones that contain wanniers
@@ -204,7 +225,6 @@ void XYZSystem::_ParseWanniers () {
 		vector_map_vec parsed_ws;
 		while (num_wans) {
 
-
 			distance = MDSystem::Distance ((*at)->Position(), _wanniers[i]).Magnitude();
 			if (distance < WANNIER_BOND) {
 				mol->AddWannier(_wanniers[i]);
@@ -212,12 +232,8 @@ void XYZSystem::_ParseWanniers () {
 				--num_wans;
 			}
 			++i;
-			if (i >= 209 && num_wans > 0) {
-				//(*at)->Print();
-				//for (vector_map_it it = parsed_ws.begin(); it != parsed_ws.end(); it++) 
-					//(*it).Print();
-			}
 		}
+		*/
 
 		/*
 		// and then go through all the wanniers in order to find the ones attached to the oxygen
@@ -232,8 +248,8 @@ void XYZSystem::_ParseWanniers () {
 				parsed_ws.push_back (*wi);
 			}
 		}
-		*/
 	}	// for-each atom
+		*/
 
 	//printf ("%d parsed wanniers\n", (int)parsed_ws.size());
 	// now find which wanniers have not been parsed
@@ -241,6 +257,16 @@ void XYZSystem::_ParseWanniers () {
 
 	return;
 }	// Parse Wanniers
+
+void XYZSystem::AddWanniers (MolPtr mol, const int num) {
+	mol->SetAtoms();
+	// sort all the wannier centers by their distance to the given atom location
+	std::sort (_wanniers.begin(), _wanniers.end(), vecr_distance_cmp(mol->ReferencePoint()));
+
+	// add in the given num of wannier centers to the molecule
+	for (vector_map_it it = _wanniers.begin(); it != _wanniers.begin() + num; it++)
+		mol->AddWannier(*it);
+}
 
 void XYZSystem::Rewind () {
 	_xyzfile.Rewind();
@@ -255,15 +281,15 @@ void XYZSystem::LoadNext () {
 		_wanniers.LoadNext();
 	}
 	//try {
-		//if (++_reparse_step == _reparse_limit) {
+	//if (++_reparse_step == _reparse_limit) {
 	this->_ParseMolecules();
 	if (_wanniers.Loaded())
 		this->_ParseWanniers();
 	//_reparse_step = 0;
-		//}
+	//}
 	//} catch (xyzsysex& ex) {
-		//std::cout << "Exception caught while parsing the molecules of the XYZ system" << std::endl;
-		//throw;
+	//std::cout << "Exception caught while parsing the molecules of the XYZ system" << std::endl;
+	//throw;
 	//}
 } // Load Next
 
@@ -290,25 +316,25 @@ VecR XYZSystem::SystemDipole () {
 }
 
 /*
-void XYZSystem::_ParseAlkanes () {
+	 void XYZSystem::_ParseAlkanes () {
 
-	for (Atom_it it = _xyzfile.begin(); it != _xyzfile.end(); it++) {
-		// form all the remaining atoms, find a carbon atom that it likely part of an alkane
-		if ((*it)->Element() != Atom::C) continue;
-		// check that it's still not parsed
-		if (!_Unparsed(*it)) continue;
+	 for (Atom_it it = _xyzfile.begin(); it != _xyzfile.end(); it++) {
+// form all the remaining atoms, find a carbon atom that it likely part of an alkane
+if ((*it)->Element() != Atom::C) continue;
+// check that it's still not parsed
+if (!_Unparsed(*it)) continue;
 
-		int molIndex = (int)_mols.size();	// set the molecule index
-		alkane::Alkane * alk = new alkane::Alkane ();
-		alk->MolID (molIndex);
-		alk->Initialize (*it, graph);	// build the alkane molecule
-		_mols.push_back(alk);
+int molIndex = (int)_mols.size();	// set the molecule index
+alkane::Alkane * alk = new alkane::Alkane ();
+alk->MolID (molIndex);
+alk->Initialize (*it, graph);	// build the alkane molecule
+_mols.push_back(alk);
 
-		// remove all the atoms in the alkane from the unparsed list
-		Atom_ptr_vec parsed;
-		std::copy (alk->begin(), alk->end(), std::back_inserter(parsed));
-		this->_UpdateUnparsedList (parsed);
-	}
+// remove all the atoms in the alkane from the unparsed list
+Atom_ptr_vec parsed;
+std::copy (alk->begin(), alk->end(), std::back_inserter(parsed));
+this->_UpdateUnparsedList (parsed);
+}
 }	// parse alkane
 */
 
@@ -319,48 +345,48 @@ bool XYZSystem::_Unparsed (const AtomPtr atom) const {
 }
 
 /*
-void XYZSystem::_ParseProtons () {
+	 void XYZSystem::_ParseProtons () {
 
-	Atom_ptr_vec parsed;
+	 Atom_ptr_vec parsed;
 
-	for (Atom_it H = _unparsed.begin(); H != _unparsed.end(); H++) {
-		// form all the remaining un-bound hydrogens into their own "proton" molecules
-		if ((*H)->Element() != Atom::H) continue;
+	 for (Atom_it H = _unparsed.begin(); H != _unparsed.end(); H++) {
+// form all the remaining un-bound hydrogens into their own "proton" molecules
+if ((*H)->Element() != Atom::H) continue;
 
-		Atom_ptr_vec cov = graph.BondedAtoms(*H, bondgraph::covalent);
-		if (cov.empty()) {
+Atom_ptr_vec cov = graph.BondedAtoms(*H, bondgraph::covalent);
+if (cov.empty()) {
 
-			int molIndex = (int)_mols.size();	// set the molecule index
-			_mols.push_back (new Proton ());
+int molIndex = (int)_mols.size();	// set the molecule index
+_mols.push_back (new Proton ());
 
-			MolPtr newmol = _mols[molIndex];
-			newmol->MolID (molIndex);
-			newmol->AddAtom (*H);
+MolPtr newmol = _mols[molIndex];
+newmol->MolID (molIndex);
+newmol->AddAtom (*H);
 
-			parsed.push_back (*H);
-		}
-		// otherwise, if there are covalent bonds, AND the hydrogen is not parsed into a molecule... something is wrong
-		else if (!(*H)->ParentMolecule()) {
-			printf ("Found a hydrogen that is not parsed into a molecule, but has covalent bonds!\n");
-			(*H)->Print();
-			printf ("It is covalently bound to:\n");
-			for (Atom_it it = cov.begin(); it != cov.end(); it++) {
-				(*it)->Print();
-			}
-			printf ("And it is h-bonded to:\n");
-			Atom_ptr_vec hbonds = graph.BondedAtoms(*H, bondgraph::hbond);
-			for (Atom_it it = hbonds.begin(); it != hbonds.end(); it++) {
-				(*it)->Print();
-			}
-
-			exit(1);
-		}
-	}
-
-	_UpdateUnparsedList (parsed);
-	return;
+parsed.push_back (*H);
 }
-	*/
+// otherwise, if there are covalent bonds, AND the hydrogen is not parsed into a molecule... something is wrong
+else if (!(*H)->ParentMolecule()) {
+printf ("Found a hydrogen that is not parsed into a molecule, but has covalent bonds!\n");
+(*H)->Print();
+printf ("It is covalently bound to:\n");
+for (Atom_it it = cov.begin(); it != cov.end(); it++) {
+(*it)->Print();
+}
+printf ("And it is h-bonded to:\n");
+Atom_ptr_vec hbonds = graph.BondedAtoms(*H, bondgraph::hbond);
+for (Atom_it it = hbonds.begin(); it != hbonds.end(); it++) {
+(*it)->Print();
+}
+
+exit(1);
+}
+}
+
+_UpdateUnparsedList (parsed);
+return;
+}
+*/
 
 } // namespace md_files
 

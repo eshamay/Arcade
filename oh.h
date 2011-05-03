@@ -23,6 +23,7 @@ public:
 	void SetAtoms ();					// set the _oh bond vector
 	VecR MolecularAxis () { return _oh; }
 	VecR const * OH () const { return &_oh; }
+	VecR ReferencePoint () const { return _o->Position(); }
 };
 
 #endif

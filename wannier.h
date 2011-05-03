@@ -22,6 +22,10 @@ namespace md_files {
 			Wannier_it begin () { return _wanniers.begin(); }
 			Wannier_it end () { return _wanniers.end(); }
 
+			// a mapping for the number of wannier centers for each type of molecule
+			static std::map<Molecule::Molecule_t, int>	numWanniers;
+			void SetNumWanniers ();
+
 			vector_map& operator[] (const int index) { 
 				if (index < 0 || index > (int)_wanniers.size()-1) {
 					std::cerr << "bad wannier file index -> " << index << " of " << _wanniers.size() << std::endl;

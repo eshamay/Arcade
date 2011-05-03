@@ -2,6 +2,8 @@
 
 namespace md_system {
 
+	std::map<Molecule::Molecule_t, int>	numWanniers;
+
 	int Molecule::numMolecules = 0;
 
 	// A constructor for an empty molecule
@@ -121,7 +123,6 @@ namespace md_system {
 			this->FixAtom(*atom);
 		}
 	}
-
 
 
 	// rename the molecule, and its atoms.

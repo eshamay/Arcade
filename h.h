@@ -20,6 +20,7 @@ namespace md_system {
 		static int numProtons;			// total number of waters in the system
 
 		void SetAtoms ();					// set the _oh bond vector
+		VecR ReferencePoint () const { return _h->Position(); }
 	};
 
 }

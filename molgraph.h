@@ -54,7 +54,14 @@ namespace molgraph {
 			void Initialize (AtomPtr const atom, const bondgraph::BondGraph& graph);
 
 			Atom_ptr_vec Atoms () const;
+
+			// do nothing for now
+			VecR ReferencePoint () const {
+				std::cerr << "Calling ReferencePoint from a molgraph! Don't do that..." << std::endl;
+				exit(1);
+		 	}
 	};
 
 }	//namespace molgraph
+
 #endif

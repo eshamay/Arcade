@@ -4,6 +4,10 @@ namespace md_files {
 
 	using namespace md_system;
 
+	std::map<Molecule::Molecule_t, int>	WannierFile::numWanniers;
+
+	//std::map<Molecule::Molecule_t, int> WannierFile::numWanniers;
+	
 	WannierFile::WannierFile (std::string wannierpath) 
 		: CoordinateFile() {
 
@@ -30,9 +34,16 @@ namespace md_files {
 				printf ("No wannier file specified - continuing without wannier centers\n");
 			}
 
+			this->SetNumWanniers();
+
 			return;
 		}
 
+	void WannierFile::SetNumWanniers () {
+		WannierFile::numWanniers.insert(std::pair<Molecule::Molecule_t, int> (Molecule::H2O, 4));
+		WannierFile::numWanniers.insert(std::pair<Molecule::Molecule_t, int> (Molecule::SO2, 9));
+		WannierFile::numWanniers.insert(std::pair<Molecule::Molecule_t, int> (Molecule::FORMALDEHYDE, 6));
+	}
 
 	WannierFile::~WannierFile () { 
 		fclose(_file); 
@@ -47,8 +58,8 @@ namespace md_files {
 			//printf ("% 8.4f % 8.4f % 8.4f\n", a,b,c);
 			this->_eof = (fscanf (_file, "X %lf %lf %lf %*f ", &this->_coords[3*i], &this->_coords[3*i+1], &this->_coords[3*i+2]) == EOF);
 			//this->_eof = (fscanf (_file, " X %lf %lf %lf %*f %*f %*f ", &this->_coords[3*i], &this->_coords[3*i+1], &this->_coords[3*i+2]) == EOF);
-		//	if (fscanf (_file, "X %lf %lf %lf %*f ", &_coords[3*i], &_coords[3*i+1], &_coords[3*i+2]) == EOF) 
-		//		_eof=true;
+			//	if (fscanf (_file, "X %lf %lf %lf %*f ", &_coords[3*i], &_coords[3*i+1], &_coords[3*i+2]) == EOF) 
+			//		_eof=true;
 		}
 
 		if (!_eof)

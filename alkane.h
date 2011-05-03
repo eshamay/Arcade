@@ -22,11 +22,20 @@ namespace alkane {
 
 	class Formaldehyde : public Alkane {
 
+		public:
 			Formaldehyde ();			// a default constructor
 			virtual ~Formaldehyde ();
+			Formaldehyde (const MolPtr& molecule);
 			Formaldehyde (const Molecule& molecule);		// copy constructor for casting from a molecule
-		static int numFormaldehyde;
+			static int numFormaldehyde;
 
+			void SetAtoms ();
+			void SetBonds ();
+			VecR ReferencePoint () const { return _c->Position(); }
+
+		protected:
+			AtomPtr _c, _o, _h1, _h2;
+			VecR _co, _ch1, _ch2;
 	};
 }
 #endif

@@ -20,11 +20,11 @@ namespace molgraph {
 		int H_count = AtomCount(atomcount, Atom::H);
 
 		// check for organics/alkanes
-		if (C_count == 3 && O_count == 4) {
-			newmol = new alkane::Alkane ();
-		}
+		//if (C_count == 3 && O_count == 4) {
+			//newmol = new alkane::Alkane ();
+		//}
 		// parse out formaldehydes
-		if (C_count = 1 && O_count == 1 && H_count == 2) {
+		if (C_count == 1 && O_count == 1 && H_count == 2 && S_count == 0) {
 			newmol = new alkane::Formaldehyde ();
 		}
 
@@ -53,7 +53,7 @@ namespace molgraph {
 		}
 
 		//else if (H_count == 1) {
-			//newmol = new Proton();
+		//newmol = new Proton();
 		//}
 
 		else {
@@ -61,7 +61,7 @@ namespace molgraph {
 			std::for_each (atoms.begin(), atoms.end(), std::mem_fun(&Atom::Print));
 			exit(1);
 		}
-			
+
 		// add all the atoms into the new molecule
 		for (Atom_it at = atoms.begin(); at != atoms.end(); at++) {
 			newmol->AddAtom(*at);

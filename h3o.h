@@ -25,6 +25,8 @@ namespace md_system {
 			VecR const * OH1 () const { return &_oh1; }
 			VecR const * OH2 () const { return &_oh2; }
 			VecR const * OH3 () const { return &_oh3; }
+
+			VecR ReferencePoint () const { return _o->Position(); }
 	};
 
 }

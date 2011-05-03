@@ -43,6 +43,8 @@ namespace md_files {
 			//void _ParseProtons ();
 			void _ParseWanniers ();
 			//void _ParseAlkanes ();
+			// given a list of wanniers, this will grab the nearest num wannier centers and add them into the molecule
+			void AddWanniers (MolPtr mol, const int num);
 
 
 			void _UpdateUnparsedList (Atom_ptr_vec& parsed);	// fixes the list of unparsed atoms

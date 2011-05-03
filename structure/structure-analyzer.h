@@ -1,10 +1,11 @@
 #ifndef TEST_H_
 #define TEST_H_
 
-#define EIGEN_MATRIXBASE_PLUGIN "/home/eric/md/Arcade/EigenMatrixAddon.h"
+//#define EIGEN_MATRIXBASE_PLUGIN "/home/eric/md/Arcade/EigenMatrixAddon.h"
 //#define EIGEN_MATRIXBASE_PLUGIN "/home/eshamay/md/src/Arcade/EigenMatrixAddon.h"
-#include <Eigen/Core>
-USING_PART_OF_NAMESPACE_EIGEN
+//#include <Eigen/Core>
+//using namespace Eigen;
+//USING_PART_OF_NAMESPACE_EIGEN
 
 #include "analysis.h"
 #include "utility.h"
@@ -15,6 +16,7 @@ USING_PART_OF_NAMESPACE_EIGEN
 //#include "rdf-analysis.threads.h"
 #include "angle-analysis.h"
 #include "so2-system-analysis.h"
+#include "bond-analysis.h"
 
 
 typedef std::vector<double> double_vec;
@@ -124,6 +126,7 @@ namespace md_analysis {
 			a = new so2_analysis::SO2AngleAnalyzer<T>(this);					analyses.push_back(a);
 			a = new so2_analysis::ClosestWaterBondlengths<T>(this);					analyses.push_back(a);
 		//	a = new so2_analysis::WaterBondLengthAnalyzer <T>(this);					analyses.push_back(a);
+			a = new bond_analysis::BondLengthAnalyzer <T>(this);					analyses.push_back(a);
 
 		}
 
