@@ -59,7 +59,6 @@ namespace molgraph {
 	Vertex MoleculeGraph::AddAtomToGraph (AtomPtr const atom) { 
 		Vertex v = add_vertex(_graph);
 		_graph[v].atom = atom;
-		//_graph[v].type = null;
 
 		this->AddAtom(atom);
 		return v;
@@ -80,6 +79,51 @@ namespace molgraph {
 		}
 		return ret;
 	}
+
+	Vertex_it MoleculeGraph::_FindVertex (const AtomPtr atom) const {
+		Vertex_it vi, vi_end, next;
+		tie(vi, vi_end) = vertices(_graph);
+		for (next = vi; vi != vi_end; vi = next) {
+			++next;
+			if (_graph[*vi].atom == atom)
+				break;
+		}
+
+		//Vertex_pair vp = vertices(_graph);
+		//Vertex_it vi, vi_end, atom_vt;
+		// find the vertex
+		//Vertex_it atom_vt = std::find_if (vp.first, vp.second, std::bind2nd(VertexIsAtom_pred(), atom));
+		//tie(vi, vi_end) = vertices(_graph);
+
+		return (vi);
+	}
+
+	// returns a list of the atoms bonded to the given atom
+	Atom_ptr_vec MoleculeGraph::BondedAtoms (const AtomPtr ap, bondgraph::bondtype const btype) const {
+		Atom_ptr_vec atoms;
+		Vertex_it va = this->_FindVertex(ap);
+		//Edge e;
+
+		Adj_it vi, vi_end, next;
+		tie(vi, vi_end) = adjacent_vertices(*va, _graph);
+		for (next = vi; vi != vi_end; vi = next) {
+			next++;
+
+			// don't check an atom against itself
+			if (_graph[*va].atom == _graph[*vi].atom) continue;
+
+			// check the bondtype criteria - return only bonds that are specified by the bondtype argument, or if no argument is specified, return all hbond and covalent bonds.
+			//e = edge(*va, *vi, _graph).first;
+			//if (btype == b_type[e] || ((!btype) && ((b_type[e] == hbond) || (b_type[e] == covalent)))) {
+		//	if (btype == b_type[e] || (!btype && b_type[e] != unbonded)) {
+				//if (!elmt || (v_elmt[*vi] == elmt)) {
+					atoms.push_back(_graph[*vi].atom);
+				//}
+			//}
+		}
+
+		return (atoms);
+	}	// Bonded atoms
 
 	Atom_ptr_vec MoleculeGraph::Atoms () const {
 

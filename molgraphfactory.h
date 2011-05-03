@@ -16,6 +16,9 @@ namespace molgraph {
 	// count the number of atoms of a given element
 	int AtomCount (atomcounter& atomcount, Atom::Element_t elmt);
 
+	// Set the atoms of a malonic acid molecule
+	void SetMalonicAtoms (MolPtr, MoleculeGraph&);
+
 };	// namespace mol graph
 
 #endif

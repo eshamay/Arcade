@@ -260,6 +260,7 @@ void XYZSystem::_ParseWanniers () {
 
 void XYZSystem::AddWanniers (MolPtr mol, const int num) {
 	mol->SetAtoms();
+	mol->UpdateCenterOfMass();
 	// sort all the wannier centers by their distance to the given atom location
 	std::sort (_wanniers.begin(), _wanniers.end(), vecr_distance_cmp(mol->ReferencePoint()));
 

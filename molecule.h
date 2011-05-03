@@ -9,6 +9,10 @@
 #include <vector>
 #include <map>
 
+//namespace molgraph {
+	//class MoleculeGraph;
+//}
+
 namespace md_system {
 
 	class Molecule {
@@ -25,11 +29,11 @@ namespace md_system {
 
 			typedef enum {
 				NO_MOLECULE = 0,
-				H, OH, H2O, H3O,
+				H, OH, H2O, H3O, ZUNDEL,
 				NO3, HNO3,
 				SO2,
 				ALKANE, DECANE, FORMALDEHYDE, MALONIC,
-				CTC
+				CL, CTC
 			} Molecule_t;
 
 			static int numMolecules;
@@ -64,6 +68,10 @@ namespace md_system {
 			std::string Name ()		const				{ return _name; }
 			int MolID ()					const				{ return _ID; }
 			Molecule_t MolType () const				{ return _moltype; }
+
+			// setter/getter for the molgraph
+			//MoleculeGraph * MolGraph () const { return _molgraph; }
+			//void MolGraph (MoleculeGraph * molgraph) { _molgraph = molgraph; }
 
 			// molecular axes
 			VecR X () const					{ return _x; }
@@ -204,6 +212,8 @@ namespace md_system {
 			std::string	_name;				// some text ID or name for the molecule
 			int					_ID;				// A numerical ID for the molecule
 			Molecule_t	_moltype;		// an enumerated way to compare different types of molecule
+
+			//MoleculeGraph * _molgraph;
 
 			double			_eulerangles[3];	// the three euler angles theta, phi, chi
 			MatR			_DCM;				// the direction cosine matrix for rotating the molecule to the lab frame

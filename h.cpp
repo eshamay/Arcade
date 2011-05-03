@@ -19,4 +19,23 @@ namespace md_system {
 		return;
 	}
 
+
+
+	int Chlorine::numChlorines = 0;
+
+	Chlorine::Chlorine () : Molecule()
+	{
+		this->Rename("Cl-");
+		_moltype = Molecule::CL;
+		++numChlorines;
+	}
+
+	Chlorine::~Chlorine () {
+		--numChlorines;
+	}
+
+	void Chlorine::SetAtoms () {
+		_cl = this->GetAtom(Atom::Cl);
+		return;
+	}
 }

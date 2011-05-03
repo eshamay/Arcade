@@ -18,13 +18,21 @@ namespace molgraph {
 		int O_count = AtomCount(atomcount, Atom::O);
 		int S_count = AtomCount(atomcount, Atom::S);
 		int H_count = AtomCount(atomcount, Atom::H);
+		int Cl_count = AtomCount(atomcount, Atom::Cl);
 
+		if (Cl_count == 1 && C_count == 0) {
+			newmol = new Chlorine ();
+		}
 		// check for organics/alkanes
-		//if (C_count == 3 && O_count == 4) {
-			//newmol = new alkane::Alkane ();
-		//}
+		else if (C_count == 3 && O_count == 4 ) {
+			alkane::Alkane * alk = new alkane::Alkane ();
+			alk->MolType(Molecule::MALONIC);
+			alk->Name("Malonic");
+			newmol = alk;
+		}
+
 		// parse out formaldehydes
-		if (C_count == 1 && O_count == 1 && H_count == 2 && S_count == 0) {
+		else if (C_count == 1 && O_count == 1 && H_count == 2 && S_count == 0) {
 			newmol = new alkane::Formaldehyde ();
 		}
 
@@ -36,6 +44,9 @@ namespace molgraph {
 			newmol = new Nitrate ();
 		}
 
+		else if (O_count == 0 && H_count == 1 && C_count == 0 && N_count == 0 && S_count == 0 && Cl_count == 0) {
+			newmol = new Proton ();
+		}
 		// check for non-organics with an oxygen
 		else if (O_count == 1 && H_count == 1) {
 			newmol = new Hydroxide ();
@@ -46,9 +57,12 @@ namespace molgraph {
 		else if (O_count == 1 && H_count == 3) {
 			newmol = new Hydronium ();
 		}
+		else if (O_count == 2 && H_count == 5) {
+			newmol = new Zundel ();
+		}
 
-		// check for non-organics with an oxygen
-		else if (S_count == 1 && O_count == 2) {
+		// check for non-organics with an oxygen (i.e. so2)
+		else if (S_count == 1 && O_count == 2 && H_count == 0) {
 			newmol = new SulfurDioxide ();
 		}
 
@@ -69,6 +83,11 @@ namespace molgraph {
 
 		newmol->FixAtoms();
 
+
+		if (newmol->MolType() == Molecule::MALONIC)
+				SetMalonicAtoms (newmol, molgraph);
+
+
 		return newmol;
 	}
 
@@ -88,5 +107,37 @@ namespace molgraph {
 		}
 		return count;
 	}
+
+	// a means to determine the number of atoms in a malonic acid
+	// for each C, add 1. For each O add 10, etc.
+	// C = 1, O = 10, H = 100
+
+	void SetMalonicAtoms (MolPtr mol, MoleculeGraph& molgraph) {
+		alkane::Alkane * malonic = static_cast<alkane::Alkane *>(mol);
+		malonic->ClearAlkaneAtoms();
+		// run through each vertex of the molgraph 
+		for (Atom_it atom = malonic->begin(); atom != malonic->end(); atom++) {
+			// find the atoms to which it is bound
+			Atom_ptr_vec bonded = molgraph.BondedAtoms (*atom);
+			// decide what type of atom it is based on it's own element, and also what is connected to it.
+			int num = 0;
+			for (Atom_it it = bonded.begin(); it != bonded.end(); it++) {
+				if ((*it)->Element() == Atom::H) num += 1;
+				else if ((*it)->Element() == Atom::C) num += 10;
+				else if ((*it)->Element() == Atom::O) num += 100;
+			}
+			printf ("%d\n", num);
+			// based on what it's connected to, we can say what type of atom it is.
+			
+			// a carbonyl C in malonic acid will be C-(C)-OO, so a value of 2xO + C == 210
+			if (num == 210) malonic->carbonyl_c.push_back (*atom);
+			// A carbonyl O is only connected to the carbonyl C and would have a value of 10
+			else if (num == 10) malonic->carbonyl_o.push_back(*atom);
+			// An aliphatic C will have 2xC and 2xH, so 22
+			else if (num == 22) malonic->aliphatic_c.push_back(*atom);
+			// the acid O will be connected to a C and an H
+			else if (num == 11) malonic->acid_o.push_back(*atom);
+		}
+	}	// set malonic atoms
 
 }	// namespace molgraph

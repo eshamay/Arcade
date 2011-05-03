@@ -31,6 +31,8 @@ namespace molgraph {
 	typedef vertex_descriptor Vertex;
 	typedef graph_traits<graph_t>::vertex_iterator vertex_iterator;
 	typedef vertex_iterator Vertex_it;
+	typedef graph_traits<graph_t>::adjacency_iterator adjacency_iterator;
+	typedef adjacency_iterator Adj_it;
 
 
 
@@ -40,6 +42,7 @@ namespace molgraph {
 			graph_t	_graph;
 
 			void BuildGraph (Vertex v, const bondgraph::BondGraph& graph);
+			Vertex_it _FindVertex (const AtomPtr atom) const;
 
 		public:
 			MoleculeGraph ();			// a default constructor
@@ -55,11 +58,18 @@ namespace molgraph {
 
 			Atom_ptr_vec Atoms () const;
 
+
+			Atom_ptr_vec BondedAtoms (
+					const AtomPtr ap,
+					const bondgraph::bondtype btype = bondgraph::covalent
+					) const;
+
 			// do nothing for now
 			VecR ReferencePoint () const {
 				std::cerr << "Calling ReferencePoint from a molgraph! Don't do that..." << std::endl;
 				exit(1);
-		 	}
+			}
+
 	};
 
 }	//namespace molgraph

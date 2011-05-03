@@ -29,5 +29,17 @@ namespace md_system {
 			VecR ReferencePoint () const { return _o->Position(); }
 	};
 
+	class Zundel : public Molecule {
+
+		public:
+			Zundel ();
+			~Zundel ();
+			Zundel (const Molecule& molecule);	// copy constructor for casting from a molecule
+
+			static int numZundels;			// total number of zundel ions in the system
+
+			VecR ReferencePoint () const { return this->CenterOfMass(); }
+	};
+
 }
 #endif

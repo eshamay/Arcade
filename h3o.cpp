@@ -2,6 +2,7 @@
 
 namespace md_system {
 	int Hydronium::numHydroniums = 0;
+	int Zundel::numZundels = 0;
 
 	Hydronium::Hydronium () : Molecule()
 	{
@@ -38,4 +39,14 @@ namespace md_system {
 		return;
 	}
 
+	Zundel::Zundel () : Molecule()
+	{
+		this->Rename("zundel");
+		this->_moltype = Molecule::ZUNDEL;
+		++numZundels;
+	}
+
+	Zundel::~Zundel () {
+		--numZundels;
+	}
 }
