@@ -193,7 +193,8 @@ void XYZSystem::_ParseWanniers () {
 		it = WannierFile::numWanniers.find((*mol)->MolType());
 
 		if (it == mapend) {
-			printf ("Couldn't find the number of wanniers for the molecule: %s. Add it into molecule.cpp.\n", (*mol)->Name().c_str());
+			printf ("Couldn't find the number of wanniers for the molecule: %s. Add it into wanniers.cpp.\n", (*mol)->Name().c_str());
+			(*mol)->Print();
 			fflush (stdout);
 			exit(1);
 		}
