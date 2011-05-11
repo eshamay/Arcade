@@ -13,11 +13,13 @@ namespace morita {
 		public:
 
 			MoritaH2O (const Molecule& molecule) 
-				: Water(molecule) { return; }
+				: Water(molecule) { ++MoritaH2O::numMorita; return; }
 			MoritaH2O (const Molecule * molecule) 
-				: Water(*molecule) { return; }
+				: Water(*molecule) { ++MoritaH2O::numMorita; return; }
 
-			~MoritaH2O () { }
+			~MoritaH2O () { MoritaH2O::numMorita--; }
+
+			static int numMorita;
 
 			void SetMoritaAxes (const int bond = 1);		// Determines the molecular-frame axes (a la Morita&Hynes2000) with one bond on the Z-axis, the other in the positive X direction.
 

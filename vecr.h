@@ -18,6 +18,7 @@
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
+#include <Eigen/StdVector>
 //USING_PART_OF_NAMESPACE_EIGEN
 
 using namespace Eigen;
@@ -29,9 +30,8 @@ typedef Eigen::Vector3f VecF;
 //typedef Eigen::MatrixBase<VecR>	vector_base;
 typedef Eigen::MatrixBase<Eigen::Matrix<double, 3, 1, 2, 3, 1> >	vector_base;
 //typedef Eigen::MapBase<Eigen::Matrix<double, 3, 1, 2, 3, 1> >		vector_map_base;
-//typedef Eigen::Map<VecR,Unaligned> vector_map;
-typedef Eigen::Map<VecR,Unaligned> vector_map;
-typedef typename std::vector<vector_map>		vector_map_vec;
+typedef Eigen::Map<VecR,Aligned> vector_map;
+typedef std::vector<vector_map>		vector_map_vec;
 typedef vector_map_vec::iterator vector_map_it;
 typedef vector_map_it wannier_it;
 //typedef Eigen::MapBase<Eigen::Map<VecR, 1> >	vector_map_base;

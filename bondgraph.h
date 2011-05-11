@@ -370,6 +370,22 @@ namespace bondgraph {
 	};
 
 
+	class WaterCoordination_pred : public std::unary_function <WaterPtr, coordination> {
+
+		protected:
+			coordination _c;
+			BondGraph &_graph;
+
+		public:
+			WaterCoordination_pred (const coordination c, BondGraph& graph) : _c(c), _graph(graph) { }
+			bool operator () (const WaterPtr wat) const {
+				coordination coord = _graph.WaterCoordination(wat);
+				bool ret = (coord == _c) ? true : false;
+				return ret;
+			}
+	};
+
+
 
 }	// namespace bondgraph
 

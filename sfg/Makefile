@@ -7,7 +7,7 @@ test : $(TEST)
 	$(CXX) $(TEST) -o test
 
 sfg : $(SFG)
-	$(CXX) $(SFG) $(LIBS) -lgsl -lgslcblas -o ../bin/morita-sfg
+	$(CXX) $(SFG) $(LIBS) -o ../bin/morita-sfg
 
 cleansfg :
 	rm -f *.o test

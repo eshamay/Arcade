@@ -45,6 +45,7 @@ namespace morita {
 				D6 = 7.3812,
 				D7 = 3.4710;
 
+	int MoritaH2O::numMorita = 0;
 
 	void MoritaH2O::SetBondAngleVars () {
 
@@ -190,6 +191,7 @@ namespace morita {
 		double z1 = this->_DCM(2,0);
 		double z2 = this->_DCM(2,1);
 		double z3 = this->_DCM(2,2);
+		*/
 
 		/* If all three axes in the molecular (xyz) and lab (XYZ) frames are aligned, then the euler rotations work by rotating about the body-fixed
 		 * axes as follows based on the ZXZ convention:

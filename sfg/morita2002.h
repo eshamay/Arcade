@@ -39,13 +39,15 @@ namespace morita {
 				virtual void Analysis ();
 
 			protected:
-				typedef std::vector< std::vector< MatR > >	tensor;
+				typedef std::vector<MatR, Eigen::aligned_allocator<MatR> > mat_vec;
+				typedef std::vector< mat_vec >	tensor;
+				typedef std::vector<VecR, Eigen::aligned_allocator<VecR> > vec_vec; 
 				//! all the waters in the MD system
 				Morita_ptr_vec		all_wats;		
 				//! Water molecules that will be analyzed by the morita 2008 routines
 				Morita_ptr_vec		analysis_wats;	
 				//! Total system dipole moment (3Nx1 tensor)
-				std::vector<VecR>	_p;
+				vec_vec	_p;
 				//! The sum-total of all molecular polarizabilities of the water molecules in the system
 				tensor						_alpha;
 				//! System dipole field tensor
@@ -53,7 +55,7 @@ namespace morita {
 				//! Local field correction tensor
 				tensor						_g;	
 				//! Local field correction tensor
-				std::vector<MatR>	_f;	
+				mat_vec	_f;	
 
 				//! total system polarizability
 				MatR			_A;		
@@ -139,25 +141,34 @@ namespace morita {
 
 			// zero out all the matrices/vectors
 			int N = analysis_wats.size();
+			_p.clear();
 			_p.resize(N, VecR::Zero());
-			_alpha.resize(N, std::vector<MatR>(N, MatR::Zero()));
-			_T.resize(N, std::vector<MatR>(N, MatR::Zero()));
-			_g.resize(N, std::vector<MatR>(N, MatR::Identity()));	// setting up the identity matrix early for ease later
+			_alpha.clear();
+			_alpha.resize(N, mat_vec(N, MatR::Zero()));
+			_T.clear();
+			_T.resize(N, mat_vec(N, MatR::Zero()));
+			_g.clear();
+			_g.resize(N, mat_vec(N, MatR::Identity())); // setting up the identity matrix early for ease later
+			_f.clear();
 			_f.resize(N, MatR::Zero());	// setting up the identity matrix early for ease later
 
+			//std::cout << "tensor calcs" << std::endl;
 			// Sets up the p, alpha, and T tensors by calculating through each water's dipole moment, polarizability, and dipole field contributions
 			this->CalculateTensors();
 
+			//std::cout << "local field corr" << std::endl;
 			// determine the local field correction to each of the molecular polarizabilities
 			this->CalculateLocalFieldCorrection ();
 
+			//std::cout << "total dip" << std::endl;
 			// sum all the molecular dipoles to get the total system value
 			this->CalculateTotalDipole();
 
+			//std::cout << "calc polariz" << std::endl;
 			// sum all the molecular polarizabilities to get the total system value
 			this->CalculateTotalPolarizability ();
 
-
+			//std::cout << "output" << std::endl;
 			for (unsigned int i = 0; i < 3; i++) {
 				fprintf (this->output, "% 12.7f ", _M(i));
 			} 
@@ -168,8 +179,8 @@ namespace morita {
 				}
 			}
 			fprintf (this->output,"\n");
-
 			fflush(this->output);
+			//std::cout << "post output" << std::endl;
 
 		} // Analysis
 
@@ -283,70 +294,29 @@ void Morita2008Analysis<U>::CalculateTensors() {
 	// Calculate the polarizability of each water molecule
 	this->SetAnalysisWaterPolarizability ();
 
-	/*
-		 for (Morita_it it = analysis_wats.begin(); it != analysis_wats.end(); it++) {
-		 (*it)->Dipole().Print();
-		 }
-		 */
 	int N = analysis_wats.size();
 
-	for (unsigned int i = 0; i < N; ++i) {
+	for (int i = 0; i < N; i++) {
 
 		// set the value for p_not 
 		_p[i] = analysis_wats[i]->Dipole() * sfg_units::ANG2BOHR;	// these are all in (a.u. charge) * bohr after conversion
 
 		_alpha[i][i] = analysis_wats[i]->Polarizability();	// these are in atomic units (bohr)
 
-		/*
-		for (unsigned int j = i+1; j < N; ++j) {
+		int j = i+1;
+		while (j < N) {
 			// Calculate the tensor 'T' which is formed of 3x3 matrix elements
-			//printf ("the two waters:\n");
-			//analysis_wats[i]->Print();
-			//analysis_wats[j]->Print();
-			//printf ("\n");
-
 			MatR dft (DipoleFieldTensor(analysis_wats[i], analysis_wats[j]));
-
-			//printf ("dipole field tensor: \n");
-			//dft.Print();
-			//printf ("\n");
 
 			_T[i][j] = dft;
 			_T[j][i] = dft;
+
+			j++;
 		}
-		*/
+
 	}
 
-	/*
-	for (int i = 0; i < N; i++) {
-	for (int j = 0; j < N; j++) {
-		_alpha[i][j].Print();
-	}}
-
-	for (int i = 0; i < N; i++) {
-	for (int j = 0; j < N; j++) {
-		_T[i][j].Print();
-	}}
-	*/
-
-//	exit(1);
-	/*
-	printf ("Dipole: \n\n");
-	for (int p = 0; p < N; ++p) {
-		_p[p].Print();
-	}
-	printf ("Polarizability: \n\n");
-	*/
-	/*
-	printf ("Dipole field tensor: \n\n");
-	for (int p = 0; p < N; ++p) {
-		for (int q = 0; q < N; ++q) {
-			//_alpha[p][q].Print();
-			_T[p][q].Print();
-			//printf ("\n");
-		}}
-		*/
-
+	return;
 }	// Calculate Tensors
 
 
@@ -396,15 +366,17 @@ void Morita2008Analysis<U>::CalculateTotalDipole () {
 	// _p now holds the local-field corrected dipole moments
 	*/
 
-	int N = analysis_wats.size();
+	//int N = analysis_wats.size();
 	_M.setZero();
-	for (int p = 0; p < N; ++p) {
+	for (vec_vec::iterator it = _p.begin(); it != _p.end(); it++) {
+		//for (int p = 0; p < N; ++p) {
 		//for (int q = 0; q < N; ++q) {
-			//_g_t = _g[p][q].transpose(); 
-			//_M += _g_t * _p[q];
-			//_M += (_f[p].transpose()) * _p[p];
-			_M += _p[p];
-		}//}
+		//_g_t = _g[p][q].transpose(); 
+		//_M += _g_t * _p[q];
+		//_M += (_f[p].transpose()) * _p[p];
+		//_M += _p[p];
+		_M += *it;
+	}//}
 
 	// perform the summation of the total system dipole moment
 	/*
@@ -443,154 +415,157 @@ void Morita2008Analysis<U>::CalculateTotalDipole () {
 	_vM.push_back(_M);
 	*/
 
-}	// calculate total dipole
+	}	// calculate total dipole
 
 
-template <class U>
-void Morita2008Analysis<U>::CalculateLocalFieldCorrection () {
-	// following equation 23 - (1 + T*alpha) f = h.
-	// first, set up _g = (1 + T*alpha)
-	// then solve the equation for f with a lapack routine
-	//
-	// note: g = inv(1+T*alpha)
+	template <class U>
+		void Morita2008Analysis<U>::CalculateLocalFieldCorrection () {
+			// following equation 23 - (1 + T*alpha) f = h.
+			// first, set up _g = (1 + T*alpha)
+			// then solve the equation for f with a lapack routine
+			//
+			// note: g = inv(1+T*alpha)
 
-	int N = analysis_wats.size();
+			int N = analysis_wats.size();
 
-	//for (int p = 0; p < N; ++p) {
-		//_g[p][p] = MatR::Identity();
-	//}
-	for (int p = 0; p < N; ++p) {
-		for (int q = 0; q < N; ++q) {
-				_g[p][q] += _T[p][q] * _alpha[q][q];
-			}}//}
-	/*
-	for (int p = 0; p < N; ++p) {
-		for (int q = 0; q < N; ++q) {
-			_g[p][q].Print();
-		}}
-		*/
+			//for (int p = 0; p < N; ++p) {
+			//_g[p][p] = MatR::Identity();
+			//}
+			MatR tt, aa;
+			for (int p = 0; p < N; ++p) {
+				for (int q = 0; q < N; ++q) {
+					aa = _alpha[q][q];
+					tt = _T[p][q];
+					_g[p][q] += tt * aa;
+				}}//}
+			/*
+				 for (int p = 0; p < N; ++p) {
+				 for (int q = 0; q < N; ++q) {
+				 _g[p][q].Print();
+				 }}
+				 */
 
-	// now perform the inverse on each piece of g
-	MatR g_inv;
-	for (int p = 0; p < N; ++p) {
-		for (int q = 0; q < N; ++q) {
-			g_inv = _g[p][q].inverse();	
-			_g[p][q] = g_inv; /** problem here **/
-		}}
+			// now perform the inverse on each piece of g
+			MatR g_inv;
+			for (int p = 0; p < N; ++p) {
+				for (int q = 0; q < N; ++q) {
+					g_inv = _g[p][q].inverse();	
+					_g[p][q] = g_inv; /** problem here **/
+				}}
 
-	for (int p = 0; p < N; ++p) {
-		for (int q = 0; q < N; ++q) {
-			_f[p] += _g[p][q];
-		}
-	}
+			for (int p = 0; p < N; ++p) {
+				for (int q = 0; q < N; ++q) {
+					_f[p] += _g[p][q];
+				}
+			}
 
-	/*
-	for (int p = 0; p < N; ++p) {
-		for (int q = 0; q < N; ++q) {
-			_g[p][q].Print();
-		}}
-		*/
-
-
-	// first step: g = I
-
-	//char trans = 'N';
-	//double scale = 1.0;
-
-	//boost::timer t;
-	//t.restart();
-	// set g = T*alpha + I,
-	// though the blas routine is really doing a g = T*alpha + g, since g already = I
-	//dgemm (&trans, &trans, &N, &N, &N, &scale, &_T(0,0), &N, &_alpha(0,0), &N, &scale, &_g(0,0), &N);
-
-	//_IDENT.setIdentity(N,N);
-	//_g = _T;
-	//_g *= _alpha;
-	//_g += _IDENT;
-
-	//_g = _IDENT + _T*_alpha;
-
-	//std::cout << "blas matrix mult. " << t.elapsed() << std::endl;
-	//
-	// now g = T*alpha + I
-	// At this point _g is still the inverse of what we're really looking for. It's painful to calculate the inverse of a tensor directly... however, the method is to use the LU decomposition to get the inverse
-
-	// for now, f is 'h', the 3Nx3 block identity tensor
-	//_h.setZero(N,3);
-	//tensor::BlockIdentity(_h,3);
-
-	/********** now solve for f in the equation g*f = h using the lapack dsgesv *********/
-	/*
-		 int nrhs = 3;
-		 int ipiv[N];
-		 for (int i = 0; i < N; i++) ipiv[i] = 0;
-		 int info = 0;
-
-		 int lwork = N*nrhs;
-		 double work[lwork];
-		 float swork[N*(N+nrhs)];
-		 int iter;
-		 _f.setZero(N,3);
-
-	//t.restart();
-	dsgesv (&N, &nrhs, &_g(0,0), &N, ipiv, &_h(0,0), &N, &_f(0,0), &N, work, swork, &iter, &info);
-	if (info != 0) {
-	std::cout << "DSGESV.info parameter had a value of " << info << " meaning that something went wrong!" << std::endl;
-	exit(1);
-	}
-	//std::cout << "DSGESV (iterative) system solve:  " << t.elapsed() << std::endl;
-	*/
-
-	//_f = _g;
-	/******** Solve for the inverse of _g through LU decomposition and direct application of the lapack _getri routine *******/
-
-	/*
-		 int ipiv[N+1];
-		 int info = 0;
-	// perform LU decomposition
-	dgetrf (&N, &N, &_g(0,0), &N, ipiv, &info);
+			/*
+				 for (int p = 0; p < N; ++p) {
+				 for (int q = 0; q < N; ++q) {
+				 _g[p][q].Print();
+				 }}
+				 */
 
 
-	// before continuing, find out the best working memory chunk size
-	double lwork_query[10];
-	int lwork = -1;	// tell dgetri to perform a query of the optimal workspace size, instead of performing the inversion
-	// perform the work-size query
-	dgetri (&N, &_g(0,0), &N, ipiv, lwork_query, &lwork, &info);
-	lwork = (int)lwork_query[0];
-	double work[lwork];
+			// first step: g = I
+
+			//char trans = 'N';
+			//double scale = 1.0;
+
+			//boost::timer t;
+			//t.restart();
+			// set g = T*alpha + I,
+			// though the blas routine is really doing a g = T*alpha + g, since g already = I
+			//dgemm (&trans, &trans, &N, &N, &N, &scale, &_T(0,0), &N, &_alpha(0,0), &N, &scale, &_g(0,0), &N);
+
+			//_IDENT.setIdentity(N,N);
+			//_g = _T;
+			//_g *= _alpha;
+			//_g += _IDENT;
+
+			//_g = _IDENT + _T*_alpha;
+
+			//std::cout << "blas matrix mult. " << t.elapsed() << std::endl;
+			//
+			// now g = T*alpha + I
+			// At this point _g is still the inverse of what we're really looking for. It's painful to calculate the inverse of a tensor directly... however, the method is to use the LU decomposition to get the inverse
+
+			// for now, f is 'h', the 3Nx3 block identity tensor
+			//_h.setZero(N,3);
+			//tensor::BlockIdentity(_h,3);
+
+			/********** now solve for f in the equation g*f = h using the lapack dsgesv *********/
+			/*
+				 int nrhs = 3;
+				 int ipiv[N];
+				 for (int i = 0; i < N; i++) ipiv[i] = 0;
+				 int info = 0;
+
+				 int lwork = N*nrhs;
+				 double work[lwork];
+				 float swork[N*(N+nrhs)];
+				 int iter;
+				 _f.setZero(N,3);
+
+			//t.restart();
+			dsgesv (&N, &nrhs, &_g(0,0), &N, ipiv, &_h(0,0), &N, &_f(0,0), &N, work, swork, &iter, &info);
+			if (info != 0) {
+			std::cout << "DSGESV.info parameter had a value of " << info << " meaning that something went wrong!" << std::endl;
+			exit(1);
+			}
+			//std::cout << "DSGESV (iterative) system solve:  " << t.elapsed() << std::endl;
+			*/
+
+			//_f = _g;
+			/******** Solve for the inverse of _g through LU decomposition and direct application of the lapack _getri routine *******/
+
+			/*
+				 int ipiv[N+1];
+				 int info = 0;
+			// perform LU decomposition
+			dgetrf (&N, &N, &_g(0,0), &N, ipiv, &info);
+
+
+			// before continuing, find out the best working memory chunk size
+			double lwork_query[10];
+			int lwork = -1;	// tell dgetri to perform a query of the optimal workspace size, instead of performing the inversion
+			// perform the work-size query
+			dgetri (&N, &_g(0,0), &N, ipiv, lwork_query, &lwork, &info);
+			lwork = (int)lwork_query[0];
+			double work[lwork];
 
 
 
-	// and do the inverse calculation to get the real g in Eq. 19 of the 2008 Morita/Ishiyama paper
-	dgetri (&N, &_g(0,0), &N, ipiv, work, &lwork, &info);
-	if (info != 0) {
-	printf ("\nsomething was wrong with the calculation of the inverse: info = %d\n", info);
-	}
-	*/
-	// now _g is as expected - the inverse of (1+T*alpha) - the value of Eq. 19 - 2008 Morita/Ishiyama
+			// and do the inverse calculation to get the real g in Eq. 19 of the 2008 Morita/Ishiyama paper
+			dgetri (&N, &_g(0,0), &N, ipiv, work, &lwork, &info);
+			if (info != 0) {
+			printf ("\nsomething was wrong with the calculation of the inverse: info = %d\n", info);
+			}
+			*/
+			// now _g is as expected - the inverse of (1+T*alpha) - the value of Eq. 19 - 2008 Morita/Ishiyama
 
 
-	//_f *= _g;
-	/*
-		 double scaleb = 0.0;
-		 dgemm (&trans, &trans, &N, &N, &N, &scale, &_g(0,0), &N, &_f(0,0), &N, &scaleb, &_f(0,0), &N);
-		 std::cout << "------" << std::endl;
-		 std::cout << _g << std::endl;
-		 std::cout << "------" << std::endl;
-		 std::cout << "------" << std::endl;
-		 std::cout << "------" << std::endl;
-		 std::cout << "------" << std::endl;
-		 std::cout << _f << std::endl;
-		 std::cout << "------" << std::endl;
-		 */
-	//t.restart();
-	//dgesv (&N, &nrhs, &_g(0,0), &N, ipiv, &_f(0,0), &N, &info);
-	//std::cout << "DGESV system solve:  " << t.elapsed() << std::endl;
+			//_f *= _g;
+			/*
+				 double scaleb = 0.0;
+				 dgemm (&trans, &trans, &N, &N, &N, &scale, &_g(0,0), &N, &_f(0,0), &N, &scaleb, &_f(0,0), &N);
+				 std::cout << "------" << std::endl;
+				 std::cout << _g << std::endl;
+				 std::cout << "------" << std::endl;
+				 std::cout << "------" << std::endl;
+				 std::cout << "------" << std::endl;
+				 std::cout << "------" << std::endl;
+				 std::cout << _f << std::endl;
+				 std::cout << "------" << std::endl;
+				 */
+			//t.restart();
+			//dgesv (&N, &nrhs, &_g(0,0), &N, ipiv, &_f(0,0), &N, &info);
+			//std::cout << "DGESV system solve:  " << t.elapsed() << std::endl;
 
-	//MatrixXd _x;
-	//t.restart();
-	//_g.lu().solve(_f, &_x);
-	//std::cout << "Eigen LU solve:  " << t.elapsed() << std::endl;
+			//MatrixXd _x;
+			//t.restart();
+			//_g.lu().solve(_f, &_x);
+			//std::cout << "Eigen LU solve:  " << t.elapsed() << std::endl;
 
 }	// Local field correction
 
@@ -615,15 +590,15 @@ void Morita2008Analysis<U>::CalculateTotalPolarizability () {
 	_A.setZero();
 	//MatR _g_t;
 	//for (int p = 0; p < N; ++p) {
-		for (int q = 0; q < N; ++q) {
-			//for (int r = 0; r < N; ++r) {
-				// grab the piece of the local field tensor and find the inner product with alpha
-				//_g_t = _g[p][q].transpose(); 
-				//_A += _g_t * _alpha[q][q] * _g[q][r];
-				//_A += (_f[q].transpose()) * _alpha[q][q] * _f[q];
-				//_A += _alpha[q][q] * _f[q];
-				_A += _alpha[q][q];
-			}//}//}
+	for (int q = 0; q < N; ++q) {
+		//for (int r = 0; r < N; ++r) {
+		// grab the piece of the local field tensor and find the inner product with alpha
+		//_g_t = _g[p][q].transpose(); 
+		//_A += _g_t * _alpha[q][q] * _g[q][r];
+		//_A += (_f[q].transpose()) * _alpha[q][q] * _f[q];
+		//_A += _alpha[q][q] * _f[q];
+		_A += _alpha[q][q];
+	}//}//}
 }	// Calculate total polarizability
 
 
@@ -688,7 +663,7 @@ void Morita2008LookupAnalysis<T>::SetAnalysisWaterPolarizability () {
 	//		set the molecule's polarizability to the value
 	for (Morita_it it = this->analysis_wats.begin(); it != this->analysis_wats.end(); it++) {
 
-		(*it)->SetAtoms();	// first get the atoms and bonds set in the water
+		//(*it)->SetAtoms();	// first get the atoms and bonds set in the water
 
 		dcm = MatR::Zero();
 		dcm = (*it)->DCMToLab();	// set up the direction cosine matrix for rotating the polarizability to the lab-frame

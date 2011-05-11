@@ -10,6 +10,7 @@ namespace md_system {
 			SulfurDioxide ();
 			SulfurDioxide (const Molecule& mol);
 			SulfurDioxide (const MolPtr& mol);
+			~SulfurDioxide () { }
 
 			void SetAtoms ();
 

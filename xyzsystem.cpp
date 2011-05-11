@@ -27,7 +27,6 @@ namespace md_files {
 		/***********************************************************************************
 		 * This is the top-level parsing routine to give the overall idea of what's going on
 		 * *********************************************************************************/
-
 		// first things first - we need the interatomic distances and bonding information - atomic bonding graph
 		try { graph.UpdateGraph (_xyzfile.Atoms()); }
 

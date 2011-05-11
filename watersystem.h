@@ -178,6 +178,8 @@ namespace md_system {
 				void LoadNext() const { sys->LoadNext(); }
 				virtual void Rewind() const { sys->Rewind(); }
 
+				bondgraph::BondGraph& BondGraph () const { return sys->graph; }
+
 			protected:
 				T * sys;	/* System coordinate & files */
 				virtual void _InitializeSystem ();
