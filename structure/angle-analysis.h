@@ -163,8 +163,8 @@ namespace angle_analysis {
 	template <typename T>
 		void H2OAngleAnalysis<T>::Analysis () {
 
-			h2os.FindWaterSurfaceLocation();
 			h2os.Reload();
+			h2os.FindWaterSurfaceLocation();
 
 			for (Wat_it wat = h2os.begin(); wat != h2os.end(); wat++) {
 				BinAngles(*wat);
@@ -235,71 +235,6 @@ namespace angle_analysis {
 		}
 
 
-
-		// ************* so2 angle analysis *****************
-
-		template <typename T>
-			class SO2AngleAnalysis : public AnalysisSet<T> {
-				protected:
-					h2o_analysis::H2OSystemManipulator<T>	h2os;
-					so2_analysis::SO2SystemManipulator<T>	so2s;
-					DistanceAngleHelper<T>											angles;
-
-				public:
-
-					typedef Analyzer<T> system_t;
-
-					SO2AngleAnalysis (system_t * t, 
-							std::string description = std::string("SO2 angle analysis"), 
-							std::string fn = std::string("")) :
-						AnalysisSet<T> (t, description, fn),
-						h2os(t), so2s(t), angles(t) { 
-							h2os.ReferencePoint(WaterSystem<T>::SystemParameterLookup("analysis.reference-location"));
-						}
-
-					virtual ~SO2AngleAnalysis () { } 
-
-					virtual void Analysis ();
-					virtual void DataOutput () { angles.DataOutput(); }
-					virtual void BinAngles (SulfurDioxide * so2);
-
-			};	// so2 angle analysis
-
-
-
-		template <typename T>
-			void SO2AngleAnalysis<T>::BinAngles (SulfurDioxide * so2) {
-				so2->SetOrderAxes();
-
-				// calculate the position of the so2 relative to the water surface
-				double distance;
-				if (h2os.TopSurface()) {
-					distance = system_t::Position(so2->ReferencePoint()) - h2os.SurfaceLocation();
-					// get the value of theta: molecular bisector angle with system reference axis
-					angles.Alpha(distance, so2->Bisector() < VecR::UnitY());
-				} else {
-					distance = h2os.SurfaceLocation() - system_t::Position(so2->ReferencePoint());		// bottom surface
-					angles.Alpha(distance, -(so2->Bisector() < VecR::UnitY()));	// bottom surface
-				}
-
-				// get the value of phi - the molecular normal angle with the system ref
-				angles.Beta(distance, fabs(so2->Y() < VecR::UnitY()));
-
-				return;
-			}
-
-
-
-		template <typename T>
-			void SO2AngleAnalysis<T>::Analysis () {
-
-				h2os.Reload();
-				h2os.FindWaterSurfaceLocation();
-
-				for (std::vector<SulfurDioxide *>::iterator so2 = so2s.begin(); so2 != so2s.end(); so2++) {
-					BinAngles(*so2);
-				}
-			}
 
 		/************** Angle analysis of the reference SO2 **************/
 
@@ -441,7 +376,7 @@ namespace angle_analysis {
 											std::string("Analysis of waters near an adsorbing so2"),
 											std::string("first-adsorption-water.dat")),
 									h2os(t), so2s(t), nm(t), first_bound_water ((WaterPtr)NULL), second_pass(false)
-																																																 //angle_histo ("angle.dat", 0.0, 10.0, 0.1, -1.0, 1.0, 0.05)	// distance from 0 to 10 angstroms
+									//angle_histo ("angle.dat", 0.0, 10.0, 0.1, -1.0, 1.0, 0.05)	// distance from 0 to 10 angstroms
 						{ }
 							~SO2AdsorptionWaterAngleAnalysis () {
 								if (!first_bound_water) delete first_bound_water;
@@ -585,6 +520,70 @@ namespace angle_analysis {
 						//std::cout << std::endl;
 						//std::transform (h2os.begin(), h2os.begin()+20, std::ostream_iterator<double>(std::cout, " "), system_t::molecule_distance_generator(so2s.S()));
 						//std::cout << std::endl;
+
+					}	// analysis
+
+
+				template <typename T>
+				class WaterOrientationNearSO2 : public AnalysisSet<T> {
+
+					public:
+						typedef Analyzer<T> system_t;
+						WaterOrientationNearSO2 (system_t * t) 
+							: 
+								AnalysisSet<T> (t,
+										std::string("Angle analysis of waters relative to so2 distance"),
+										std::string("")),
+				 
+								angles (t, 
+												 1.4, 15.0, 0.05,
+//												-1.0, 1.0, 0.05) { }
+												0.0, 180.0, 1.0) { }
+
+						void Analysis ();
+						void DataOutput () { angles.DataOutput(); }
+
+					private:
+						AngleHelper<T>	angles;	// 2d histogram
+
+				};	// water orientation near so2
+
+				template <typename T>
+					void WaterOrientationNearSO2<T>::Analysis () {
+
+						this->LoadAll();
+
+						Water_ptr_vec wats;
+						wats.clear();
+
+						for (Mol_it it = this->begin_mols(); it != this->end_mols(); it++) {
+							if ((*it)->MolType() != Molecule::H2O) continue;
+							WaterPtr wat = static_cast<Water *>(*it);
+							wat->SetAtoms();
+							wats.push_back(wat);
+						}
+
+						// grab the so2 of the system
+						MolPtr mol = Molecule::FindByType(this->begin_mols(), this->end_mols(), Molecule::SO2);
+						SulfurDioxide * so2 = static_cast<SulfurDioxide *>(mol);
+						so2->SetAtoms();
+
+						// a) for each water, find the axis between the water-oxygen and the so2-sulfur.
+						// b) calculate the distance between the two molecules
+						// c) calculate the angle between the two bisectors (are they aligned, anti-aligned, etc)
+						// d) histogram the angle by distance
+
+						VecR axis;	// pointing from the water-O to the so2-S
+						double distance, angle;
+						for (Wat_it wat = wats.begin(); wat != wats.end(); wat++) {
+
+							axis = MDSystem::Distance ((*wat)->O(), so2->S());
+							distance = axis.norm();
+							angle = acos((*wat)->Bisector() < so2->Bisector()) * 180.0/M_PI;
+
+							angles.Alpha(distance, angle);
+							angles.Beta(distance, 180.0/M_PI * acos((*wat)->Bisector() < axis));
+						}
 
 					}	// analysis
 

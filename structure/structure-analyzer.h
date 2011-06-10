@@ -13,8 +13,9 @@
 #include "dipole-analysis.h"
 #include "neighbor-analysis.h"
 #include "atomic-density-analysis.h"
-//#include "rdf-analysis.threads.h"
+#include "rdf-analysis.h"
 #include "angle-analysis.h"
+#include "so2-angle-analysis.h"
 #include "so2-system-analysis.h"
 #include "bond-analysis.h"
 
@@ -64,7 +65,6 @@ namespace md_analysis {
 			a = new AtomicDensityAnalysis<T>(this);									analyses.push_back(a);
 			a = new SystemDensitiesAnalysis<T>(this);						analyses.push_back(a);
 			a = new angle_analysis::H2OAngleAnalysis<T>(this);			analyses.push_back(a);
-			a = new angle_analysis::SO2AngleAnalysis<T>(this);			analyses.push_back(a);
 			a = new angle_analysis::ReferenceSO2AngleAnalysis<T>(this);			analyses.push_back(a);
 			a = new neighbor_analysis::SO2BondingCycleAnalysis<T>(this);	analyses.push_back(a);
 			a = new neighbor_analysis::SO2HBondingAnalysis<T>(this);			analyses.push_back(a);
@@ -123,10 +123,17 @@ namespace md_analysis {
 			a = new neighbor_analysis::SO2BondingAnalysis<T>(this);					analyses.push_back(a);
 			//a = new so2_analysis::SO2DipoleAnalyzer<T>(this);					analyses.push_back(a);
 			a = new so2_analysis::SO2BondLengthAnalyzer<T>(this);					analyses.push_back(a);
-			a = new so2_analysis::SO2AngleAnalyzer<T>(this);					analyses.push_back(a);
+			a = new so2_angle_analysis::SO2Angles2D<T>(this);					analyses.push_back(a);
+			a = new so2_angle_analysis::SO2Angles1D<T>(this);					analyses.push_back(a);
 			a = new so2_analysis::ClosestWaterBondlengths<T>(this);					analyses.push_back(a);
 		//	a = new so2_analysis::WaterBondLengthAnalyzer <T>(this);					analyses.push_back(a);
 			a = new bond_analysis::BondLengthAnalyzer <T>(this);					analyses.push_back(a);
+			a = new bond_analysis::SO2BondingAnalyzer<T>(this);					analyses.push_back(a);
+			
+			a = new angle_analysis::WaterOrientationNearSO2<T>(this);		analyses.push_back(a);
+			a = new md_analysis::RDFAnalyzer<T>(this);		analyses.push_back(a);
+			a = new so2_angle_analysis::SO2_H2O_Angles2D<T>(this);		analyses.push_back(a);
+
 
 		}
 

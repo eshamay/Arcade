@@ -118,6 +118,8 @@ namespace so2_analysis {
 					}
 				}
 
+				virtual void FindAllSO2s() { }
+
 		};	// xyz so2 manipulator
 
 
@@ -205,6 +207,7 @@ namespace so2_analysis {
 			so2s.UpdateSO2();
 
 			double angle = so2s.SO2()->Angle();
+
 
 			fprintf (this->output, "% 12.7f\n", angle);
 		}

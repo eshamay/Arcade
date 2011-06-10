@@ -43,7 +43,7 @@ namespace bondgraph {
 	const double NOBONDLENGTH = 2.0;
 	const double NHBONDLENGTH = 1.3;		// uhmm... check this?
 	const double SOBONDLENGTH = 1.8;
-	const double SOINTERACTIONLENGTH = 3.5;		// S not covalently bound to O
+	const double SOINTERACTIONLENGTH = 3.25;		// S not covalently bound to O
 	const double COBONDLENGTH = 1.5;
 	const double CHBONDLENGTH = 1.5;
 	const double CCBONDLENGTH = 2.0;

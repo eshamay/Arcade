@@ -25,7 +25,8 @@ namespace md_files {
 					fscanf (this->_file, " %d 1_%d ", &(this->_size), &(this->_frame));
 					this->_coords.resize(this->_size*3, 0.0);
 					for (int i = 0; i < this->_size; i++) {
-						_wanniers.push_back (Eigen::Map<VecR> (&(this->_coords[3*i])));
+						//_wanniers.push_back (Eigen::Map<VecR> (&(this->_coords[3*i])));
+						_wanniers.push_back (vector_map (&(this->_coords[3*i])));
 					}
 				}
 			}

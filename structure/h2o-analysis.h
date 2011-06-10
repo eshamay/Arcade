@@ -20,21 +20,9 @@ namespace h2o_analysis {
 				H2OSystemManipulator (system_t * t, const int number_of_waters_for_surface_calc = 70) : 
 					SystemManipulator<T>(t), 
 					reference_point(WaterSystem<T>::SystemParameterLookup("analysis.reference-location")),
+					top_surface(WaterSystem<T>::SystemParameterLookup("analysis.top-surface")),
 					number_surface_waters(number_of_waters_for_surface_calc) { 
-
-						this->_system->LoadWaters();
-						// gather all the system waters into an analysis container
-						for (Mol_it it = this->_system->int_wats.begin(); it != this->_system->int_wats.end(); it++) {
-							WaterPtr wat (new Water(*(*it)));
-							wat->SetAtoms();
-							all_waters.push_back(wat);
-						}
-
-						all_water_atoms.clear();
-						std::copy(this->_system->int_atoms.begin(), this->_system->int_atoms.end(), std::back_inserter(all_water_atoms));
 						this->Reload();
-
-						top_surface = WaterSystem<T>::SystemParameterLookup("analysis.top-surface");
 					}
 
 				virtual ~H2OSystemManipulator () { 
@@ -42,8 +30,35 @@ namespace h2o_analysis {
 						delete *it;
 				}
 
-				void Reload ();
-				void UpdateAnalysisAtoms ();
+
+				// find all the system waters and load them into the useable containers
+				void Reload () {
+					// first clear out the previous water set
+					for (Wat_it wat = this->all_waters.begin(); wat != this->all_waters.end(); wat++) {
+						delete *wat;
+					}
+					all_waters.clear();
+					// then load in the new water set
+					this->_system->LoadWaters();
+					// gather all the system waters
+					for (Mol_it it = this->_system->int_wats.begin(); it != this->_system->int_wats.end(); it++) {
+						WaterPtr wat (new Water(*it));
+						wat->SetAtoms();
+						all_waters.push_back(wat);
+					}
+
+					// grab all the water atoms
+					all_water_atoms.clear();
+					std::copy(this->_system->int_atoms.begin(), this->_system->int_atoms.end(), std::back_inserter(all_water_atoms));
+
+					// now update the analysis containers
+					this->UpdateAnalysisWaters();
+					return;
+				}
+
+
+				void UpdateAnalysisWaters ();
+
 				virtual void FindWaterSurfaceLocation ();		
 				virtual void FindClosestWaters (const AtomPtr);
 
@@ -54,14 +69,22 @@ namespace h2o_analysis {
 
 				bool TopSurface () const { return top_surface; }
 
-				Atom_it_non_const begin_atoms() { return this->analysis_atoms.begin(); }
-				Atom_it_non_const end_atoms() { return this->analysis_atoms.end(); }
+				Atom_it begin_atoms() const { return this->analysis_atoms.begin(); }
+				Atom_it end_atoms() const { return this->analysis_atoms.end(); }
 
 				Wat_it begin() { return analysis_waters.begin(); }
 				Wat_it end() { return analysis_waters.end(); }
 				Wat_rit rbegin() { return analysis_waters.rbegin(); }
 				Wat_rit rend() { return analysis_waters.rend(); }
 
+
+				// center of mass of all the waters
+				VecR CenterOfMass () { 
+					CalcCenterOfMass();
+					return center_of_mass; 
+				}
+
+				void CalcCenterOfMass ();
 
 				// function object that returns the distance of a given molecule to the given reference point
 				class ReferenceDistance : public std::unary_function<MolPtr, double> {
@@ -86,11 +109,13 @@ namespace h2o_analysis {
 
 			protected:
 				Water_ptr_vec all_waters, analysis_waters;
-				Atom_ptr_vec all_water_atoms, analysis_water_atoms;
+				Atom_ptr_vec all_water_atoms;
 
 				double reference_point;	// the original location of the so2 along the reference axis
 				int number_surface_waters;
 				bool	top_surface;
+
+				VecR center_of_mass;
 
 				double surface_location;	// location of the water surface along the reference axis
 				double surface_width;			// standard deviation of the positions of waters used to calculate the surface_location
@@ -107,7 +132,7 @@ namespace h2o_analysis {
 
 
 	template <typename T>
-		void H2OSystemManipulator<T>::Reload () {
+		void H2OSystemManipulator<T>::UpdateAnalysisWaters () {
 
 			this->analysis_waters.clear();
 			std::copy (all_waters.begin(), all_waters.end(), std::back_inserter(analysis_waters));
@@ -120,7 +145,6 @@ namespace h2o_analysis {
 
 	template <typename T>
 		void H2OSystemManipulator<T>::FindWaterSurfaceLocation () {
-			this->Reload();
 
 			// get rid of everything above (or below) the reference point
 			if (top_surface) {
@@ -143,7 +167,6 @@ namespace h2o_analysis {
 
 			// resize the list to contain only the surface waters
 			analysis_waters.resize(number_surface_waters);
-			this->UpdateAnalysisAtoms();
 
 			// get the position of the top-most waters
 			std::vector<double> surface_water_positions;
@@ -166,19 +189,24 @@ namespace h2o_analysis {
 
 
 	template <typename T>
-		void H2OSystemManipulator<T>::UpdateAnalysisAtoms () {
-			this->analysis_atoms.clear();
-			for (Wat_it it = begin(); it != end(); it++) {
-				std::copy ((*it)->begin(), (*it)->end(), std::back_inserter(this->analysis_atoms));
-			}
-		}
+		void H2OSystemManipulator<T>::CalcCenterOfMass () {
+			center_of_mass.Zero();
+			double mass = 0.0;
 
+
+			for (Atom_it it = this->begin_atoms(); it != this->end_atoms(); it++) {
+				mass += (*it)->Mass();
+				center_of_mass += (*it)->Position() * (*it)->Mass();
+			}
+			center_of_mass = center_of_mass / mass;
+			return;
+		}
 
 
 	// sort all the waters in the system by distance to a given reference atom
 	template <typename T>
 		void H2OSystemManipulator<T>::FindClosestWaters (const AtomPtr a) {
-			this->Reload();
+			this->UpdateAnalysisWaters();
 			std::sort(analysis_waters.begin(), analysis_waters.end(), typename system_t::molecule_distance_cmp(a));
 		} // find closest waters
 

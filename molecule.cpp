@@ -237,11 +237,13 @@ namespace md_system {
 		printf ("\n");
 		std::for_each (this->begin(), this->end(), std::mem_fun(&Atom::Print));
 
+		/*
 		if (_wanniers.size()) {
 			printf ("Wannier) ");
 			std::for_each (this->_wanniers.begin(), this->_wanniers.end(), std::mem_fun_ref(&vector_map::Print));
 			//printf ("wan)\t%d\n", _wanniers.size());
 		}
+		*/
 		printf ("\n");
 
 		return;

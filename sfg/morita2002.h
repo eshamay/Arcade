@@ -366,16 +366,16 @@ void Morita2008Analysis<U>::CalculateTotalDipole () {
 	// _p now holds the local-field corrected dipole moments
 	*/
 
-	//int N = analysis_wats.size();
+	int N = analysis_wats.size();
 	_M.setZero();
-	for (vec_vec::iterator it = _p.begin(); it != _p.end(); it++) {
-		//for (int p = 0; p < N; ++p) {
+	//for (vec_vec::iterator it = _p.begin(); it != _p.end(); it++) {
+		for (int p = 0; p < N; ++p) {
 		//for (int q = 0; q < N; ++q) {
 		//_g_t = _g[p][q].transpose(); 
 		//_M += _g_t * _p[q];
-		//_M += (_f[p].transpose()) * _p[p];
+		_M += _f[p].transpose() * _p[p];
 		//_M += _p[p];
-		_M += *it;
+		//_M += *it;
 	}//}
 
 	// perform the summation of the total system dipole moment
@@ -596,8 +596,8 @@ void Morita2008Analysis<U>::CalculateTotalPolarizability () {
 		//_g_t = _g[p][q].transpose(); 
 		//_A += _g_t * _alpha[q][q] * _g[q][r];
 		//_A += (_f[q].transpose()) * _alpha[q][q] * _f[q];
-		//_A += _alpha[q][q] * _f[q];
-		_A += _alpha[q][q];
+		_A += _f[q].transpose() * _alpha[q][q] * _f[q];
+		//_A += _alpha[q][q];
 	}//}//}
 }	// Calculate total polarizability
 

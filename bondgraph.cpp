@@ -285,7 +285,7 @@ namespace bondgraph {
 
 			// check the bondtype criteria - return only bonds that are specified by the bondtype argument, or if no argument is specified, return all hbond and covalent bonds.
 			e = edge(*va, *vi, _graph).first;
-			if (btype == b_type[e] || ((!btype) && ((b_type[e] == hbond) || (b_type[e] == covalent)))) {
+			if (btype == b_type[e] || ((!btype) && ((b_type[e] == hbond) || (b_type[e] == covalent) || (b_type[e] == interaction)))) {
 		//	if (btype == b_type[e] || (!btype && b_type[e] != unbonded)) {
 				if (!elmt || (v_elmt[*vi] == elmt)) {
 					atoms.push_back(v_atom[*vi]);

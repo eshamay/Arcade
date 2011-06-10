@@ -9,6 +9,7 @@ namespace morita {
 		this->analysis_wats.clear();
 		std::sort(this->all_wats.begin(), this->all_wats.end(), system_t::molecule_position_pred(Atom::O));
 		std::copy(this->all_wats.rbegin(), this->all_wats.rbegin()+10, std::back_inserter(this->analysis_wats));
+
 		/*
 		VecR z_ax = VecR::UnitZ();
 		for (Morita_it it = this->all_wats.begin(); it != this->all_wats.end(); it++) {
