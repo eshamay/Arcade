@@ -133,13 +133,18 @@ namespace md_files {
 
 
 	class TopologyXYZSystem : public XYZSystem {
-		private:
-			SimpleMolecularTopologyFile	_topology;
-		public:
-			XYZSystem (const std::string& filepath, const VecR& size, const std::string& wannierpath = "");
+		protected:
+			MolecularTopologyFile	_topology;
 
 			void _FindMolecules ();
-	} // xyz topology system class
+
+		public:
+			TopologyXYZSystem (const std::string& filepath, const VecR& size, const std::string& wannierpath = "") :
+				XYZSystem (filepath, size, wannierpath),
+				_topology("xyz.top") { }
+
+	}; // xyz topology system class
+
 
 
 	/*

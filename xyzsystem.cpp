@@ -98,9 +98,8 @@ namespace md_files {
 		}
 	}
 
-	void XYZSystem::FindMoleculesByTopology () {
+	void TopologyXYZSystem::_FindMolecules () {
 	}
-
 
 	/*
 		 void XYZSystem::_ParseNitricAcids () { }
