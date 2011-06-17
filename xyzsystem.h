@@ -16,7 +16,7 @@ namespace md_files {
 
 	class XYZSystem : public MDSystem {
 
-		private:
+		protected:
 			XYZFile					_xyzfile;		// Atomlist parsed from an xyz file
 			WannierFile 		_wanniers;		// The wannier centers
 
@@ -31,11 +31,29 @@ namespace md_files {
 			/* For debugging (and other useful things?) this will keep a list of all the atoms that have been processed into molecules. Any atoms left over at the end of the parsing routine are not included and ... can potentially cause problems */
 			Atom_ptr_vec _unparsed;
 
-			void _ParseMolecules ();		// take the atoms we have and stick them into molecules - general umbrella routine
+			virtual void _ParseMolecules ();		// take the atoms we have and stick them into molecules - general umbrella routine
+			virtual void _FindMolecules () { this->FindMoleculesByMoleculeGraph(); }
+
+			virtual void _InitializeSystemAtoms () { this->NullOutSystemAtoms (); }
+
+			// use small graphs built for each timestep of all the 
+			// covalently-bound atoms in a system to 
+			// determine molecules by connectivity
+			void FindMoleculesByMoleculeGraph ();
+
+			void NullOutSystemAtoms () {
+				// we also have to go through and clear out some info on all the atoms
+				// like the parentmolecules and names
+				for (Atom_it it = _xyzfile.begin(); it != _xyzfile.end(); it++) {
+					(*it)->ParentMolecule ( (MolPtr)NULL );
+					(*it)->Residue ("");
+					(*it)->MolID (-1);
+				}
+			}
 
 			//! Parses a simple molecule that is composed of a central atom, and all other atoms are connected to it - i.e. h2o, no3, ccl4, etc
 			//template <typename T>
-				//void _ParseSimpleMolecule (const Atom::Element_t central_elmt, const Atom::Element_t outer_elmt, const unsigned numOuter);
+			//void _ParseSimpleMolecule (const Atom::Element_t central_elmt, const Atom::Element_t outer_elmt, const unsigned numOuter);
 
 			/* more specialized parsing routines that don't fall under "simple molecules" */
 
@@ -54,7 +72,7 @@ namespace md_files {
 		public:
 			// constructors
 			XYZSystem (const std::string& filepath, const VecR& size, const std::string& wannierpath = "");
-			~XYZSystem ();
+			virtual ~XYZSystem ();
 
 			bondgraph::BondGraph graph;
 
@@ -114,55 +132,64 @@ namespace md_files {
 	};	// xyz system class
 
 
+	class TopologyXYZSystem : public XYZSystem {
+		private:
+			SimpleMolecularTopologyFile	_topology;
+		public:
+			XYZSystem (const std::string& filepath, const VecR& size, const std::string& wannierpath = "");
+
+			void _FindMolecules ();
+	} // xyz topology system class
+
 
 	/*
-	template <typename T>
-		void XYZSystem::_ParseSimpleMolecule (const Atom::Element_t central_elmt, const Atom::Element_t outer_elmt, const unsigned numOuter) {
+		 template <typename T>
+		 void XYZSystem::_ParseSimpleMolecule (const Atom::Element_t central_elmt, const Atom::Element_t outer_elmt, const unsigned numOuter) {
 
-			//for (Atom_it it = _unparsed.begin(); it != _unparsed.end(); it++) {
-			for (int i = 0; i < _unparsed.size(); i++) {
+//for (Atom_it it = _unparsed.begin(); it != _unparsed.end(); it++) {
+for (int i = 0; i < _unparsed.size(); i++) {
 
-				AtomPtr it = _unparsed[i];
-				if (it->Element() != central_elmt) continue;
+AtomPtr it = _unparsed[i];
+if (it->Element() != central_elmt) continue;
 
-				// grab all the atoms connected to the central atom
-				Atom_ptr_vec outers = graph.BondedAtoms (it, bondgraph::covalent, outer_elmt);
-				if (outers.size() != numOuter) continue;
+// grab all the atoms connected to the central atom
+Atom_ptr_vec outers = graph.BondedAtoms (it, bondgraph::covalent, outer_elmt);
+if (outers.size() != numOuter) continue;
 
-				int molIndex = _mols.size();
+int molIndex = _mols.size();
 
-				// save the central atom
-				outers.push_back(it);
+// save the central atom
+outers.push_back(it);
 
-				T * newmol = new T();
-				_mols.push_back (newmol);
+T * newmol = new T();
+_mols.push_back (newmol);
 
-				newmol->MolID (molIndex);
+newmol->MolID (molIndex);
 
-				for (Atom_it jt = outers.begin(); jt != outers.end(); jt++) {
-					newmol->AddAtom (*jt);
-				}
+for (Atom_it jt = outers.begin(); jt != outers.end(); jt++) {
+newmol->AddAtom (*jt);
+}
 
-				_UpdateUnparsedList(outers);
-			}
+_UpdateUnparsedList(outers);
+}
 
-			return;
-		}	// parse simple molecule	
-		*/
+return;
+}	// parse simple molecule	
+*/
 
-	// comparator for sorting vectors based on their distance to a given reference point
-		class vecr_distance_cmp : public std::binary_function <VecR,VecR,bool> {
-			private:
-				VecR reference;
-			public:
-				vecr_distance_cmp (VecR ref) : reference(ref) { }
-				bool operator() (const VecR& v1, const VecR& v2) const {
-					double d1 = MDSystem::Distance (v1, reference).Magnitude();
-					double d2 = MDSystem::Distance (v2, reference).Magnitude();
-					bool ret = (d1 < d2) ? true : false;
-					return ret;
-				};
+// comparator for sorting vectors based on their distance to a given reference point
+class vecr_distance_cmp : public std::binary_function <VecR,VecR,bool> {
+	private:
+		VecR reference;
+	public:
+		vecr_distance_cmp (VecR ref) : reference(ref) { }
+		bool operator() (const VecR& v1, const VecR& v2) const {
+			double d1 = MDSystem::Distance (v1, reference).Magnitude();
+			double d2 = MDSystem::Distance (v2, reference).Magnitude();
+			bool ret = (d1 < d2) ? true : false;
+			return ret;
 		};
+};
 
 }	// namespace md files
 

@@ -40,14 +40,39 @@ namespace md_files {
 		}
 		_mols.clear();				// then clear out the molecule list
 
-		// we also have to go through and clear out some info on all the atoms
-		// like the parentmolecules and names
-		for (Atom_it it = _xyzfile.begin(); it != _xyzfile.end(); it++) {
-			(*it)->ParentMolecule ( (MolPtr)NULL );
-			(*it)->Residue ("");
-			(*it)->MolID (-1);
-		}
+		this->_InitializeSystemAtoms();
 
+		this->_FindMolecules();
+
+		/*
+			 this->_ParseSimpleMolecule<Hydronium> (Atom::O, Atom::H, 3);
+			 this->_ParseSimpleMolecule<Water> (Atom::O, Atom::H, 2);
+		// parse NO3- ions
+		this->_ParseSimpleMolecule<Nitrate> (Atom::N, Atom::O, 3);
+		// turn any NO3- ions that have a covalently bound H into HNO3 - nitric acid
+		this->_ParseNitricAcids ();
+		this->_ParseSimpleMolecule<SulfurDioxide> (Atom::S, Atom::O, 2);
+		this->_ParseSimpleMolecule<Hydroxide> (Atom::O, Atom::H, 1);
+		this->_ParseProtons ();
+		this->_ParseAlkanes ();
+		*/
+
+		/*
+			 try {
+			 this->_CheckForUnparsedAtoms ();
+			 }
+			 catch (xyzsysex& ex) {
+			 std::cerr << "Exception thrown while checking for unparsed atoms in the system - some atoms were not parsed into molecules" << std::endl;
+			 throw;
+			 }
+			 */
+
+		return;
+	}	// parse molecules
+
+
+
+	void XYZSystem::FindMoleculesByMoleculeGraph () {
 		// track which atoms have already been parsed in the system
 		_unparsed.clear();
 		std::copy (_xyzfile.begin(), _xyzfile.end(), std::back_inserter(_unparsed));
@@ -71,81 +96,58 @@ namespace md_files {
 			_mols.push_back(newmol);
 			//newmol->SetAtoms();
 		}
+	}
 
-		/*
-		this->_ParseSimpleMolecule<Hydronium> (Atom::O, Atom::H, 3);
-		this->_ParseSimpleMolecule<Water> (Atom::O, Atom::H, 2);
-		// parse NO3- ions
-		this->_ParseSimpleMolecule<Nitrate> (Atom::N, Atom::O, 3);
-		// turn any NO3- ions that have a covalently bound H into HNO3 - nitric acid
-		this->_ParseNitricAcids ();
-		this->_ParseSimpleMolecule<SulfurDioxide> (Atom::S, Atom::O, 2);
-		this->_ParseSimpleMolecule<Hydroxide> (Atom::O, Atom::H, 1);
-		this->_ParseProtons ();
-		this->_ParseAlkanes ();
-		*/
-
-		/*
-		try {
-			this->_CheckForUnparsedAtoms ();
-		}
-		catch (xyzsysex& ex) {
-			std::cerr << "Exception thrown while checking for unparsed atoms in the system - some atoms were not parsed into molecules" << std::endl;
-			throw;
-		}
-		*/
-
-		return;
-	}	// parse molecules
-
+	void XYZSystem::FindMoleculesByTopology () {
+	}
 
 
 	/*
-	void XYZSystem::_ParseNitricAcids () { }
+		 void XYZSystem::_ParseNitricAcids () { }
 
 		 for (Mol_it mol = _mols.begin(); mol != _mols.end(); mol++) {
 		 if ((*mol)->MolType() != Molecule::NO3) continue;
 
 		 AtomPtr N = (*mol)->GetAtom(Atom::N);
-	// find any Hs bound to oxygens of the NO3
-	Atom_ptr_vec Os = graph.BondedAtoms(N, bondgraph::covalent, Atom::O);
-	Atom_ptr_vec Hs; 
-	for (Atom_it O = Os.begin(); O != Os.end(); O++) {
-	Atom_ptr_vec H_check = graph.BondedAtoms(*O, bondgraph::covalent, Atom::H);
-	if (H_check.size() == 1)
-	Hs.push_back(H_check[0]);
-	if (H_check.size() > 1) {
-	printf ("A nitrate Oxygen has %zu covalently bound hydrogens! what's going on here?\n", H_check.size());
-	(*O)->Print();
-	exit(1);
-	}
-	}
+// find any Hs bound to oxygens of the NO3
+Atom_ptr_vec Os = graph.BondedAtoms(N, bondgraph::covalent, Atom::O);
+Atom_ptr_vec Hs; 
+for (Atom_it O = Os.begin(); O != Os.end(); O++) {
+Atom_ptr_vec H_check = graph.BondedAtoms(*O, bondgraph::covalent, Atom::H);
+if (H_check.size() == 1)
+Hs.push_back(H_check[0]);
+if (H_check.size() > 1) {
+printf ("A nitrate Oxygen has %zu covalently bound hydrogens! what's going on here?\n", H_check.size());
+(*O)->Print();
+exit(1);
+}
+}
 
-	if (Hs.size() == 1)
-	(*mol)->AddAtom (Hs[0]);
-	else if (Hs.size() > 1) {
-	printf ("This nitric acid has %zu covalently bound hydrogens!\n", Hs.size());
-	(*mol)->Print();
-	for (Atom_it ai = Hs.begin(); ai != Hs.end(); ai++) {
-	(*ai)->Print();
-	}
-	}
-	}
+if (Hs.size() == 1)
+(*mol)->AddAtom (Hs[0]);
+else if (Hs.size() > 1) {
+printf ("This nitric acid has %zu covalently bound hydrogens!\n", Hs.size());
+(*mol)->Print();
+for (Atom_it ai = Hs.begin(); ai != Hs.end(); ai++) {
+(*ai)->Print();
+}
+}
+}
+return;
+}	// Parse Nitric acids
+*/
+
+
+void XYZSystem::_UpdateUnparsedList (Atom_ptr_vec& parsed) {
+	// fix up the list for tracking atoms that have already been added into molecules.
+	// _unparsed should contain only atoms that are not in the parsed list
+	// these atom vectors get sorted according the the atom's ID
+
+	_unparsed.erase(
+			std::remove_if (_unparsed.begin(), _unparsed.end(), std::bind2nd(AtomPtr_In_List<Atom_ptr_vec>(), parsed)), _unparsed.end());
+
 	return;
-	}	// Parse Nitric acids
-	*/
-
-
-	void XYZSystem::_UpdateUnparsedList (Atom_ptr_vec& parsed) {
-		// fix up the list for tracking atoms that have already been added into molecules.
-		// _unparsed should contain only atoms that are not in the parsed list
-		// these atom vectors get sorted according the the atom's ID
-
-		_unparsed.erase(
-				std::remove_if (_unparsed.begin(), _unparsed.end(), std::bind2nd(AtomPtr_In_List<Atom_ptr_vec>(), parsed)), _unparsed.end());
-
-		return;
-	} 
+} 
 
 void XYZSystem::_CheckForUnparsedAtoms () const {
 
@@ -206,56 +208,56 @@ void XYZSystem::_ParseWanniers () {
 	/*
 	// keep track of the wanniers that have been parsed
 	for (Atom_it at = _xyzfile.begin(); at != _xyzfile.end(); at++) {
-		// find every oxygen and sulfur atom (those are the ones that contain wanniers
-		if ((*at)->Element() != Atom::O && (*at)->Element() != Atom::S) continue;
-		//(*at)->Print();
+// find every oxygen and sulfur atom (those are the ones that contain wanniers
+if ((*at)->Element() != Atom::O && (*at)->Element() != Atom::S) continue;
+//(*at)->Print();
 
-		MolPtr mol = (*at)->ParentMolecule();
+MolPtr mol = (*at)->ParentMolecule();
 
-		// sort the wanniers by distance to the given atom
-		//std::sort (_wanniers.begin(), _wanniers.end(), vecr_distance_cmp((*at)->Position()));
+// sort the wanniers by distance to the given atom
+//std::sort (_wanniers.begin(), _wanniers.end(), vecr_distance_cmp((*at)->Position()));
 
-		// add the appropriate number into the molecules
-		int num_wans = 0;
-		if ((*at)->Element() == Atom::O) num_wans = 4;
-		if ((*at)->Element() == Atom::S) num_wans = 1;
+// add the appropriate number into the molecules
+int num_wans = 0;
+if ((*at)->Element() == Atom::O) num_wans = 4;
+if ((*at)->Element() == Atom::S) num_wans = 1;
 
-		double distance;
-		int i = 0;
-		vector_map_vec parsed_ws;
-		while (num_wans) {
+double distance;
+int i = 0;
+vector_map_vec parsed_ws;
+while (num_wans) {
 
-			distance = MDSystem::Distance ((*at)->Position(), _wanniers[i]).Magnitude();
-			if (distance < WANNIER_BOND) {
-				mol->AddWannier(_wanniers[i]);
-				parsed_ws.push_back (_wanniers[i]);
-				--num_wans;
-			}
-			++i;
-		}
-		*/
+distance = MDSystem::Distance ((*at)->Position(), _wanniers[i]).Magnitude();
+if (distance < WANNIER_BOND) {
+mol->AddWannier(_wanniers[i]);
+parsed_ws.push_back (_wanniers[i]);
+--num_wans;
+}
+++i;
+}
+*/
 
-		/*
-		// and then go through all the wanniers in order to find the ones attached to the oxygen
-		for (WannierFile::Wannier_it wi = _wanniers.begin(); wi != _wanniers.end(); wi++) {
+/*
+// and then go through all the wanniers in order to find the ones attached to the oxygen
+for (WannierFile::Wannier_it wi = _wanniers.begin(); wi != _wanniers.end(); wi++) {
 
-			// we find the distance to the oxygen from the wannier center
-			double distance = MDSystem::Distance ((*at)->Position(), *wi).Magnitude();
+// we find the distance to the oxygen from the wannier center
+double distance = MDSystem::Distance ((*at)->Position(), *wi).Magnitude();
 
-			// if it's close enough, then that oxygen gets it
-			if (distance < WANNIER_BOND) {
-				mol->AddWannier(*wi);
-				parsed_ws.push_back (*wi);
-			}
-		}
-	}	// for-each atom
-		*/
+// if it's close enough, then that oxygen gets it
+if (distance < WANNIER_BOND) {
+mol->AddWannier(*wi);
+parsed_ws.push_back (*wi);
+}
+}
+}	// for-each atom
+*/
 
-	//printf ("%d parsed wanniers\n", (int)parsed_ws.size());
-	// now find which wanniers have not been parsed
-	//std::cout << " found " << _wanniers.size() - parsed_ws.size() << " wanniers unparsed" << std::endl;
+//printf ("%d parsed wanniers\n", (int)parsed_ws.size());
+// now find which wanniers have not been parsed
+//std::cout << " found " << _wanniers.size() - parsed_ws.size() << " wanniers unparsed" << std::endl;
 
-	return;
+return;
 }	// Parse Wanniers
 
 void XYZSystem::AddWanniers (MolPtr mol, const int num) {
