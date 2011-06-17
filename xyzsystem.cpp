@@ -34,12 +34,6 @@ namespace md_files {
 			std::cout << "Caught an exception while updating the bond graph" << std::endl;
 		}
 
-		// Now let's do some house-cleaning to set us up for working with new molecules - these change a lot!
-		for (Mol_it it = _mols.begin(); it != _mols.end(); it++) {
-			delete *it;				// get rid of all the molecules in memory
-		}
-		_mols.clear();				// then clear out the molecule list
-
 		this->_InitializeSystemAtoms();
 
 		this->_FindMolecules();
@@ -96,10 +90,28 @@ namespace md_files {
 			_mols.push_back(newmol);
 			//newmol->SetAtoms();
 		}
-	}
+	}	// find molecules by molecule graph
 
 	void TopologyXYZSystem::_FindMolecules () {
-	}
+
+		if (!_parsed) {
+
+			int id = 0;
+			for (MolecularTopologyFile::mol_topology_it top = _topology.begin(); top != _topology.end(); top++) {
+				MolPtr mol = new Molecule();
+				mol->Name(top->name);
+				mol->MolID(id++);
+
+				for (std::vector<int>::iterator atom_id = top->atoms.begin(); atom_id != top->atoms.end(); atom_id++) {
+					mol->AddAtom(_xyzfile[atom_id]);
+				}
+
+				this->_mols.push_back(mol);
+			}	// for each molecular topology
+			_parsed = true;
+		}	// if not parsed
+
+	}	// topology xyz find molecules
 
 	/*
 		 void XYZSystem::_ParseNitricAcids () { }

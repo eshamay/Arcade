@@ -117,7 +117,9 @@ namespace md_analysis {
 	template <>
 		void StructureAnalyzer<XYZSystem>::LoadSystemAnalyses () {
 			typedef XYZSystem T;
+			typedef TopologyXYZSystem U;
 			AnalysisSet<T> * a;
+			AnalysisSet<TopologyXYZSystem> * b;
 
 			a = new md_analysis::SystemDipoleAnalyzer<T>(this);				analyses.push_back(a);
 			a = new neighbor_analysis::SO2BondingAnalysis<T>(this);					analyses.push_back(a);
@@ -129,12 +131,11 @@ namespace md_analysis {
 		//	a = new so2_analysis::WaterBondLengthAnalyzer <T>(this);					analyses.push_back(a);
 			a = new bond_analysis::BondLengthAnalyzer <T>(this);					analyses.push_back(a);
 			a = new bond_analysis::SO2BondingAnalyzer<T>(this);					analyses.push_back(a);
-			
 			a = new angle_analysis::WaterOrientationNearSO2<T>(this);		analyses.push_back(a);
 			a = new md_analysis::RDFAnalyzer<T>(this);		analyses.push_back(a);
 			a = new so2_angle_analysis::SO2_H2O_Angles2D<T>(this);		analyses.push_back(a);
 
-
+			b = new bond_analysis::SO2BondingAnalyzer<U>(this);					analyses.push_back(b);
 		}
 
 

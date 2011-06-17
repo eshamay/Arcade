@@ -42,6 +42,13 @@ namespace md_files {
 			void FindMoleculesByMoleculeGraph ();
 
 			void NullOutSystemAtoms () {
+
+				// Now let's do some house-cleaning to set us up for working with new molecules - these change a lot!
+				for (Mol_it it = _mols.begin(); it != _mols.end(); it++) {
+					delete *it;				// get rid of all the molecules in memory
+				}
+				_mols.clear();				// then clear out the molecule list
+
 				// we also have to go through and clear out some info on all the atoms
 				// like the parentmolecules and names
 				for (Atom_it it = _xyzfile.begin(); it != _xyzfile.end(); it++) {
@@ -135,13 +142,19 @@ namespace md_files {
 	class TopologyXYZSystem : public XYZSystem {
 		protected:
 			MolecularTopologyFile	_topology;
+			bool _parsed;
+
+			void _InitializeSystemAtoms () { 
+				if (!_parsed) this->NullOutSystemAtoms ();
+			}
 
 			void _FindMolecules ();
 
 		public:
-			TopologyXYZSystem (const std::string& filepath, const VecR& size, const std::string& wannierpath = "") :
+			TopologyXYZSystem (const std::string& filepath, const VecR& size, const std::string& wannierpath = "", const std::string& topologypath = "xyz.top") :
 				XYZSystem (filepath, size, wannierpath),
-				_topology("xyz.top") { }
+				_topology(topologypath),
+				_parsed (false) { }
 
 	}; // xyz topology system class
 

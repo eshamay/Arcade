@@ -28,7 +28,8 @@ namespace md_files {
 			typedef std::vector<mol_topology_t> mol_topology_vec;
 			typedef mol_topology_vec::iterator mol_topology_it;
 
-			MolecularTopologyFile (const std::string filepath) {
+
+			MolecularTopologyFile (const std::string filepath = std::string ("topology")) {
 				this->LoadFile (filepath);
 			}
 			virtual ~MolecularTopologyFile () { }
