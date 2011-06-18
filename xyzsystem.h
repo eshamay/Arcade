@@ -7,6 +7,8 @@
 #include "molgraph.h"
 #include "molgraphfactory.h"
 #include "bondgraph.h"
+#include "moltopologyfile.h"
+#include "moleculefactory.h"
 #include <ext/algorithm>
 #include <exception>
 

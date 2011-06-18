@@ -14,7 +14,7 @@ LAPACK = -lmkl_lapack -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread
 MOLECULES = $(MDSRC)/h2o.o $(MDSRC)/oh.o $(MDSRC)/h.o $(MDSRC)/h3o.o $(MDSRC)/hno3.o $(MDSRC)/so2.o $(MDSRC)/ctc.o $(MDSRC)/alkane.o
 MDSYSTEM = $(MDSRC)/utility.o $(MDSRC)/atom.o $(MDSRC)/molecule.o $(MOLECULES) $(MDSRC)/moleculefactory.o $(MDSRC)/mdsystem.o $(MDSRC)/bondgraph.o
 AMBERSYSTEM = $(MDSRC)/crdfile.o $(MDSRC)/topfile.o $(MDSRC)/ambersystem.o
-XYZSYSTEM = $(MDSRC)/xyzfile.o $(MDSRC)/wannier.o $(MDSRC)/xyzsystem.o $(MDSRC)/molgraph.o $(MDSRC)/molgraphfactory.o
+XYZSYSTEM = $(MDSRC)/xyzfile.o $(MDSRC)/wannier.o $(MDSRC)/xyzsystem.o $(MDSRC)/molgraph.o $(MDSRC)/molgraphfactory.o $(MDSRC)/moltopologyfile.o
 ANALYZER = $(MDSYSTEM) $(AMBERSYSTEM) $(XYZSYSTEM) $(MDSRC)/dataoutput.o
 
 %.o: %.cpp %.h

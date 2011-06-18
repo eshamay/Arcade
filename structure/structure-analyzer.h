@@ -117,9 +117,10 @@ namespace md_analysis {
 	template <>
 		void StructureAnalyzer<XYZSystem>::LoadSystemAnalyses () {
 			typedef XYZSystem T;
-			typedef TopologyXYZSystem U;
 			AnalysisSet<T> * a;
-			AnalysisSet<TopologyXYZSystem> * b;
+
+			typedef TopologyXYZSystem U;
+			AnalysisSet<U> * b;
 
 			a = new md_analysis::SystemDipoleAnalyzer<T>(this);				analyses.push_back(a);
 			a = new neighbor_analysis::SO2BondingAnalysis<T>(this);					analyses.push_back(a);
