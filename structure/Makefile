@@ -1,6 +1,6 @@
 include ../Makefile
 
-ANALYSES = h2o-analysis.o so2-system-analysis.o
+ANALYSES = histogram-analysis.o h2o-analysis.o so2-system-analysis.o rdf-analysis.o bond-analysis.o neighbor-analysis.o angle-analysis.o 
 
 STRUCTURE				= $(ANALYZER)
 SYSTEMANALYSES	= $(STRUCTURE) manipulators.o $(ANALYSES) structure-analyzer.o

@@ -80,17 +80,6 @@ namespace so2_analysis {
 
 
 
-
-	// functor takes a water and returns the values of the cos(angles) formed between the two oh-vectors. The first value of the pair is always the greater (magnitude) of the two values.
-	class SOAngleCalculator : public std::unary_function <SulfurDioxide*,std::pair<double,double> > {
-		private:
-			VecR axis;	// the reference axis to which the angles will be formed
-		public:
-			SOAngleCalculator (const VecR ax) : axis(ax) { }
-			std::pair<double,double> operator() (const SulfurDioxide* so2);
-	};
-
-
 	class WaterAngleAnalyzer : public AnalysisSet {
 		public:
 			typedef Analyzer system_t;

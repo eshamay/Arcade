@@ -2,10 +2,9 @@
 #define DIPOLE_ANALYSIS_H_
 
 #include "analysis.h"
+//#include "manipulators.h"
 
 namespace md_analysis {
-
-	using namespace so2_analysis;
 
 	template <typename T>
 		class SystemDipoleAnalyzer : public AnalysisSet {

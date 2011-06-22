@@ -71,14 +71,6 @@ namespace so2_analysis {
 		fprintf (this->output, "% 12.7f\n", tally);
 	}
 
-	std::pair<double,double> SOAngleCalculator::operator() (const SulfurDioxide* so2) {
-		double angle1 = so2->SO1() < axis;
-		double angle2 = so2->SO2() < axis;
-		std::pair<double,double> p = (fabs(angle1) > fabs(angle2)) 
-			? std::make_pair(angle1,angle2) 
-			: std::make_pair(angle2,angle1);
-		return p;
-	}
 
 
 	void WaterAngleAnalyzer::Analysis () {
@@ -93,6 +85,7 @@ namespace so2_analysis {
 				wats.push_back(wat);
 			}
 		}
+
 		std::sort (wats.begin(), wats.end(), MoleculeToReferenceDistance_cmp (so2s.SO2()));
 
 		double angle;

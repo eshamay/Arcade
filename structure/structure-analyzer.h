@@ -1,12 +1,6 @@
 #ifndef TEST_H_
 #define TEST_H_
 
-//#define EIGEN_MATRIXBASE_PLUGIN "/home/eric/md/Arcade/EigenMatrixAddon.h"
-//#define EIGEN_MATRIXBASE_PLUGIN "/home/eshamay/md/src/Arcade/EigenMatrixAddon.h"
-//#include <Eigen/Core>
-//using namespace Eigen;
-//USING_PART_OF_NAMESPACE_EIGEN
-
 #include "analysis.h"
 #include "utility.h"
 #include "angle-bond-analysis.h"
