@@ -150,6 +150,21 @@ namespace md_system {
 			};
 	};
 
+	class MoleculeToReferenceDistance_cmp : public std::binary_function <MolPtr, MolPtr, bool> {
+		private:
+			MolPtr ref;
+		public:
+			MoleculeToReferenceDistance_cmp (MolPtr mol) : ref(mol) { }
+
+			// compare the distances between the waters
+			bool operator () (const MolPtr m1, const MolPtr m2) {
+				double distance_1 = MDSystem::Distance (ref->ReferencePoint(), m1->ReferencePoint()).Magnitude();
+				double distance_2 = MDSystem::Distance (ref->ReferencePoint(), m2->ReferencePoint()).Magnitude();
+
+				bool ret = (distance_1 < distance_2) ? true : false;
+				return ret;
+			}
+	};
 }	// namespace md system
 
 #endif

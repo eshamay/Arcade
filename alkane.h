@@ -16,7 +16,7 @@ namespace alkane {
 
 			static int numAlkanes;			// total number of carbon chains in the system
 
-			VecR ReferencePoint () const { 
+			virtual VecR ReferencePoint () const { 
 				return this->CenterOfMass(); 
 			}
 			// Functions for analysis
@@ -61,5 +61,6 @@ namespace alkane {
 			AtomPtr _c, _o, _h1, _h2;
 			VecR _co, _ch1, _ch2;
 	};
+
 }
 #endif

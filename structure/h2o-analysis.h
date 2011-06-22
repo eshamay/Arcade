@@ -16,15 +16,7 @@ namespace h2o_analysis {
 
 		public:
 			OHAngleCalculator (const VecR ax) : axis(ax) { }
-
-			std::pair<double,double> operator() (const WaterPtr& wat) {
-				double angle1 = wat->OH1() < axis;
-				double angle2 = wat->OH2() < axis;
-				std::pair<double,double> p = (fabs(angle1) > fabs(angle2)) 
-					? std::make_pair(angle1,angle2) 
-					: std::make_pair(angle2,angle1);
-				return p;
-			}
+			std::pair<double,double> operator() (const WaterPtr& wat);
 	};
 
 

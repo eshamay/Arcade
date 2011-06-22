@@ -2,39 +2,11 @@
 #define DIPOLE_ANALYSIS_H_
 
 #include "analysis.h"
-#include "histogram-analysis.h"
 
 namespace md_analysis {
 
-	/*
-	template <typename T>
-	class h2o_dipole_magnitude_histogram_analyzer : public histogram_analyzer<T> {
-		public:
-			typedef typename histogram_analyzer<T>::system_t system_t;
+	using namespace so2_analysis;
 
-			h2o_dipole_magnitude_histogram_analyzer () :
-				histogram_analyzer<T> (
-						std::string ("Generate a histogram of H2O dipole moment magnitudes"),
-						std::string ("h2o-dipole-magnitude-histogram.dat")) { }
-
-			void Analysis (system_t& t);
-	};	// H2O dipole magnitude histogram
-
-
-	template <typename T>
-	void h2o_dipole_magnitude_histogram_analyzer<T>::Analysis (system_t& t) {
-		t.LoadWaters();
-
-		std::for_each (t.int_wats.begin(), t.int_wats.end(), MDSystem::CalcWannierDipole);
-
-		for (Mol_it it = t.int_wats.begin(); it != t.int_wats.end(); it++) {
-			this->values.push_back((*it)->Dipole().Magnitude());
-		}
-
-		return;
-	}
-
-	*/
 	template <typename T>
 		class SystemDipoleAnalyzer : public AnalysisSet {
 
@@ -88,22 +60,6 @@ namespace md_analysis {
 		}	// analysis for amber systems
 
 
-	class WaterToSO2Distance_cmp : public std::binary_function <WaterPtr, WaterPtr, bool> {
-		private:
-			SulfurDioxide * so2;
-		public:
-			WaterToSO2Distance_cmp (SulfurDioxide * s) : so2(s) { }
-
-			// compare the distances between the waters
-			bool operator () (const WaterPtr w1, const WaterPtr w2) {
-				double distance_1 = MDSystem::Distance (so2->S(), w1->O()).Magnitude();
-				double distance_2 = MDSystem::Distance (so2->S(), w2->O()).Magnitude();
-
-				bool ret = (distance_1 < distance_2) ? true : false;
-				return ret;
-			}
-
-	};
 
 	template <>
 		void SystemDipoleAnalyzer<XYZSystem>::Analysis () {
@@ -136,7 +92,7 @@ namespace md_analysis {
 
 			// then grab the 5 waters nearest the so2
 			// by sorting them according to the distance to the so2
-			std::sort (wats.begin(), wats.end(), WaterToSO2Distance_cmp (so2));
+			std::sort (wats.begin(), wats.end(), MoleculeToReferenceDistance_cmp (so2));
 
 			//VecR dipole = std::accumulate (dipoles.begin(), dipoles.end(), VecR(0.0,0.0,0.0), vecr_add());
 			VecR dipole (0.,0.,0.);

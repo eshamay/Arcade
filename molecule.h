@@ -9,10 +9,6 @@
 #include <vector>
 #include <map>
 
-//namespace molgraph {
-	//class MoleculeGraph;
-//}
-
 namespace md_system {
 
 	class Molecule {
@@ -32,8 +28,9 @@ namespace md_system {
 				H, OH, H2O, H3O, ZUNDEL,
 				NO3, HNO3,
 				SO2,
-				ALKANE, DECANE, FORMALDEHYDE, MALONIC,
-				CL, CTC
+				ALKANE, DECANE, FORMALDEHYDE, 
+				MALONIC, MALONATE, DIMALONATE,
+				HCL, CL, CTC
 			} Molecule_t;
 
 			static int numMolecules;
@@ -196,7 +193,7 @@ namespace md_system {
 				return *it;
 			}
 
-					
+
 
 		protected:
 			Atom_ptr_vec			_atoms;					// the list of the atoms in the molecule
@@ -223,6 +220,9 @@ namespace md_system {
 	typedef Molecule::MolPtr MolPtr;
 	typedef Molecule::Mol_ptr_vec Mol_ptr_vec;
 	typedef Molecule::Mol_it Mol_it;
+
+
+
 
 }	// namespace md system
 #endif

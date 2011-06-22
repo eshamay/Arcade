@@ -19,20 +19,26 @@ namespace molgraph {
 		int S_count = AtomCount(atomcount, Atom::S);
 		int H_count = AtomCount(atomcount, Atom::H);
 		int Cl_count = AtomCount(atomcount, Atom::Cl);
+		int Total_count = C_count + N_count + O_count + S_count + H_count + Cl_count;
 
-		if (Cl_count == 1 && C_count == 0) {
+		if (Cl_count == 1 && Total_count == 1) {
 			newmol = new Chlorine ();
 		}
+
 		// check for organics/alkanes
-		else if (C_count == 3 && O_count == 4 ) {
+		else if (C_count == 3 && O_count == 4 && Total_count <= 11) {
 			alkane::Alkane * alk = new alkane::Alkane ();
-			alk->MolType(Molecule::MALONIC);
 			alk->Name("Malonic");
+			switch (H_count) {
+				case 4: alk->MolType(Molecule::MALONIC); break;
+				case 3: alk->MolType(Molecule::MALONATE); break;
+				case 2: alk->MolType(Molecule::DIMALONATE); break;
+			}
 			newmol = alk;
 		}
 
 		// parse out formaldehydes
-		else if (C_count == 1 && O_count == 1 && H_count == 2 && S_count == 0) {
+		else if (C_count == 1 && O_count == 1 && H_count == 2 && Total_count == 4) {
 			newmol = new alkane::Formaldehyde ();
 		}
 
@@ -44,31 +50,27 @@ namespace molgraph {
 			newmol = new Nitrate ();
 		}
 
-		else if (O_count == 0 && H_count == 1 && C_count == 0 && N_count == 0 && S_count == 0 && Cl_count == 0) {
+		else if (H_count == 1 && Total_count == 1) {
 			newmol = new Proton ();
 		}
 		// check for non-organics with an oxygen
-		else if (O_count == 1 && H_count == 1) {
+		else if (O_count == 1 && H_count == 1 && Total_count == 2) {
 			newmol = new Hydroxide ();
 		}
-		else if (O_count == 1 && H_count == 2) {
+		else if (O_count == 1 && H_count == 2 && Total_count == 3) {
 			newmol = new Water ();
 		}
-		else if (O_count == 1 && H_count == 3) {
+		else if (O_count == 1 && H_count == 3 && Total_count == 4) {
 			newmol = new Hydronium ();
 		}
-		else if (O_count == 2 && H_count == 5) {
+		else if (O_count == 2 && H_count == 5 && Total_count == 7) {
 			newmol = new Zundel ();
 		}
 
 		// check for non-organics with an oxygen (i.e. so2)
-		else if (S_count == 1 && O_count == 2 && H_count == 0) {
+		else if (S_count == 1 && O_count == 2 && Total_count == 3) {
 			newmol = new SulfurDioxide ();
 		}
-
-		//else if (H_count == 1) {
-		//newmol = new Proton();
-		//}
 
 		else {
 			std::cerr << "MoleculeGraphFactory :: Couldn't figure out the molecule based on the graph of the following atoms:" << std::endl;
@@ -83,10 +85,8 @@ namespace molgraph {
 
 		newmol->FixAtoms();
 
-
 		if (newmol->MolType() == Molecule::MALONIC)
 				SetMalonicAtoms (newmol, molgraph);
-
 
 		return newmol;
 	}
@@ -128,7 +128,7 @@ namespace molgraph {
 			}
 			printf ("%d\n", num);
 			// based on what it's connected to, we can say what type of atom it is.
-			
+
 			// a carbonyl C in malonic acid will be C-(C)-OO, so a value of 2xO + C == 210
 			if (num == 210) malonic->carbonyl_c.push_back (*atom);
 			// A carbonyl O is only connected to the carbonyl C and would have a value of 10
