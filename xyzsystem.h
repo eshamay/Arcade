@@ -4,9 +4,9 @@
 #include "mdsystem.h"
 #include "xyzfile.h"
 #include "wannier.h"
+#include "bondgraph.h"
 #include "molgraph.h"
 #include "molgraphfactory.h"
-#include "bondgraph.h"
 #include "moltopologyfile.h"
 #include "moleculefactory.h"
 #include <ext/algorithm>
@@ -78,12 +78,13 @@ namespace md_files {
 			bool _Unparsed (const AtomPtr atom) const;
 			void _CheckForUnparsedAtoms () const;
 
+			bondgraph::BondGraph graph;
+
 		public:
 			// constructors
 			XYZSystem (const std::string& filepath, const VecR& size, const std::string& wannierpath = "");
 			virtual ~XYZSystem ();
 
-			bondgraph::BondGraph graph;
 
 			void SetReparseLimit (const int limit) { _reparse_limit = limit; }
 
@@ -198,18 +199,6 @@ return;
 */
 
 // comparator for sorting vectors based on their distance to a given reference point
-class vecr_distance_cmp : public std::binary_function <VecR,VecR,bool> {
-	private:
-		VecR reference;
-	public:
-		vecr_distance_cmp (VecR ref) : reference(ref) { }
-		bool operator() (const VecR& v1, const VecR& v2) const {
-			double d1 = MDSystem::Distance (v1, reference).Magnitude();
-			double d2 = MDSystem::Distance (v2, reference).Magnitude();
-			bool ret = (d1 < d2) ? true : false;
-			return ret;
-		};
-};
 
 }	// namespace md files
 

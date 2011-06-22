@@ -1,8 +1,6 @@
 #ifndef GRAPH_H_
 #define GRAPH_H_
 
-//#include "atom.h"
-//#include "h2o.h"
 #include "mdsystem.h"
 #include "utility.h"
 
@@ -158,7 +156,6 @@ namespace bondgraph {
 			void _RemoveBond (const AtomPtr a1, const AtomPtr a2);
 
 			static graph_t _graph;
-			std::string _sys_type;
 
 
 			// constructor builds the matrix based on number of atoms to analyze
@@ -168,7 +165,6 @@ namespace bondgraph {
 
 			graph_t& Graph() { return _graph; }
 
-			void SysType (std::string sys_type) { _sys_type = sys_type; }
 			void UpdateGraph (Atom_it, Atom_it);
 			void UpdateGraph (const Atom_ptr_vec&);
 

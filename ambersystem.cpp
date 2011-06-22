@@ -5,6 +5,7 @@ namespace md_files {
 	AmberSystem::AmberSystem (const std::string& prmtop, const std::string& mdcrd, const bool periodic)//, const std::string& mdvel)
 		// some initialization needs to happen here
 		: 	
+			MDSystem (),
 			_topfile(prmtop),
 			_coords(mdcrd, _topfile.NumAtoms()),
 			_periodic(periodic)

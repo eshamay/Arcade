@@ -10,10 +10,9 @@ namespace angle_analysis {
 	using namespace md_analysis;
 
 
-	template <typename T>
 		class AngleHelper {
 			public:
-				typedef Analyzer<T> system_t;
+				typedef Analyzer system_t;
 
 				AngleHelper (system_t * t,
 						double min1, double max1, double res1,
@@ -57,26 +56,24 @@ namespace angle_analysis {
 
 
 
-	template <typename T>
-		class DistanceAngleHelper : public AngleHelper<T> {
+		class DistanceAngleHelper : public AngleHelper {
 			public:
-				typedef Analyzer<T> system_t;
+				typedef Analyzer system_t;
 
 				DistanceAngleHelper (system_t * t)
-					:	AngleHelper<T>(t, 
-							this->_system->posmin, this->_system->posmax, this->_system->posres, 
+					:	AngleHelper(t, 
+							WaterSystem::posmin, WaterSystem::posmax, system_t::posres, 
 							system_t::angmin, system_t::angmax, system_t::angres) { }
 
 				virtual ~DistanceAngleHelper () { }
 		};
 
-	template <typename T>
-		class AngleAngleHelper : public AngleHelper<T> {
+		class AngleAngleHelper : public AngleHelper {
 			public:
-				typedef Analyzer<T> system_t;
+				typedef Analyzer system_t;
 
 				AngleAngleHelper (system_t * t)
-					:	AngleHelper<T>(t, 
+					:	AngleHelper(t, 
 							system_t::angmin, system_t::angmax, system_t::angres,
 							system_t::angmin, system_t::angmax, system_t::angres) { }
 
@@ -103,18 +100,17 @@ namespace angle_analysis {
 	 *
 	 */
 
-	template <typename T>
-		class H2OAngleAnalysis : public AnalysisSet<T> {
+		class H2OAngleAnalysis : public AnalysisSet {
 			public:
-				typedef Analyzer<T> system_t;
+				typedef Analyzer system_t;
 
 				H2OAngleAnalysis (system_t * t) :
-					AnalysisSet<T>(t,
+					AnalysisSet(t,
 							std::string ("H2O Angle Analysis"),
 							std::string ("")),
 					h2os(t),
 					angles(t) { 
-						h2os.ReferencePoint(WaterSystem<T>::SystemParameterLookup("analysis.reference-location"));
+						h2os.ReferencePoint(WaterSystem::SystemParameterLookup("analysis.reference-location"));
 					}
 
 				virtual void BinAngles (MolPtr mol);
@@ -122,14 +118,13 @@ namespace angle_analysis {
 				void DataOutput () { angles.DataOutput(); }
 
 			protected:
-				h2o_analysis::H2OSystemManipulator<T>	h2os;
-				DistanceAngleHelper<T>								angles;
+				h2o_analysis::H2OSystemManipulator	h2os;
+				DistanceAngleHelper								angles;
 		};
 
 
 
-	template <typename T>
-		void H2OAngleAnalysis<T>::BinAngles (MolPtr mol) {
+		void H2OAngleAnalysis::BinAngles (MolPtr mol) {
 
 			Water * wat = new Water(mol);
 			wat->SetOrderAxes();
@@ -160,8 +155,7 @@ namespace angle_analysis {
 
 
 
-	template <typename T>
-		void H2OAngleAnalysis<T>::Analysis () {
+		void H2OAngleAnalysis::Analysis () {
 
 			h2os.Reload();
 			h2os.FindWaterSurfaceLocation();
@@ -173,21 +167,20 @@ namespace angle_analysis {
 
 
 	// *********** water OH angle analysis ****************
-	template <typename T>
-		class WaterOHAngleAnalysis : public AnalysisSet<T> {
+		class WaterOHAngleAnalysis : public AnalysisSet {
 			public:
-				typedef Analyzer<T> system_t;
+				typedef Analyzer system_t;
 
 				WaterOHAngleAnalysis (system_t * t) :
-					AnalysisSet<T>(t,
+					AnalysisSet(t,
 							std::string ("Water OH Angle Analysis - via SO2 transit"),
 							std::string ("")),
 					h2os(t),
 					_alpha("alpha.dat", 
-							system_t::posmin, system_t::posmax, system_t::posres,
+							WaterSystem::posmin, WaterSystem::posmax, system_t::posres,
 							system_t::angmin, system_t::angmax, system_t::angres),
 					oh_calculator(VecR::UnitY()) { 
-						h2os.ReferencePoint(WaterSystem<T>::SystemParameterLookup("analysis.reference-location"));
+						h2os.ReferencePoint(WaterSystem::SystemParameterLookup("analysis.reference-location"));
 					}
 
 				~WaterOHAngleAnalysis () { }
@@ -195,14 +188,13 @@ namespace angle_analysis {
 				void DataOutput () { _alpha.OutputData(); }
 
 			protected:
-				h2o_analysis::H2OSystemManipulator<T>	h2os;
+				h2o_analysis::H2OSystemManipulator	h2os;
 				md_analysis::Histogram2DAgent										_alpha;
 				h2o_analysis::OHAngleCalculator									oh_calculator;
 				double distance;
 		};	// water oh angle analysis
 
-	template <typename T>
-		void WaterOHAngleAnalysis<T>::Analysis () {
+		void WaterOHAngleAnalysis::Analysis () {
 
 			h2os.FindWaterSurfaceLocation();
 			std::pair<double,double> p;
@@ -238,23 +230,22 @@ namespace angle_analysis {
 
 		/************** Angle analysis of the reference SO2 **************/
 
-		template <typename T>
-			class ReferenceSO2AngleAnalysis : public AnalysisSet<T> {
+			class ReferenceSO2AngleAnalysis : public AnalysisSet {
 				protected:
-					h2o_analysis::H2OSystemManipulator<T>	h2os;
-					so2_analysis::SO2SystemManipulator<T>	so2s;
-					DistanceAngleHelper<T>								angles;
+					h2o_analysis::H2OSystemManipulator	h2os;
+					so2_analysis::SO2SystemManipulator	so2s;
+					DistanceAngleHelper								angles;
 
 				public:
 
-					typedef Analyzer<T> system_t;
+					typedef Analyzer system_t;
 
 					ReferenceSO2AngleAnalysis (system_t * t, 
 							std::string description = std::string("Angle analysis of the reference SO2"), 
 							std::string fn = std::string("")) :
-						AnalysisSet<T> (t, description, fn),
+						AnalysisSet (t, description, fn),
 						h2os(t), so2s(t), angles(t) { 
-							h2os.ReferencePoint(WaterSystem<T>::SystemParameterLookup("analysis.reference-location"));
+							h2os.ReferencePoint(WaterSystem::SystemParameterLookup("analysis.reference-location"));
 						}
 
 					virtual ~ReferenceSO2AngleAnalysis () { } 
@@ -267,8 +258,7 @@ namespace angle_analysis {
 
 
 
-		template <typename T>
-			void ReferenceSO2AngleAnalysis<T>::BinAngles (SulfurDioxide * so2) {
+			void ReferenceSO2AngleAnalysis::BinAngles (SulfurDioxide * so2) {
 				so2->SetOrderAxes();
 
 				// calculate the position of the so2 relative to the water surface
@@ -288,8 +278,7 @@ namespace angle_analysis {
 				return;
 			}
 
-		template <typename T>
-			void ReferenceSO2AngleAnalysis<T>::Analysis () {
+			void ReferenceSO2AngleAnalysis::Analysis () {
 				h2os.FindWaterSurfaceLocation();
 				BinAngles(so2s.SO2());
 			}
@@ -297,22 +286,21 @@ namespace angle_analysis {
 
 
 		/************** SO-bond angle analysis **************/
-		template <typename T>
-			class SOAngleAnalysis : public AnalysisSet<T> {
+			class SOAngleAnalysis : public AnalysisSet {
 				public:
-					typedef Analyzer<T> system_t;
+					typedef Analyzer system_t;
 
 					SOAngleAnalysis (system_t * t) :
-						AnalysisSet<T>(t,
+						AnalysisSet(t,
 								std::string ("SO2 SO Angle Analysis"),
 								std::string ("")),
 						h2os(t),
 						so2s(t),
 						_alpha("alpha.dat", 
-								system_t::posmin, system_t::posmax, system_t::posres,
+								WaterSystem::posmin, WaterSystem::posmax, system_t::posres,
 								system_t::angmin, system_t::angmax, system_t::angres),
 						so_calculator(VecR::UnitY()) { 
-							h2os.ReferencePoint(WaterSystem<T>::SystemParameterLookup("analysis.reference-location"));
+							h2os.ReferencePoint(WaterSystem::SystemParameterLookup("analysis.reference-location"));
 						}
 
 					~SOAngleAnalysis () { }
@@ -320,15 +308,14 @@ namespace angle_analysis {
 					void DataOutput () { _alpha.OutputData(); }
 
 				protected:
-					h2o_analysis::H2OSystemManipulator<T>	h2os;
-					so2_analysis::SO2SystemManipulator<T>	so2s;
+					h2o_analysis::H2OSystemManipulator	h2os;
+					so2_analysis::SO2SystemManipulator	so2s;
 					md_analysis::Histogram2DAgent										_alpha;
 					so2_analysis::SOAngleCalculator									so_calculator;
 					double distance;
 			};	// so2 angle analysis
 
-		template <typename T>
-			void SOAngleAnalysis<T>::Analysis () {
+			void SOAngleAnalysis::Analysis () {
 
 				h2os.FindWaterSurfaceLocation();
 				std::pair<double,double> p;
@@ -365,14 +352,13 @@ namespace angle_analysis {
 
 				/************ so2 transit first-binding water angle analysis ************/
 
-				template <typename T>
-					class SO2AdsorptionWaterAngleAnalysis : public AnalysisSet<T> {
+					class SO2AdsorptionWaterAngleAnalysis : public AnalysisSet {
 						public:
-							typedef Analyzer<T> system_t;
+							typedef Analyzer system_t;
 
 							SO2AdsorptionWaterAngleAnalysis(system_t * t) 
 								: 
-									AnalysisSet<T> (t,
+									AnalysisSet (t,
 											std::string("Analysis of waters near an adsorbing so2"),
 											std::string("first-adsorption-water.dat")),
 									h2os(t), so2s(t), nm(t), first_bound_water ((WaterPtr)NULL), second_pass(false)
@@ -388,9 +374,9 @@ namespace angle_analysis {
 							void FindInteractions ();
 
 						protected:
-							h2o_analysis::H2OSystemManipulator<T>	h2os;
-							so2_analysis::SO2SystemManipulator<T>	so2s;
-							neighbor_analysis::NeighborManipulator<T>	nm;
+							h2o_analysis::H2OSystemManipulator	h2os;
+							so2_analysis::SO2SystemManipulator	so2s;
+							neighbor_analysis::NeighborManipulator	nm;
 
 							bondgraph::BondGraph	graph;
 							std::vector<double>		so2_distances;
@@ -404,15 +390,13 @@ namespace angle_analysis {
 							static bool residue_eq (const AtomPtr a, const std::string& res);
 					};
 
-				template <typename T>
-					bool SO2AdsorptionWaterAngleAnalysis<T>::residue_eq (const AtomPtr a, const std::string& res) {
+					bool SO2AdsorptionWaterAngleAnalysis::residue_eq (const AtomPtr a, const std::string& res) {
 						if (a->Residue() == res) 
 							std::cout << "found one!" << std::endl;
 						return a->Residue() == res;
 					}
 
-				template <typename T>
-					void SO2AdsorptionWaterAngleAnalysis<T>::FindInteractions () {
+					void SO2AdsorptionWaterAngleAnalysis::FindInteractions () {
 						// first sort the waters to find those closest to the so2 S
 						nm.OrderAtomsByDistance (so2s.S());
 						// then graph the closest several waters for analysis
@@ -456,15 +440,14 @@ namespace angle_analysis {
 							 bonded_atoms.begin(), 
 							 bonded_atoms.end(), 
 						//std::not1(
-						std::bind2nd(std::ptr_fun(&SO2AdsorptionWaterAngleAnalysis<T>::residue_eq), "h2o")), 
+						std::bind2nd(std::ptr_fun(&SO2AdsorptionWaterAngleAnalysis::residue_eq), "h2o")), 
 						bonded_atoms.end());
 						*/
 					}	
 
 
 
-				template <typename T>
-					void SO2AdsorptionWaterAngleAnalysis<T>::Analysis () {
+					void SO2AdsorptionWaterAngleAnalysis::Analysis () {
 
 						if (!second_pass) {
 							FindInteractions ();			// load up bonded_atoms with any atoms that are bound to the ref-atom
@@ -524,14 +507,13 @@ namespace angle_analysis {
 					}	// analysis
 
 
-				template <typename T>
-				class WaterOrientationNearSO2 : public AnalysisSet<T> {
+				class WaterOrientationNearSO2 : public AnalysisSet {
 
 					public:
-						typedef Analyzer<T> system_t;
+						typedef Analyzer system_t;
 						WaterOrientationNearSO2 (system_t * t) 
 							: 
-								AnalysisSet<T> (t,
+								AnalysisSet (t,
 										std::string("Angle analysis of waters relative to so2 distance"),
 										std::string("")),
 				 
@@ -544,12 +526,11 @@ namespace angle_analysis {
 						void DataOutput () { angles.DataOutput(); }
 
 					private:
-						AngleHelper<T>	angles;	// 2d histogram
+						AngleHelper	angles;	// 2d histogram
 
 				};	// water orientation near so2
 
-				template <typename T>
-					void WaterOrientationNearSO2<T>::Analysis () {
+					void WaterOrientationNearSO2::Analysis () {
 
 						this->LoadAll();
 

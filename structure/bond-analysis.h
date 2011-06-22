@@ -9,13 +9,12 @@ namespace bond_analysis {
 	using namespace md_system;
 	using namespace md_analysis;
 
-	template <typename T>
-		class BondLengthAnalyzer : public AnalysisSet<T> {
+		class BondLengthAnalyzer : public AnalysisSet {
 
 			public:
-				typedef Analyzer<T> system_t;
+				typedef Analyzer system_t;
 				BondLengthAnalyzer (system_t * t) :
-					AnalysisSet<T> (t,
+					AnalysisSet (t,
 							std::string ("bondlength analysis"),
 							std::string ("so2-bond+angles.normal_modes.dat")) { }
 
@@ -23,11 +22,10 @@ namespace bond_analysis {
 
 		};	 // bond length analyzer class
 
-	template <typename T>
-		void BondLengthAnalyzer<T>::Analysis () {
+		void BondLengthAnalyzer::Analysis () {
 			this->LoadAll();
 
-			bondgraph::BondGraph& graph = this->_system->BondGraph();
+			bondgraph::BondGraph graph;
 			bondgraph::WaterCoordination_pred p (bondgraph::OH, graph);
 
 			Water_ptr_vec wats;
@@ -113,13 +111,12 @@ namespace bond_analysis {
 
 
 	// find the coordination of the so2 molecule for the 3 atoms separately
-	template <typename T>
-		class SO2BondingAnalyzer : public AnalysisSet<T> {
+		class SO2BondingAnalyzer : public AnalysisSet {
 			protected:
-				so2_analysis::XYZSO2Manipulator<T>		so2s;
+				so2_analysis::XYZSO2Manipulator		so2s;
 
 			public:
-				typedef Analyzer<T> system_t;
+				typedef Analyzer system_t;
 
 				typedef struct {
 					AtomPtr atom;
@@ -127,7 +124,7 @@ namespace bond_analysis {
 				} bond;
 					
 				SO2BondingAnalyzer (system_t * t) :
-					AnalysisSet<T> (t,
+					AnalysisSet (t,
 							std::string ("so2 Coordination analyzer"),
 							std::string ("so2-coordination.dat")),
 					so2s(t) {
@@ -145,12 +142,11 @@ namespace bond_analysis {
 				};
 		};	 // bond length analyzer class
 
-	template <typename T>
-		void SO2BondingAnalyzer<T>::Analysis () {
+		void SO2BondingAnalyzer::Analysis () {
 			this->LoadAll();
 			this->so2s.UpdateSO2();
 
-			bondgraph::BondGraph& graph = this->_system->BondGraph();
+			bondgraph::BondGraph graph;
 			//bondgraph::WaterCoordination_pred p (bondgraph::OH, graph);
 
 			graph.UpdateGraph(this->begin(), this->end());

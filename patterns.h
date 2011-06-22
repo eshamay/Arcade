@@ -30,7 +30,7 @@ namespace patterns {
 				}
 
 				virtual void notifyObservers () {
-					for (observer_list::iterator it = observers.begin(); it != observers.end(); it++) {
+					for (observer_list::const_iterator it = observers.begin(); it != observers.end(); it++) {
 						(*it)->notify();
 					}
 				}

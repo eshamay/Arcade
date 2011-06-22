@@ -13,12 +13,11 @@ namespace so2_analysis {
 
 
 	// a convenience class for working with systems comprised of at least 1 SO2 molecule and a whole bunch of waters
-	template <typename T>
-		class SO2SystemManipulator : public SystemManipulator<T> {
+		class SO2SystemManipulator : public SystemManipulator {
 			public:
-				typedef Analyzer<T> system_t;
+				typedef Analyzer system_t;
 
-				SO2SystemManipulator (system_t * t) : SystemManipulator<T>(t) { }
+				SO2SystemManipulator (system_t * t) : SystemManipulator(t) { }
 
 				virtual void Initialize () {
 					this->_system->LoadAll();
@@ -61,8 +60,8 @@ namespace so2_analysis {
 				// The method by which the SO2 of interest is found in the system
 				virtual void FindSO2 () {
 					// find the so2 in the system and set some pointers up
-					int id = WaterSystem<T>::SystemParameterLookup("analysis.reference-molecule-id");
-					MolPtr mol = this->_system->sys_mols[id];
+					int id = WaterSystem::SystemParameterLookup("analysis.reference-molecule-id");
+					MolPtr mol = WaterSystem::sys_mols[id];
 					//MolPtr mol = Molecule::FindByType(this->_system->sys_mols, Molecule::SO2);
 					this->so2 = new SulfurDioxide(mol);
 				}
@@ -70,7 +69,7 @@ namespace so2_analysis {
 				virtual void FindAllSO2s () {
 					so2s.clear();
 					// load all the system so2s into the container - in case
-					for (Mol_it it = this->_system->sys_mols.begin(); it != this->_system->sys_mols.end(); it++) {
+					for (Mol_it it = WaterSystem::sys_mols.begin(); it != WaterSystem::sys_mols.end(); it++) {
 						if ((*it)->Name() == "so2") {
 							SulfurDioxide * mol = new SulfurDioxide(*it);
 							mol->SetAtoms();
@@ -81,13 +80,12 @@ namespace so2_analysis {
 		}; // so2 system manipulator
 
 
-	template <typename T>
-		class XYZSO2Manipulator : public SO2SystemManipulator<T> {
+		class XYZSO2Manipulator : public SO2SystemManipulator {
 
 			public:
-				typedef Analyzer<T> system_t;
+				typedef Analyzer system_t;
 
-				XYZSO2Manipulator (system_t * t) : SO2SystemManipulator<T>(t) { }
+				XYZSO2Manipulator (system_t * t) : SO2SystemManipulator(t) { }
 
 				virtual void Initialize () {
 					this->_system->LoadAll();
@@ -110,7 +108,7 @@ namespace so2_analysis {
 			private:
 
 				virtual void FindSO2 () {
-					for (Mol_it it = this->_system->sys_mols.begin(); it != this->_system->sys_mols.end(); it++) {
+					for (Mol_it it = WaterSystem::sys_mols.begin(); it != WaterSystem::sys_mols.end(); it++) {
 						if ((*it)->MolType() == Molecule::SO2) {
 							this->so2 = new SulfurDioxide(*it);
 							this->so2->SetAtoms();
@@ -124,13 +122,12 @@ namespace so2_analysis {
 
 
 
-	template <typename T>
-		class SO2PositionRecorder : public AnalysisSet<T> {
+		class SO2PositionRecorder : public AnalysisSet {
 
 			public:
-				typedef Analyzer<T> system_t;
+				typedef Analyzer system_t;
 				SO2PositionRecorder (system_t * t) : 
-					AnalysisSet<T> (t, 
+					AnalysisSet (t, 
 							std::string ("Record position of so2 relative to the surface, and the surface location"),
 							std::string ("so2-position.dat")),
 					so2s(t), h2os(t) { }
@@ -138,13 +135,12 @@ namespace so2_analysis {
 				void Analysis ();
 
 			private:
-				SO2SystemManipulator<T>	so2s;
-				h2o_analysis::H2OSystemManipulator<T>	h2os;
+				SO2SystemManipulator	so2s;
+				h2o_analysis::H2OSystemManipulator	h2os;
 		};
 
 	// write out the position of the so2, the position of the surface, and the difference between the two
-	template <typename T>
-		void SO2PositionRecorder<T>::Analysis () {
+		void SO2PositionRecorder::Analysis () {
 			h2os.FindWaterSurfaceLocation();
 			double so2_pos, surface, distance;
 			so2_pos = system_t::Position(so2s.S());
@@ -158,13 +154,12 @@ namespace so2_analysis {
 		}
 
 
-	template <typename T>
-		class SO2BondLengthAnalyzer : public AnalysisSet<T> {
+		class SO2BondLengthAnalyzer : public AnalysisSet {
 
 			public:
-				typedef Analyzer<T> system_t;
+				typedef Analyzer system_t;
 				SO2BondLengthAnalyzer (system_t * t) :
-					AnalysisSet<T> (t,
+					AnalysisSet (t,
 							std::string ("so2 bondlength analysis"),
 							std::string ("so2-bondlengths.dat")),
 					so2s(t) { so2s.Initialize(); }
@@ -172,11 +167,10 @@ namespace so2_analysis {
 				void Analysis ();
 
 			protected:
-				XYZSO2Manipulator<T>	so2s;
+				XYZSO2Manipulator	so2s;
 		};
 
-	template <typename T>
-		void SO2BondLengthAnalyzer<T>::Analysis () {
+		void SO2BondLengthAnalyzer::Analysis () {
 			so2s.UpdateSO2();
 
 			double so1 = so2s.SO2()->SO1().Magnitude();
@@ -185,13 +179,12 @@ namespace so2_analysis {
 			fprintf (this->output, "% 9.7f % 9.7f\n", so1, so2);
 		}
 
-	template <typename T>
-		class SO2AngleAnalyzer : public AnalysisSet<T> {
+		class SO2AngleAnalyzer : public AnalysisSet {
 
 			public:
-				typedef Analyzer<T> system_t;
+				typedef Analyzer system_t;
 				SO2AngleAnalyzer (system_t * t) :
-					AnalysisSet<T> (t,
+					AnalysisSet (t,
 							std::string ("so2 angle analysis"),
 							std::string ("so2-angles.dat")),
 					so2s(t) { so2s.Initialize(); }
@@ -199,11 +192,10 @@ namespace so2_analysis {
 				void Analysis ();
 
 			protected:
-				XYZSO2Manipulator<T>	so2s;
+				XYZSO2Manipulator	so2s;
 		};
 
-	template <typename T>
-		void SO2AngleAnalyzer<T>::Analysis () {
+		void SO2AngleAnalyzer::Analysis () {
 			so2s.UpdateSO2();
 
 			double angle = so2s.SO2()->Angle();
@@ -213,12 +205,11 @@ namespace so2_analysis {
 		}
 
 
-	template <typename T>
-		class ClosestWaterBondlengths : public AnalysisSet<T> {
+		class ClosestWaterBondlengths : public AnalysisSet {
 			public:
-				typedef Analyzer<T> system_t;
+				typedef Analyzer system_t;
 				ClosestWaterBondlengths (system_t * t) :
-					AnalysisSet<T> (t,
+					AnalysisSet (t,
 							std::string ("so2's bound water oh bondlengths"),
 							std::string ("top-water-bondlengths.dat")),
 					so2s(t) { so2s.Initialize(); }
@@ -226,11 +217,10 @@ namespace so2_analysis {
 				void Analysis ();
 
 			protected:
-				XYZSO2Manipulator<T>	so2s;
+				XYZSO2Manipulator	so2s;
 		};	// closest water bondlengths 
 
-	template <typename T>
-		void ClosestWaterBondlengths<T>::Analysis () { 
+		void ClosestWaterBondlengths::Analysis () { 
 			so2s.UpdateSO2();
 			this->LoadAll();
 
@@ -282,12 +272,11 @@ namespace so2_analysis {
 			}
 	};
 
-	template <typename T>
-	class WaterAngleAnalyzer : public AnalysisSet<T> {
+	class WaterAngleAnalyzer : public AnalysisSet {
 		public:
-			typedef Analyzer<T> system_t;
+			typedef Analyzer system_t;
 			WaterAngleAnalyzer (system_t * t) : 
-				AnalysisSet<T> (t, 
+				AnalysisSet (t, 
 						std::string ("Water's HOH Angle"),
 						std::string ("h2o-angle.dat")),
 				so2s(t) { so2s.Initialize(); }
@@ -295,11 +284,10 @@ namespace so2_analysis {
 			void Analysis ();
 
 		private:
-			XYZSO2Manipulator<T>	so2s;
+			XYZSO2Manipulator	so2s;
 	};
 
-	template <typename T>
-		void WaterAngleAnalyzer<T>::Analysis () {
+		void WaterAngleAnalyzer::Analysis () {
 			so2s.UpdateSO2();
 			this->LoadAll();
 
@@ -323,7 +311,6 @@ namespace so2_analysis {
 		}
 
 	/*
-		 template <typename t>
 		 class so2dipoleanalyzer : public analysisset<t> {
 
 		 public:
@@ -338,11 +325,10 @@ namespace so2_analysis {
 		 void UpdateDipole (AtomPtr atom, const int num, VecR& dipole, const VecR& ref);
 
 		 protected:
-		 XYZSO2Manipulator<T>	so2s;
+		 XYZSO2Manipulator	so2s;
 		 };
 
-		 template <typename T>
-		 void SO2DipoleAnalyzer<T>::Analysis () {
+		 void SO2DipoleAnalyzer::Analysis () {
 
 		 so2s.UpdateSO2();
 		 so2s.SO2()->UpdateCenterOfMass();
@@ -356,8 +342,7 @@ namespace so2_analysis {
 		 fprintf (this->output, "% 12.8f % 12.8f % 12.8f\n", dipole[x], dipole[y], dipole[z]);
 		 }
 
-		 template <typename T>
-		 void SO2DipoleAnalyzer<T>::UpdateDipole (AtomPtr atom, const int num, VecR& dipole, const VecR& ref) {
+		 void SO2DipoleAnalyzer::UpdateDipole (AtomPtr atom, const int num, VecR& dipole, const VecR& ref) {
 		 vector_map_vec wans = so2s.GetWanniers (atom,num);
 		 for (vector_map_it it = wans.begin(); it != wans.end(); it++) {
 		 VecR r (MDSystem::Distance(ref, (*it)));

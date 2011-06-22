@@ -6,13 +6,12 @@
 namespace md_analysis {
 
 
-	template <class T>
-		class RDFAnalyzer : public AnalysisSet<T> {
+		class RDFAnalyzer : public AnalysisSet {
 			public:
-			typedef Analyzer<T> system_t;
+			typedef Analyzer system_t;
 
 				RDFAnalyzer (system_t * t) :
-					AnalysisSet<T> (t,
+					AnalysisSet (t,
 						std::string("RDF Analysis"),
 						std::string("rdf.wat-H.wat-H.dat")),
 					histo(0.5, 15.0, 0.05) { }
@@ -26,8 +25,7 @@ namespace md_analysis {
 				
 		};
 
-	template <typename T>
-	void RDFAnalyzer<T>::Analysis () {
+	void RDFAnalyzer::Analysis () {
 
 		this->LoadAll();
 
@@ -60,13 +58,12 @@ namespace md_analysis {
 
 	}
 
-	template <typename T>
-		void RDFAnalyzer<T>::DataOutput () {
+		void RDFAnalyzer::DataOutput () {
 			rewind (this->output);
 
-			//double minimum = WaterSystem<T>::SystemParameterLookup("analysis.rdf.minimum");
-			//double maximum = WaterSystem<T>::SystemParameterLookup("analysis.rdf.maximum");
-			//double resolution = WaterSystem<T>::SystemParameterLookup("analysis.rdf.resolution");
+			//double minimum = WaterSystem::SystemParameterLookup("analysis.rdf.minimum");
+			//double maximum = WaterSystem::SystemParameterLookup("analysis.rdf.maximum");
+			//double resolution = WaterSystem::SystemParameterLookup("analysis.rdf.resolution");
 
 			double min = histo.Min();
 			double max = histo.Max();

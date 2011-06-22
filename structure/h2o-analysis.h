@@ -2,6 +2,7 @@
 #define H2O_ANALYSIS_H
 
 #include "analysis.h"
+#include "manipulators.h"
 #include <gsl/gsl_statistics.h>
 
 namespace h2o_analysis {
@@ -11,16 +12,15 @@ namespace h2o_analysis {
 
 	// ****************** H2O Manipulator ********************** //
 
-	template <typename T>
-		class H2OSystemManipulator : public SystemManipulator<T> {
+		class H2OSystemManipulator : public SystemManipulator {
 
 			public:
-				typedef Analyzer<T> system_t;
+				typedef Analyzer system_t;
 
 				H2OSystemManipulator (system_t * t, const int number_of_waters_for_surface_calc = 70) : 
-					SystemManipulator<T>(t), 
-					reference_point(WaterSystem<T>::SystemParameterLookup("analysis.reference-location")),
-					top_surface(WaterSystem<T>::SystemParameterLookup("analysis.top-surface")),
+					SystemManipulator(t), 
+					reference_point(WaterSystem::SystemParameterLookup("analysis.reference-location")),
+					top_surface(WaterSystem::SystemParameterLookup("analysis.top-surface")),
 					number_surface_waters(number_of_waters_for_surface_calc) { 
 						this->Reload();
 					}
@@ -41,7 +41,7 @@ namespace h2o_analysis {
 					// then load in the new water set
 					this->_system->LoadWaters();
 					// gather all the system waters
-					for (Mol_it it = this->_system->int_wats.begin(); it != this->_system->int_wats.end(); it++) {
+					for (Mol_it it = WaterSystem::int_wats.begin(); it != WaterSystem::int_wats.end(); it++) {
 						WaterPtr wat (new Water(*it));
 						wat->SetAtoms();
 						all_waters.push_back(wat);
@@ -49,7 +49,7 @@ namespace h2o_analysis {
 
 					// grab all the water atoms
 					all_water_atoms.clear();
-					std::copy(this->_system->int_atoms.begin(), this->_system->int_atoms.end(), std::back_inserter(all_water_atoms));
+					std::copy(WaterSystem::int_atoms.begin(), WaterSystem::int_atoms.end(), std::back_inserter(all_water_atoms));
 
 					// now update the analysis containers
 					this->UpdateAnalysisWaters();
@@ -131,8 +131,7 @@ namespace h2o_analysis {
 		};	// class H2OSystemManipulator
 
 
-	template <typename T>
-		void H2OSystemManipulator<T>::UpdateAnalysisWaters () {
+		void H2OSystemManipulator::UpdateAnalysisWaters () {
 
 			this->analysis_waters.clear();
 			std::copy (all_waters.begin(), all_waters.end(), std::back_inserter(analysis_waters));
@@ -143,18 +142,17 @@ namespace h2o_analysis {
 		}	// reload analysis wats
 
 
-	template <typename T>
-		void H2OSystemManipulator<T>::FindWaterSurfaceLocation () {
+		void H2OSystemManipulator::FindWaterSurfaceLocation () {
 
 			// get rid of everything above (or below) the reference point
 			if (top_surface) {
 				analysis_waters.erase(
-						remove_if(analysis_waters.begin(), analysis_waters.end(), typename system_t::MoleculeAbovePosition(reference_point, system_t::axis)), analysis_waters.end());
+						remove_if(analysis_waters.begin(), analysis_waters.end(), typename system_t::MoleculeAbovePosition(reference_point, WaterSystem::axis)), analysis_waters.end());
 			}
 
 			else if (!top_surface) {
 				analysis_waters.erase(
-						remove_if(analysis_waters.begin(), analysis_waters.end(), typename system_t::MoleculeBelowPosition(reference_point, system_t::axis)), analysis_waters.end()); // bottom surface
+						remove_if(analysis_waters.begin(), analysis_waters.end(), typename system_t::MoleculeBelowPosition(reference_point, WaterSystem::axis)), analysis_waters.end()); // bottom surface
 			}
 
 			// sort the waters by position along the reference axis - first waters are lowest, last are highest
@@ -188,8 +186,7 @@ namespace h2o_analysis {
 		}	// find surface water location
 
 
-	template <typename T>
-		void H2OSystemManipulator<T>::CalcCenterOfMass () {
+		void H2OSystemManipulator::CalcCenterOfMass () {
 			center_of_mass.Zero();
 			double mass = 0.0;
 
@@ -204,8 +201,7 @@ namespace h2o_analysis {
 
 
 	// sort all the waters in the system by distance to a given reference atom
-	template <typename T>
-		void H2OSystemManipulator<T>::FindClosestWaters (const AtomPtr a) {
+		void H2OSystemManipulator::FindClosestWaters (const AtomPtr a) {
 			this->UpdateAnalysisWaters();
 			std::sort(analysis_waters.begin(), analysis_waters.end(), typename system_t::molecule_distance_cmp(a));
 		} // find closest waters

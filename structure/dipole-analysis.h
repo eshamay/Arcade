@@ -36,12 +36,12 @@ namespace md_analysis {
 
 	*/
 	template <typename T>
-		class SystemDipoleAnalyzer : public AnalysisSet<T> {
+		class SystemDipoleAnalyzer : public AnalysisSet {
 
 			public:
-				typedef Analyzer<T> system_t;
+				typedef Analyzer system_t;
 				SystemDipoleAnalyzer (system_t * t) :
-					AnalysisSet<T> (t,
+					AnalysisSet (t,
 							std::string ("System Dipole Analysis"),
 							std::string ("system-dipole.dat")) { }
 
@@ -77,9 +77,9 @@ namespace md_analysis {
 				//wi->Print();
 			//}
 
-			std::for_each (WaterSystem<AmberSystem>::sys_atoms.begin(), WaterSystem<AmberSystem>::sys_atoms.end(), FixAtomCharges());
+			std::for_each (this->begin(), this->end(), FixAtomCharges());
 
-			std::transform (WaterSystem<AmberSystem>::int_wats.begin(), WaterSystem<AmberSystem>::int_wats.end(), std::back_inserter(dipoles), std::ptr_fun(&MDSystem::CalcClassicDipole));
+			std::transform (this->begin_wats(), this->end_wats(), std::back_inserter(dipoles), std::ptr_fun(&MDSystem::CalcClassicDipole));
 			VecR dipole = std::accumulate (dipoles.begin(), dipoles.end(), VecR(0.0,0.0,0.0), vecr_add());
 
 			//dipole.Print();

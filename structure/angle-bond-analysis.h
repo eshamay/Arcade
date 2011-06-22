@@ -1,34 +1,33 @@
 #ifndef __ANGLE_BOND_ANALYSIS_H_
 #define __ANGLE_BOND_ANALYSIS_H_
 
+
 #include "histogram-analysis.h"
 #include "h2o-analysis.h"
 
 namespace md_analysis {
 
-
-	template <typename T>
-	class H2OAngleBondAnalysis : public AnalysisSet<T> {
+	class H2OAngleBondAnalysis : public AnalysisSet {
 		public:
-			typedef Analyzer<T>	system_t;
+			typedef Analyzer	system_t;
 
 			H2OAngleBondAnalysis (system_t * t) :
-				AnalysisSet<T> (t,
+				AnalysisSet (t,
 						std::string ("H2O H-O-H angle and O-H bondlength histograms"),
 						std::string ("")),
 				h2os(t),
 				// outputting to two separate files.
 				bonds("bondlength.h2o.O-H.dat", 
-						t->posmin, t->posmax, t->posres, 
-						WaterSystem<T>::SystemParameterLookup("analysis.angle-bond-histogram.bondlength-min"), 
-						WaterSystem<T>::SystemParameterLookup("analysis.angle-bond-histogram.bondlength-max"), 
-						WaterSystem<T>::SystemParameterLookup("analysis.angle-bond-histogram.bondlength-res")),
+						WaterSystem::posmin, WaterSystem::posmax, Analyzer::posres, 
+						WaterSystem::SystemParameterLookup("analysis.angle-bond-histogram.bondlength-min"), 
+						WaterSystem::SystemParameterLookup("analysis.angle-bond-histogram.bondlength-max"), 
+						WaterSystem::SystemParameterLookup("analysis.angle-bond-histogram.bondlength-res")),
 
 				angles("angle.h2o.H-O-H.dat", 
-						t->posmin, t->posmax, t->posres, 
-						WaterSystem<T>::SystemParameterLookup("analysis.angle-bond-histogram.angle-min"), 
-						WaterSystem<T>::SystemParameterLookup("analysis.angle-bond-histogram.angle-max"), 
-						WaterSystem<T>::SystemParameterLookup("analysis.angle-bond-histogram.angle-res")) { }
+						WaterSystem::posmin, WaterSystem::posmax, Analyzer::posres, 
+						WaterSystem::SystemParameterLookup("analysis.angle-bond-histogram.angle-min"), 
+						WaterSystem::SystemParameterLookup("analysis.angle-bond-histogram.angle-max"), 
+						WaterSystem::SystemParameterLookup("analysis.angle-bond-histogram.angle-res")) { }
 
 			void Analysis ();
 
@@ -38,14 +37,13 @@ namespace md_analysis {
 			}
 
 		protected:
-			h2o_analysis::H2OSystemManipulator<T>	h2os;
+			h2o_analysis::H2OSystemManipulator	h2os;
 			Histogram2DAgent	bonds;
 			Histogram2DAgent	angles;
 
 	};	 // h2o angle & bond histogram analyzer
 
-	template <typename T>
-		void H2OAngleBondAnalysis<T>::Analysis () {
+		void H2OAngleBondAnalysis::Analysis () {
 			h2os.Reload();
 			h2os.FindWaterSurfaceLocation ();
 
@@ -68,12 +66,12 @@ namespace md_analysis {
 	/*
 
 		 template <typename T>
-		 class so2_angle_bond_analyzer : public so2_analysis::SO2SystemAnalyzer<T> {
+		 class so2_angle_bond_analyzer : public so2_analysis::SO2SystemAnalyzer {
 		 public:
-		 typedef typename so2_analysis::SO2SystemAnalyzer<T>::system_t system_t;
+		 typedef typename so2_analysis::SO2SystemAnalyzer::system_t system_t;
 
 		 so2_angle_bond_analyzer () :
-		 so2_analysis::SO2SystemAnalyzer<T> (
+		 so2_analysis::SO2SystemAnalyzer (
 		 std::string("SO2 molecular angle and S-O bondlengths"),
 		 std::string ("so2-angle+bonds.dat")) { }
 
@@ -97,7 +95,7 @@ double angle;
 
 
 template <typename T>
-void so2_angle_bond_analyzer<T>::Analysis (system_t& t) {
+void so2_angle_bond_analyzer::Analysis (system_t& t) {
 
 // calculate the OSO angle
 double oso_angle = acos(this->so2->Angle())*180.0/M_PI;
@@ -116,7 +114,7 @@ double distance_to_location = system_t::Position(this->s) - this->surface_locati
 Atom::KeepByElement(t.int_atoms, Atom::O);
 
 std::sort(t.int_atoms.begin(), t.int_atoms.end(), 
-Analyzer<T>::atomic_reference_distance_pred(this->so2->S()));
+Analyzer::atomic_reference_distance_pred(this->so2->S()));
 
 // grab the distances from so2-S to closest h2o-Os
 double so_1 = MDSystem::Distance(this->so2->S(), t.int_atoms[0]).norm();
@@ -126,7 +124,7 @@ double so_3 = MDSystem::Distance(this->so2->S(), t.int_atoms[2]).norm();
 // sort the water atoms by distance h2o-H to so2-O1
 t.LoadWaters();
 Atom::KeepByElement(t.int_atoms, Atom::H);
-std::sort(t.int_atoms.begin(), t.int_atoms.end(), Analyzer<T>::atomic_reference_distance_pred(this->so2->GetAtom("O1")));
+std::sort(t.int_atoms.begin(), t.int_atoms.end(), Analyzer::atomic_reference_distance_pred(this->so2->GetAtom("O1")));
 
 // grab the distances from so2-S to closest h2o-Os
 double oh1_1 = MDSystem::Distance(this->so2->O1(), t.int_atoms[0]).norm();
@@ -136,7 +134,7 @@ double oh1_3 = MDSystem::Distance(this->so2->O1(), t.int_atoms[2]).norm();
 // sort the water atoms by distance h2o-H to so2-O1
 t.LoadWaters();
 Atom::KeepByElement(t.int_atoms, Atom::H);
-std::sort(t.int_atoms.begin(), t.int_atoms.end(), Analyzer<T>::atomic_reference_distance_pred(this->so2->GetAtom("O2")));
+std::sort(t.int_atoms.begin(), t.int_atoms.end(), Analyzer::atomic_reference_distance_pred(this->so2->GetAtom("O2")));
 
 // grab the distances from so2-S to closest h2o-Os
 double oh2_1 = MDSystem::Distance(this->so2->O2(), t.int_atoms[0]).norm();
@@ -163,13 +161,13 @@ return;
 
 
 template <typename T>
-class so2_angle_bond_histogram_analyzer : public double_histogram_analyzer<T> {
+class so2_angle_bond_histogram_analyzer : public double_histogram_analyzer {
 	public:
-		typedef typename double_histogram_analyzer<T>::system_t system_t;
+		typedef typename double_histogram_analyzer::system_t system_t;
 
 		virtual ~so2_angle_bond_histogram_analyzer() { }
 		so2_angle_bond_histogram_analyzer() :
-			double_histogram_analyzer<T> (
+			double_histogram_analyzer (
 					std::string("SO2 O-S-O angle and S-O bondlength histograms"),
 					std::string("so2-bond-angle-histograms.dat")) { }
 
@@ -184,7 +182,7 @@ class so2_angle_bond_histogram_analyzer : public double_histogram_analyzer<T> {
 
 
 template <typename T>
-void so2_angle_bond_histogram_analyzer<T>::Analysis (system_t& t) {
+void so2_angle_bond_histogram_analyzer::Analysis (system_t& t) {
 	t.LoadAll();
 
 	MolPtr mol = Molecule::FindByType(t.sys_mols, Molecule::SO2);

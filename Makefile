@@ -15,7 +15,7 @@ MOLECULES = $(MDSRC)/h2o.o $(MDSRC)/oh.o $(MDSRC)/h.o $(MDSRC)/h3o.o $(MDSRC)/hn
 MDSYSTEM = $(MDSRC)/utility.o $(MDSRC)/atom.o $(MDSRC)/molecule.o $(MOLECULES) $(MDSRC)/moleculefactory.o $(MDSRC)/mdsystem.o $(MDSRC)/bondgraph.o
 AMBERSYSTEM = $(MDSRC)/crdfile.o $(MDSRC)/topfile.o $(MDSRC)/ambersystem.o
 XYZSYSTEM = $(MDSRC)/xyzfile.o $(MDSRC)/wannier.o $(MDSRC)/xyzsystem.o $(MDSRC)/molgraph.o $(MDSRC)/molgraphfactory.o $(MDSRC)/moltopologyfile.o
-ANALYZER = $(MDSYSTEM) $(AMBERSYSTEM) $(XYZSYSTEM) $(MDSRC)/dataoutput.o
+ANALYZER = $(MDSYSTEM) $(AMBERSYSTEM) $(XYZSYSTEM) $(MDSRC)/watersystem.o $(MDSRC)/dataoutput.o $(MDSRC)/analysis.o
 
 %.o: %.cpp %.h
 	$(CXX) $(CPPFLAGS) -c -o $@ $<

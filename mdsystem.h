@@ -59,6 +59,7 @@ namespace md_system {
 			bool Loaded () const { return !_eof; }
 			int Frame () 	const { return _frame; }
 
+
 		protected:
 			FILE				*_file;				// the file listing all the atom coordinates
 			std::string _path;
@@ -73,8 +74,6 @@ namespace md_system {
 			bool			_eof;		// end of file marker for the coord file
 
 	};	// Coordinate file
-
-
 
 
 	class MDSystem {
@@ -137,22 +136,19 @@ namespace md_system {
 			static VecR CalcWannierDipole (MolPtr mol);
 	};
 
-	// comparator for sorting a container of vectors based on distance to a given reference point
-	template <typename T>
-		class vecr_distance_cmp : public std::binary_function <T, T, bool> {
-			private:
-				VecR reference;
-			public:
-				vecr_distance_cmp (VecR& ref) : reference (ref) { }
 
-				bool operator() (const T& left, const T& right) {
-					double distance_left = MDSystem::Distance (left, reference).Magnitude();
-					double distance_right = MDSystem::Distance (right, reference).Magnitude();
-					bool ret = (left < right) ? true : false;
-					return ret;
-				}
-		};
-
+	class vecr_distance_cmp : public std::binary_function <VecR,VecR,bool> {
+		private:
+			VecR reference;
+		public:
+			vecr_distance_cmp (VecR ref) : reference(ref) { }
+			bool operator() (const VecR& v1, const VecR& v2) const {
+				double d1 = MDSystem::Distance (v1, reference).Magnitude();
+				double d2 = MDSystem::Distance (v2, reference).Magnitude();
+				bool ret = (d1 < d2) ? true : false;
+				return ret;
+			};
+	};
 
 }	// namespace md system
 
