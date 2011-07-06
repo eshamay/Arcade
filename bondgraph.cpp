@@ -3,7 +3,6 @@
 namespace bondgraph {
 	BondGraph::graph_t BondGraph::_graph (0);
 
-
 	// property map definitions
 	BondGraph::PropertyMap<double,BondGraph::EdgeProperties>::Type BondGraph::b_length = get(&EdgeProperties::distance, _graph);
 	BondGraph::PropertyMap<bondtype,BondGraph::EdgeProperties>::Type BondGraph::b_type = get(&EdgeProperties::btype, _graph);

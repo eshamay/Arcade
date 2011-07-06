@@ -4,6 +4,8 @@
 #include "molecule.h"
 
 namespace md_system {
+
+
 	class SulfurDioxide : public Molecule {
 
 		public:

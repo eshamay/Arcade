@@ -91,8 +91,9 @@ namespace angle_analysis {
 			VecR axis;	// the reference axis to which the angles will be formed
 
 		public:
+			typedef std::pair<double,double> angle_pair_t;
 			OHAngleCalculator (const VecR ax) : axis(ax) { }
-			std::pair<double,double> operator() (const WaterPtr& wat);
+			angle_pair_t operator() (const WaterPtr& wat);
 	};
 
 
@@ -132,6 +133,32 @@ namespace angle_analysis {
 			DistanceAngleHelper								angles;
 	};
 
+
+	class OHAngleAnalysis : public AnalysisSet {
+		public:
+			typedef Analyzer system_t;
+
+			OHAngleAnalysis (system_t * t) :
+				AnalysisSet(t,
+						std::string ("Water OH Angle Analysis"),
+						std::string ("")),
+				h2os(t),
+				_alpha("oh-angles.both.dat", 
+						-20.0,20.0,0.5,
+						-1.0, 1.0, 0.02),
+				oh_calculator(VecR::UnitY()) { 
+					h2os.ReferencePoint(WaterSystem::SystemParameterLookup("analysis.reference-location"));
+				}
+
+			virtual void Analysis ();
+			void DataOutput () { _alpha.OutputData(); }
+
+		protected:
+			h2o_analysis::H2OSystemManipulator	h2os;
+			md_analysis::Histogram2DAgent				_alpha;
+			OHAngleCalculator										oh_calculator;
+			double distance;
+	};	// water oh angle analysis
 
 
 

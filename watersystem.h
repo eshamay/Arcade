@@ -188,6 +188,7 @@ namespace md_system {
 		public:
 			AmberWaterSystem (const std::string configuration_filename = std::string ("system.cfg")) : 
 				WaterSystem (configuration_filename) { }
+			~AmberWaterSystem () { delete this->sys; }
 
 			virtual void Initialize () {
 				try {
@@ -210,6 +211,7 @@ namespace md_system {
 		public:
 			XYZWaterSystem (const std::string configuration_filename = std::string ("system.cfg")) : 
 				WaterSystem (configuration_filename) { }
+			~XYZWaterSystem () { delete this->sys; }
 
 			//wannier_it begin_wanniers() const { return this->sys->begin_wanniers(); }
 			//wannier_it end_wanniers() const { return this->sys->end_wanniers(); }

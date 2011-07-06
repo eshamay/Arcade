@@ -108,6 +108,7 @@ namespace h2o_analysis {
 		surface_location = gsl_stats_mean (&surface_water_positions[0], 1, number_surface_waters);
 		surface_width = gsl_stats_sd (&surface_water_positions[0], 1, number_surface_waters);
 
+		/*
 		if (surface_width > 2.5) {
 			std::cout << std::endl << "Check the pbc-flip or the reference point settings and decrease/increase is to fix this gigantic surface width" << std::endl;
 			std::cout << "Here's the positions of the waters used to calculate the surface:" << std::endl;
@@ -115,6 +116,7 @@ namespace h2o_analysis {
 			printf ("\nSurface width = % 8.3f, Reference point = % 8.3f\n", surface_width, reference_point);
 			fflush(stdout);
 		}
+		*/
 
 	}	// find surface water location
 
@@ -205,4 +207,174 @@ namespace so2_analysis {
 		}
 	}
 
-} // namespace so2 analysis
+
+	void CycleManipulator::BuildGraph () { 
+
+		// check that the reference atom was set
+		this->ReferenceAtom();
+
+		// order the atoms in the system in closest to furthest from a particular reference point
+		nm.OrderAtomsByDistance(ref_atom);
+
+		// grab only a certain number of the closest atoms for analysis
+		this->analysis_atoms.clear();
+		this->analysis_atoms.push_back(ref_atom);
+
+		// check that the cycle size was set
+		this->CycleSize();
+
+		std::copy(nm.closest(), nm.closest() + cycle_size, std::back_inserter(this->analysis_atoms));
+
+		graph.UpdateGraph(this->analysis_atoms); 
+
+	}	// build graph
+
+
+	void CycleManipulator::ParseCycles () { 
+
+		// determine if within the graph there are any closed cycles
+		std::list<AtomPtr> gray_sources;
+		std::list<AtomPtr> gray_targets;
+		bondgraph::bfs_atom_visitor vis (gray_sources, gray_targets);
+		boost::breadth_first_search(graph.Graph(), *graph._FindVertex(ref_atom), visitor(vis));
+
+		// grab the atoms that make up the cycle
+		std::list<AtomPtr>::const_iterator gray_source, gray_target;
+		gray_source = gray_sources.begin();
+		gray_target = gray_targets.begin();
+
+		cycle.clear();
+		cycle_type.clear();
+
+		//printf ("\n --> %d\n", (int)std::distance (gray_sources.begin(), gray_sources.end()));
+		while (gray_source != gray_sources.end() && gray_target != gray_targets.end()) {
+			cycle_t new_cycle_type = NO_CYCLE;
+			cycle_list new_cycle;
+
+			// fill the cycle's atom list here by first getting all the atoms from the target to the ref-atom, and then from the source so that both sides of the cycle are accounted for.
+			// cycle list will look like S -- O1 -- etc. -- O2
+			for (AtomPtr a = *gray_target; a != ref_atom; a = graph.Parent(a)) {
+				new_cycle.push_front(a);
+			}
+			new_cycle.push_front(ref_atom);
+			for (AtomPtr a = *gray_source; a != ref_atom; a = graph.Parent(a)) {
+				new_cycle.push_back(a);
+			}
+
+			// the first atom in the cycle is the reference. Here we get the atom connected to the reference - the first non-ref atom - and the last atom in the cycle
+			// based on the molecules these are connected to, we discover the type of cycle they're involved in
+			cycle_it _first = new_cycle.begin(); _first++;	
+			AtomPtr atom1 = *_first;
+			AtomPtr atom2 = new_cycle.back();
+
+			Molecule::Molecule_t mol1_t, mol2_t;
+			mol1_t = atom1->ParentMolecule()->MolType(); 
+			mol2_t = atom2->ParentMolecule()->MolType(); 
+
+			if (atom1 != atom2) {
+
+				if ((mol1_t != Molecule::SO2 && mol2_t == Molecule::SO2) ||
+						(mol1_t == Molecule::SO2 && mol2_t != Molecule::SO2)) {
+					new_cycle_type = HALFBRIDGE;
+					//printf ("\nhalf-bridge\n");
+				}
+				else if (mol1_t != Molecule::SO2 && mol2_t != Molecule::SO2) {
+					new_cycle_type = FULLCROWN; 
+					//printf ("\nfull-crown\n");
+				}
+				else if (mol1_t == Molecule::SO2 && mol2_t == Molecule::SO2) {
+					new_cycle_type = FULLBRIDGE;
+					//printf ("\nfull-bridge\n");
+				}
+				else {
+					new_cycle_type = UNKNOWN;
+				}
+			}
+
+			else {
+				if (mol1_t == Molecule::SO2 && mol2_t == Molecule::SO2) { 
+					new_cycle_type = WATERLEG; 
+					//printf ("\nwater-leg\n");
+				}
+
+				else if (mol1_t != Molecule::SO2 && mol2_t != Molecule::SO2) {
+					new_cycle_type = HALFCROWN;
+					//printf ("\nhalf-crown\n");
+				}
+				else {
+					new_cycle_type = UNKNOWN;
+					std::cerr << "found some other type of funky cycle\n" << std::endl;
+				}
+			}
+
+			//std::for_each (cycle.begin(), cycle.end(), std::mem_fun(&Atom::Print));
+			cycle.push_back(new_cycle);
+			cycle_type.push_back(new_cycle_type);
+
+			gray_source++; gray_target++;
+		}	// while
+
+	}// parse cycles
+
+
+	void CycleManipulator::FindUniqueMembers (const cycle_list& _cycle) {
+
+		// find all the unique atoms in the cycle
+		unique_cycle_atoms.clear();
+		std::copy (_cycle.begin(), _cycle.end(), std::back_inserter(unique_cycle_atoms));
+		std::sort(unique_cycle_atoms.begin(), unique_cycle_atoms.end(), std::ptr_fun(&Atom::id_cmp));
+		Atom_it unique_atoms_it = std::unique(unique_cycle_atoms.begin(), unique_cycle_atoms.end(), std::ptr_fun(&Atom::id_eq));
+		unique_cycle_atoms.resize(unique_atoms_it - unique_cycle_atoms.begin());
+
+		unique_cycle_mols.clear();
+		std::transform(
+				unique_cycle_atoms.begin(), 
+				unique_cycle_atoms.end(), 
+				std::back_inserter(unique_cycle_mols),
+				std::mem_fun<MolPtr,Atom>(&Atom::ParentMolecule));
+
+		std::sort(unique_cycle_mols.begin(), unique_cycle_mols.end(), std::ptr_fun(&Molecule::mol_cmp));
+		Mol_it unique_mols_it = std::unique(unique_cycle_mols.begin(), unique_cycle_mols.end(), std::ptr_fun(&Molecule::mol_eq));
+		unique_cycle_mols.resize(unique_mols_it - unique_cycle_mols.begin());
+
+		//std::for_each(cycle.begin(), cycle.end(), std::mem_fun(&Atom::Print));
+		//printf ("unique = %zu %zu\n", unique_cycle_atoms.size(), unique_cycle_mols.size());
+	}
+
+	int CycleManipulator::NumUniqueWaterAtoms () const {
+		int num = 0;
+		for (Atom_it it = unique_cycle_atoms.begin(); it != unique_cycle_atoms.end(); it++) {
+			if ((*it)->ParentMolecule()->MolType() == Molecule::H2O) {
+				++num;
+			}
+		}
+		return num;
+	}
+
+
+	// go through the cycle and find the location of the atom that attaches the cycle to the bridge from the so2 leg. Return the first and second occurrence.
+	typename CycleManipulator::cycle_pair_t CycleManipulator::CyclePointAtom (const cycle_list& _cycle) {
+		cycle_it it = _cycle.begin(); it++;	// first non-ref atom
+		cycle_it jt = _cycle.end(); jt--;		// last atom
+		cycle_it i_point = it;
+		cycle_it j_point = jt;
+		while (true) {
+			it++;
+			jt--;
+			if (*it != *jt)
+				break;
+			i_point = it;
+			j_point = jt;
+		} 
+		return std::make_pair(i_point,j_point);
+	}
+
+
+	std::pair<int,int> CycleManipulator::WaterLegInformation (const cycle_list& _cycle) {
+		cycle_pair_t point_atom = CyclePointAtom(_cycle);
+		int leg_cycle_location = std::distance(_cycle.begin(), point_atom.first);
+		int leg_cycle_size = std::distance(point_atom.first, point_atom.second);
+		return std::make_pair(leg_cycle_location, leg_cycle_size); // don't count an atom that's part of the cycle in the point
+	}
+
+} // namespace md analysis

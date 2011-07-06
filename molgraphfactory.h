@@ -1,6 +1,7 @@
 #ifndef MOLGRAPHFACTORY_H_
 #define MOLGRAPHFACTORY_H_
 #include "molgraph.h"
+#include "bondgraph.h"
 #include <map>
 
 namespace molgraph {
@@ -17,7 +18,7 @@ namespace molgraph {
 	int AtomCount (atomcounter& atomcount, Atom::Element_t elmt);
 
 	// Set the atoms of a malonic acid molecule
-	void SetMalonicAtoms (MolPtr, MoleculeGraph&);
+	void SetMalonicAtoms (MolPtr);
 
 };	// namespace mol graph
 

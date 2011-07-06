@@ -27,14 +27,21 @@ namespace molgraph {
 
 		// check for organics/alkanes
 		else if (C_count == 3 && O_count == 4 && Total_count <= 11) {
-			alkane::Alkane * alk = new alkane::Alkane ();
-			alk->Name("Malonic");
+			alkane::MalonicAcid * mal;
 			switch (H_count) {
-				case 4: alk->MolType(Molecule::MALONIC); break;
-				case 3: alk->MolType(Molecule::MALONATE); break;
-				case 2: alk->MolType(Molecule::DIMALONATE); break;
+				case 4: 
+					mal = new alkane::MalonicAcid (Molecule::MALONIC);
+					break;
+				case 3: 
+					mal = new alkane::MalonicAcid (Molecule::MALONATE);
+					break;
+				case 2: 
+					mal = new alkane::MalonicAcid (Molecule::DIMALONATE);
+					break;
+				default:
+					std::cerr << "MolGraphFactory:: Something funny happening with the malonic acid protons." << std::endl;
 			}
-			newmol = alk;
+			newmol = mal;
 		}
 
 		// parse out formaldehydes
@@ -85,8 +92,10 @@ namespace molgraph {
 
 		newmol->FixAtoms();
 
-		if (newmol->MolType() == Molecule::MALONIC)
-				SetMalonicAtoms (newmol, molgraph);
+		//if (newmol->MolType() == Molecule::MALONIC 
+				//|| newmol->MolType() == Molecule::MALONATE 
+				//|| newmol->MolType() == Molecule::DIMALONATE)
+		//SetMalonicAtoms (newmol);
 
 		return newmol;
 	}
@@ -112,13 +121,17 @@ namespace molgraph {
 	// for each C, add 1. For each O add 10, etc.
 	// C = 1, O = 10, H = 100
 
-	void SetMalonicAtoms (MolPtr mol, MoleculeGraph& molgraph) {
-		alkane::Alkane * malonic = static_cast<alkane::Alkane *>(mol);
-		malonic->ClearAlkaneAtoms();
+	void SetMalonicAtoms (MolPtr mol) {
+		alkane::MalonicAcid * malonic = static_cast<alkane::MalonicAcid *>(mol);
+		malonic->UnsetAtoms();
+
+		bondgraph::BondGraph graph;
+		graph.UpdateGraph (malonic->begin(), malonic->end());
+
 		// run through each vertex of the molgraph 
 		for (Atom_it atom = malonic->begin(); atom != malonic->end(); atom++) {
 			// find the atoms to which it is bound
-			Atom_ptr_vec bonded = molgraph.BondedAtoms (*atom);
+			Atom_ptr_vec bonded = graph.BondedAtoms (*atom);
 			// decide what type of atom it is based on it's own element, and also what is connected to it.
 			int num = 0;
 			for (Atom_it it = bonded.begin(); it != bonded.end(); it++) {
@@ -126,7 +139,7 @@ namespace molgraph {
 				else if ((*it)->Element() == Atom::C) num += 10;
 				else if ((*it)->Element() == Atom::O) num += 100;
 			}
-			printf ("%d\n", num);
+			printf ("%s %d\n", (*atom)->Name().c_str(), num);
 			// based on what it's connected to, we can say what type of atom it is.
 
 			// a carbonyl C in malonic acid will be C-(C)-OO, so a value of 2xO + C == 210

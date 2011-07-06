@@ -4,6 +4,9 @@ namespace alkane {
 	using namespace md_system;
 
 	int Alkane::numAlkanes = 0;
+	int MalonicAcid::numMalonicAcid = 0;
+	int MalonicAcid::numMalonate = 0;
+	int MalonicAcid::numDimalonate = 0;
 	int Formaldehyde::numFormaldehyde = 0;
 
 	Alkane::Alkane ()
@@ -21,6 +24,85 @@ namespace alkane {
 		: Molecule(molecule) {
 			++numAlkanes;
 		}
+
+
+	MalonicAcid::MalonicAcid (Molecule_t moltype)
+		: Alkane () {
+
+			this->_moltype = moltype;
+
+			switch (moltype) {
+
+				case Molecule::MALONIC : 
+					this->Rename("malonic acid");
+					++numMalonicAcid;
+					break;
+
+				case Molecule::MALONATE : 
+					this->Rename("malonate");
+					++numMalonate;
+					break;
+
+				case Molecule::DIMALONATE : 
+					this->Rename("dimalonate");
+					++numDimalonate;
+					break;
+
+				default:
+					std::cerr << "Creating a malonic acid type but not using a valid molecule type" << std::endl;
+			}
+
+		}
+
+	MalonicAcid::~MalonicAcid () {
+			switch (this->_moltype) {
+
+				case Molecule::MALONIC : 
+					--numMalonicAcid;
+					break;
+
+				case Molecule::MALONATE : 
+					--numMalonate;
+					break;
+
+				case Molecule::DIMALONATE : 
+					--numDimalonate;
+					break;
+
+				default:
+					std::cerr << "Something funny when killing a malonic acid" << std::endl;
+			}
+			return;
+	}
+
+	void MalonicAcid::SetAtoms () {
+		/*
+		this->UnsetAtoms();
+
+		distances.clear();
+		distances.resize(this->size(), std::vector<double> (this->size(), 0.0));
+
+				//		C-C = 1
+				//		C-O = 2
+				//		C-H = 3
+				//		O-H = 4
+				
+		// generate the connectivity matrix between all the atoms
+		// the connectivity matrix is the triangle of a matrix
+		// the diagonals specify the total number of bonds
+		AtomPtr a1, a2;
+		for (int i = 0; i < this->size()-1; i++) {
+			for (int j = i+1; j < this->size(); j++) {
+
+				a1 = this->_atoms[i];
+				a2 = this->_atoms[j];
+
+				distances[i][j] = MDSystem::Distance(a1, a2);
+
+			} 
+		}
+		*/
+	}
 
 
 	Formaldehyde::Formaldehyde ()

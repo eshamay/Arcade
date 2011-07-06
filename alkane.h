@@ -21,8 +21,27 @@ namespace alkane {
 			}
 			// Functions for analysis
 			//virtual void SetAtoms () = 0;
-	
-			void ClearAlkaneAtoms () {
+
+
+	};
+
+
+
+
+	class MalonicAcid : public Alkane {
+
+
+		public:
+			MalonicAcid (Molecule_t moltype);
+			virtual ~MalonicAcid ();
+
+			static int numMalonicAcid;
+			static int numMalonate;
+			static int numDimalonate;
+
+			void SetAtoms ();
+
+			void UnsetAtoms () {
 				carbonyl_c.clear();
 				carbonyl_o.clear();
 				aliphatic_c.clear();
@@ -33,7 +52,11 @@ namespace alkane {
 			Atom_ptr_vec carbonyl_o;
 			Atom_ptr_vec aliphatic_c;
 			Atom_ptr_vec acid_o;
-	};
+
+			std::vector< std::vector<double> > distances;
+	}; // class malonic
+
+
 
 	class Formaldehyde : public Alkane {
 

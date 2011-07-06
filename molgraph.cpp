@@ -115,29 +115,29 @@ namespace molgraph {
 			// check the bondtype criteria - return only bonds that are specified by the bondtype argument, or if no argument is specified, return all hbond and covalent bonds.
 			//e = edge(*va, *vi, _graph).first;
 			//if (btype == b_type[e] || ((!btype) && ((b_type[e] == hbond) || (b_type[e] == covalent)))) {
-		//	if (btype == b_type[e] || (!btype && b_type[e] != unbonded)) {
-				//if (!elmt || (v_elmt[*vi] == elmt)) {
-					atoms.push_back(_graph[*vi].atom);
-				//}
+			//	if (btype == b_type[e] || (!btype && b_type[e] != unbonded)) {
+			//if (!elmt || (v_elmt[*vi] == elmt)) {
+			atoms.push_back(_graph[*vi].atom);
+			//}
 			//}
 		}
 
 		return (atoms);
-	}	// Bonded atoms
+		}	// Bonded atoms
 
-	Atom_ptr_vec MoleculeGraph::Atoms () const {
+		Atom_ptr_vec MoleculeGraph::Atoms () const {
 
-		// return a container of all the atoms in the graph
-		Atom_ptr_vec atoms;
+			// return a container of all the atoms in the graph
+			Atom_ptr_vec atoms;
 
-		Vertex_it vi, vi_end, next;
-		tie(vi, vi_end) = vertices(_graph);
-		for (next = vi; vi != vi_end; vi = next) {
-			++next;
-			atoms.push_back(_graph[*vi].atom);
+			Vertex_it vi, vi_end, next;
+			tie(vi, vi_end) = vertices(_graph);
+			for (next = vi; vi != vi_end; vi = next) {
+				++next;
+				atoms.push_back(_graph[*vi].atom);
+			}
+
+			return atoms;
 		}
 
-		return atoms;
-	}
-
-}	// namespace molgraph
+	}	// namespace molgraph

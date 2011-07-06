@@ -12,6 +12,7 @@
 #include "so2-angle-analysis.h"
 #include "so2-system-analysis.h"
 #include "bond-analysis.h"
+#include "malonic-analysis.h"
 
 
 typedef std::vector<double> double_vec;
@@ -113,6 +114,7 @@ namespace md_analysis {
 			analyses.push_back (new md_analysis::H2OSurfaceStatisticsAnalysis(analyzer));		
 			analyses.push_back (new angle_analysis::SO2AdsorptionWaterAngleAnalysis(analyzer));	
 			analyses.push_back (new angle_analysis::WaterOHAngleAnalysis(analyzer));				
+			analyses.push_back (new angle_analysis::OHAngleAnalysis(analyzer));				
 			analyses.push_back (new so2_analysis::SO2PositionRecorder(analyzer));				
 			analyses.push_back (new angle_analysis::SOAngleAnalysis(analyzer));				
 			analyses.push_back (new neighbor_analysis::SO2NearestNeighborAnalysis(analyzer));
@@ -134,10 +136,13 @@ namespace md_analysis {
 			analyses.push_back(new so2_angle_analysis::SO2Angles1D(analyzer));
 			analyses.push_back(new so2_analysis::ClosestWaterBondlengths(analyzer));
 			analyses.push_back(new bond_analysis::BondLengthAnalyzer (analyzer));
-			analyses.push_back(new bond_analysis::SO2BondingAnalyzer(analyzer));
+			analyses.push_back(new bond_analysis::SO2CoordinationAnalyzer(analyzer));
 			analyses.push_back(new angle_analysis::WaterOrientationNearSO2(analyzer));
 			analyses.push_back(new md_analysis::RDFAnalyzer(analyzer));
 			analyses.push_back(new so2_angle_analysis::SO2_H2O_Angles2D(analyzer));
+			analyses.push_back(new malonic_analysis::MalonicTest(analyzer));
+			analyses.push_back(new bond_analysis::SO2CoordinationAngleAnalyzer(analyzer));
+			analyses.push_back(new bond_analysis::SO2CycleCoordinationAnalyzer(analyzer));
 
 			//b = new bond_analysis::SO2BondingAnalyzer<U>(analyzer);					analyses.push_back(b);
 		}
