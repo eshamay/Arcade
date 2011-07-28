@@ -45,7 +45,7 @@ namespace cycle_analysis {
 				this->CycleCheckAction (cycle);
 			} 
 			else {
-				this->AcycleCheckAction (cycle);
+				this->ACycleCheckAction (cycle);
 			}
 
 			cycle_type++;
@@ -75,6 +75,8 @@ namespace cycle_analysis {
 			++triple_cycles;
 			// 3-waters + so2 should make for 8 atoms in the cycle (because the cycle has to be (starting on the S):
 			//		S-O-H-O-H-O-H-O
+			// This can be checked be doing triple_cycles - type_1 - type_2. If the answer isn't 0 then there is some other
+			// type of triple cycle forming! So far, that isn't the case..
 			if (num_atoms == 8) {
 				std::pair<int,int> minmax = CountMoleculeAtoms(cycle);
 				if (minmax.first == 1 && minmax.second == 3)
@@ -101,9 +103,6 @@ namespace cycle_analysis {
 
 
 
-	bool CycleCheck ( CycleManipulator::cycle_type_it cycle_type, CycleManipulator::cycle_list_it cycle) { 
-		return this->IsSO_Cycle(cycle_type,cycle);
-	}
 
 	// goes through the atoms in the cycle and counts the number of atoms in each molecule (by molecule ID).
 	// After sorting those out, we find the number of atoms contributing to the cycle from each molecule,
@@ -212,5 +211,21 @@ namespace cycle_analysis {
 		return;
 	}
 
+	// print out the list of lifespans and breakspans encountered
+	void SO2CycleLifespanAnalyzer::DataOutput () {
+		std::list<int>::iterator ls,ls_end, bs,bs_end;
+		boost::tie(ls,ls_end) = std::make_pair(lifespans.begin(), lifespans.end());
+		boost::tie(bs,bs_end) = std::make_pair(breakspans.begin(), breakspans.end());
+
+		while (ls != ls_end) {
+			//fprintf (this->output, "%8d\n", *ls);
+			ls++;
+		}
+
+		fflush(this->output);
+		lifespans.clear();
+		breakspans.clear();
+		return;
+	}
 
 } // namespace cycle analysis

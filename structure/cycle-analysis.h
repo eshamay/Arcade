@@ -2,6 +2,7 @@
 #define CYCLE_ANALYSIS_H_
 
 #include "bond-analysis.h"
+#include <boost/utility.hpp>
 
 namespace cycle_analysis {
 
@@ -22,7 +23,7 @@ namespace cycle_analysis {
 			CycleManipulator cm;
 
 		public:
-			SO2CycleAnalyzer (Analyzer * t, std::string& desc, std::string& fn) :
+			SO2CycleAnalyzer (Analyzer * t, std::string desc, std::string fn) :
 				SO2BondingAnalyzer (t, desc, fn),
 				cm(t) { }
 
@@ -53,6 +54,8 @@ namespace cycle_analysis {
 			// whereas the max of 3 would mean that all 3 water atoms are involved in the cycle
 			std::pair<int,int> CountMoleculeAtoms (CycleManipulator::cycle_list_it& cycle);
 
+			bool CycleCheck ( CycleManipulator::cycle_type_it cycle_type, CycleManipulator::cycle_list_it cycle) 
+			{ return this->IsSO_Cycle(cycle_type,cycle); }
 
 			void CycleCheckAction (CycleManipulator::cycle_list_it cycle);
 			void ACycleCheckAction (CycleManipulator::cycle_list_it cycle) { return; }
@@ -92,12 +95,14 @@ namespace cycle_analysis {
 			// list.
 
 			bool CycleCheck ( CycleManipulator::cycle_type_it cycle_type, CycleManipulator::cycle_list_it cycle)
-			{ return this->IsSOCycle(cycle_type,cycle); }
+			{ return this->IsSO_Cycle(cycle_type,cycle); }
 
 			// for when a cycle forms
-			void CycleCheckAction (CycleManipulator::cycle_list_it cycle) { step_state = true; }
+			//void CycleCheckAction (CycleManipulator::cycle_list_it cycle) { step_state = true; }
+			void CycleCheckAction (CycleManipulator::cycle_list_it cycle) { fprintf(this->output, "1\n"); }
 			// for when a cycle is not found
-			void ACycleCheckAction (CycleManipulator::cycle_list_it cycle) { step_state = false; }
+			//void ACycleCheckAction (CycleManipulator::cycle_list_it cycle) { step_state = false; }
+			void ACycleCheckAction (CycleManipulator::cycle_list_it cycle) { fprintf(this->output, "0\n"); }
 
 		public:
 			SO2CycleLifespanAnalyzer (Analyzer * t) :
@@ -105,7 +110,7 @@ namespace cycle_analysis {
 						std::string ("so2 cycle lifespan analyzer"),
 						std::string ("so2.cyclic-SO-lifespan.dat")),
 				cycle_state (false), prev_step_state (false), step_state (false),
-				inTimeout (false), timeout_counter (0), max_timeout (20),
+				inTimeout (false), timeout_counter (0), max_timeout (10),
 				lifespan_counter (0) { }
 
 			void Analysis ();
