@@ -38,6 +38,7 @@ namespace so2_angle_analysis {
 			void SO2SetupAndBin ();
 			void SetupAllAndBin ();
 			void SO2AngleBinner ();
+			void SO2AngleCOMDistanceBinner ();
 			virtual void UpdateHistograms (double * values) { }
 	};	// so2 angle analysis
 
@@ -80,6 +81,30 @@ namespace so2_angle_analysis {
 		return;
 	}
 
+	void SO2AngleAnalyzer::SO2AngleCOMDistanceBinner () {
+
+		SulfurDioxide * so2 = this->so2s.SO2();
+		VecR h2o_com = h2os.CenterOfMass ();
+		double distance = so2->S()->Position()[z] - h2o_com[z];
+
+		double values[2];
+		values[0] = distance;
+
+		// find the angle of the so2 theta and phi wrt the reference axis
+		double angle = so2->Z() < ref_ax;
+		angle = 180. * acos(angle) / M_PI;
+		//	values[1] = angle;
+
+		// same for the phi angle
+		double angle2 = fabs(so2->Y() < ref_ax);
+		angle2 = 180. * acos(angle2) / M_PI;
+		if (angle2 > 90.0)
+			angle2 = 180.0 - angle2;
+
+		values[1] = angle2;
+
+		this->UpdateHistograms(values);
+	}
 
 
 
@@ -94,14 +119,14 @@ namespace so2_angle_analysis {
 
 			SO2Angles2D (system_t * t) : 
 				SO2AngleAnalyzer (t, std::string ("2D so2 angle analysis")),
-				histo (std::string ("so2-angles.theta+phi.2d.dat"), 0.0, 180.0, 1.0, 0.0, 90.0, 0.5) { }
+				histo (std::string ("so2-angle-distance.phi.2d.dat"), 4.0, 16.0, 0.5, 0.0, 90.0, 1.0) { }
 
 			virtual ~SO2Angles2D () { } 
 
-			virtual void Analysis () { this->SO2SetupAndBin(); }
+			virtual void Analysis () { this->SetupAllAndBin(); }
 			virtual void DataOutput () { histo.OutputData(); }
-			virtual void BinAngles () { this->SO2AngleBinner(); }
-			void UpdateHistograms (double * values) { histo(values[0], values[1]); }
+			virtual void BinAngles () { this->SO2AngleCOMDistanceBinner(); }
+			void UpdateHistograms (double * values) { histo(values[0], values[1]); fflush(this->output); }
 
 	};	// so2 2D angle analysis
 

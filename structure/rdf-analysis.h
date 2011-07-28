@@ -12,8 +12,8 @@ namespace md_analysis {
 				RDFAnalyzer (system_t * t) :
 					AnalysisSet (t,
 						std::string("RDF Analysis"),
-						std::string("rdf.wat-H.wat-H.dat")),
-					histo(0.5, 15.0, 0.05) { }
+						std::string("rdf.so2-O.wat-H.dat")),
+					histo(0.5, 6.0, 0.05) { }
 
 				void Analysis ();
 				void DataOutput ();

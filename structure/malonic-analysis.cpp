@@ -23,4 +23,28 @@ namespace malonic_analysis {
 		//}
 	}
 
+	// for each timestep we're just finding the distances between the given pairs of atoms and outputing them all
+	// to a data file.
+	void MalonicBondLengthAnalysis::Analysis () {
+		this->LoadAll();
+
+		for (std::vector< std::pair<int,int> >::iterator it = atom_ids.begin(); it != atom_ids.end(); it++) {
+			fprintf (this->output, "%13.5f ", BondLength(it->first,it->second));
+		}
+		fprintf (this->output, "\n");
+		fflush(this->output);
+	}	
+
+	double MalonicBondLengthAnalysis::BondLength (const int id1, const int id2) {
+
+		atom1 = this->Atoms()[id1];
+		atom2 = this->Atoms()[id2];
+
+		distance = MDSystem::Distance(atom1,atom2).Magnitude();
+
+		return distance;
+	}
+
+
+
 }

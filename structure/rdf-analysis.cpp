@@ -17,24 +17,25 @@ namespace md_analysis {
 		WaterPtr wat, wat2;
 		double distance;
 		for (Mol_it mol = this->begin_wats(); mol != this->end_wats(); mol++) {
-			for (Mol_it mol2 = mol+1; mol2 != this->end_wats(); mol2++) {
+			//for (Mol_it mol2 = mol+1; mol2 != this->end_wats(); mol2++) {
 
 				wat = static_cast<WaterPtr>(*mol);
-				wat2 = static_cast<WaterPtr>(*mol2);
+				//wat2 = static_cast<WaterPtr>(*mol2);
 
 				// grab the distances from the so2 sulfur to all the water oxygens
-				distance = MDSystem::Distance (wat->H1(), wat2->H1()).Magnitude();
+				distance = MDSystem::Distance (so2->O1(), wat->H1()).Magnitude();
 				histo(distance);
-				distance = MDSystem::Distance (wat->H2(), wat2->H1()).Magnitude();
+				distance = MDSystem::Distance (so2->O1(), wat->H2()).Magnitude();
 				histo(distance);
-				distance = MDSystem::Distance (wat->H1(), wat2->H2()).Magnitude();
+				distance = MDSystem::Distance (so2->O2(), wat->H1()).Magnitude();
 				histo(distance);
-				distance = MDSystem::Distance (wat->H2(), wat2->H2()).Magnitude();
+				distance = MDSystem::Distance (so2->O2(), wat->H2()).Magnitude();
 				histo(distance);
-			}}
+			}//}
 
 	}
 
+	// see http://www.physics.emory.edu/~weeks/idl/gofr2b.html for how this is done here
 	void RDFAnalyzer::DataOutput () {
 		rewind (this->output);
 
@@ -58,6 +59,7 @@ namespace md_analysis {
 			n = histo.Population(r);
 			N = histo.Count();
 			fprintf (this->output, "%12.3f\n", n * total_volume / dV / N);
+			//fprintf (this->output, "%12.3f\n", n / dV / N);
 		}
 
 		fflush(this->output);

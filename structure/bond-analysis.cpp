@@ -112,9 +112,8 @@ namespace bond_analysis {
 			s_bonds = graph.InteractingAtoms (atom);
 			s = s_bonds.size();
 
-			coordination = s*10 + o1 + o2;
+			coordination = coordination_t(s*10 + o1 + o2);
 		}
-
 
 		void SO2CoordinationAnalyzer::Analysis () {
 			this->FindCoordination ();
@@ -141,110 +140,4 @@ namespace bond_analysis {
 
 
 
-		void SO2CycleCoordinationAnalyzer::Analysis () {
-			this->FindCoordination ();
-
-
-			cm.SetReferenceAtom(so2->S());
-			cm.SetCycleSize (30);
-			cm.BuildGraph();
-			cm.ParseCycles();
-
-			if (this->coordination / 10 >= 1 && this->coordination % 10 >= 1) {
-				CheckCycles ();
-				++total;
-			}
-		}
-
-
-
-		void SO2CycleCoordinationAnalyzer::CheckCycles () {
-
-			CycleManipulator::cycle_type_it cycle_type = cm.cycle_type_begin();
-			if (*cycle_type == CycleManipulator::HALFBRIDGE) {
-
-				for (CycleManipulator::cycle_list_it cycle = cm.cycle_begin(); cycle != cm.cycle_end(); cycle++) {
-					CycleManipulator::cycle_it _first = cycle->begin(); _first++;	
-					AtomPtr atom1 = *_first;
-					AtomPtr atom2 = cycle->back();
-
-					Molecule::Molecule_t mol1_t, mol2_t;
-					mol1_t = atom1->ParentMolecule()->MolType(); 
-					mol2_t = atom2->ParentMolecule()->MolType(); 
-					if ((mol1_t == Molecule::SO2 && mol2_t != Molecule::SO2) 
-							|| (mol1_t != Molecule::SO2 && mol2_t == Molecule::SO2)) {
-
-						cm.FindUniqueMembers(*cycle);
-
-						int num_mol = cm.NumUniqueMoleculesInCycle(); 
-						int num_atoms = cm.NumUniqueAtomsInCycle(); 
-
-						if (num_mol == 2 && num_atoms == 4)
-							++single_cycles;
-						else if (num_mol == 3)
-							++double_cycles;
-
-						else if (num_mol == 4 && num_atoms == 8) {
-							std::pair<int,int> minmax = CountMoleculeAtoms(cycle);
-							if (minmax.first == 1 && minmax.second == 3)
-								++type_1_triple_cycles;
-							else if (minmax.first == 2 && minmax.second == 2)
-								++type_2_triple_cycles;
-							else {
-								std::cerr << "check it -- " << minmax.first << "," << minmax.second << "  !" << std::endl;
-								std::for_each (cycle->begin(), cycle->end(), std::mem_fun(&Atom::Print));
-								exit(1);
-							}
-						}
-						else if (num_mol == 4)
-							++other_triple_cycles;
-
-						else if (num_mol <= 4) {
-							std::cerr << "hey boo!" << std::endl;
-							std::cerr << num_mol << " mols and " << num_atoms << " atoms" << std::endl;
-							std::for_each (cycle->begin(), cycle->end(), std::mem_fun(&Atom::Print));
-							exit(1);
-						}
-					}
-
-					cycle_type++;
-				}
-
-			}
-
-			return;
-		}
-
-		std::pair<int,int> SO2CycleCoordinationAnalyzer::CountMoleculeAtoms (CycleManipulator::cycle_list_it& cycle) {
-
-			typedef std::vector<int> int_vec;
-			typedef int_vec::iterator int_it;
-
-			int_vec mol_ids;
-			std::transform (cycle->begin(), cycle->end(), std::back_inserter(mol_ids), std::mem_fun<int>(&Atom::MolID));
-			std::sort(mol_ids.begin(), mol_ids.end());
-
-			int_vec unique_ids;
-			std::copy(mol_ids.begin(), mol_ids.end(), std::back_inserter(unique_ids));
-			int_it it = std::unique(unique_ids.begin(), unique_ids.end());
-			unique_ids.resize(it - unique_ids.begin());
-
-			int_vec count;
-
-			for (int_it jt = unique_ids.begin(); jt != unique_ids.end(); jt++) {
-				count.push_back((int)std::count(mol_ids.begin(), mol_ids.end(), *jt));
-			}
-
-			int_it min = std::min_element(count.begin(), count.end());
-			int_it max = std::max_element(count.begin(), count.end());
-			return std::make_pair (*min,*max);
-		}
-
-
-		void SO2CycleCoordinationAnalyzer::DataOutput () {
-			rewind (this->output);
-			fprintf (this->output, "%d %d %d %d %d %d\n", 
-					total, single_cycles, double_cycles, type_1_triple_cycles, type_2_triple_cycles, other_triple_cycles);
-			fflush (this->output);
-		}
 }

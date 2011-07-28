@@ -12,6 +12,7 @@
 #include "so2-angle-analysis.h"
 #include "so2-system-analysis.h"
 #include "bond-analysis.h"
+#include "cycle-analysis.h"
 #include "malonic-analysis.h"
 
 
@@ -140,9 +141,10 @@ namespace md_analysis {
 			analyses.push_back(new angle_analysis::WaterOrientationNearSO2(analyzer));
 			analyses.push_back(new md_analysis::RDFAnalyzer(analyzer));
 			analyses.push_back(new so2_angle_analysis::SO2_H2O_Angles2D(analyzer));
-			analyses.push_back(new malonic_analysis::MalonicTest(analyzer));
 			analyses.push_back(new bond_analysis::SO2CoordinationAngleAnalyzer(analyzer));
-			analyses.push_back(new bond_analysis::SO2CycleCoordinationAnalyzer(analyzer));
+			analyses.push_back(new cycle_analysis::SO2CycleCoordinationAnalyzer(analyzer));
+			analyses.push_back(new cycle_analysis::SO2CycleLifespanAnalyzer(analyzer));
+			analyses.push_back(new malonic_analysis::MalonicBondLengthAnalysis(analyzer));
 
 			//b = new bond_analysis::SO2BondingAnalyzer<U>(analyzer);					analyses.push_back(b);
 		}
