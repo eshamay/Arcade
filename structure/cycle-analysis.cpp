@@ -35,21 +35,24 @@ namespace cycle_analysis {
 
 		// this points to the cycle type of each cycle found.
 		CycleManipulator::cycle_type_it cycle_type = cm.cycle_type_begin();
+		CycleManipulator::cycle_list_it cycle = cm.cycle_begin();
 
+		// for now... just look at the smallest cycles
+		
 		// snoop through each cycle found (probably not too many)
-		for (CycleManipulator::cycle_list_it cycle = cm.cycle_begin(); cycle != cm.cycle_end(); cycle++) {
+		//for (CycleManipulator::cycle_list_it cycle = cm.cycle_begin(); cycle != cm.cycle_end(); cycle++) {
 
-			// check only the cycles that are of the half-bridge variety that Baer proposed
-			if (this->CycleCheck(cycle_type, cycle)) {
-				// do what needs to be done if a cycle is found
-				this->CycleCheckAction (cycle);
-			} 
-			else {
-				this->ACycleCheckAction (cycle);
-			}
+		// check only the cycles that are of the half-bridge variety that Baer proposed
+		if (this->CycleCheck(cycle_type, cycle)) {
+			// do what needs to be done if a cycle is found
+			this->CycleCheckAction (cycle);
+		} 
+		else {
+			this->ACycleCheckAction (cycle);
+		}
 
-			cycle_type++;
-		} // for each cycle
+		//cycle_type++;
+		//} // for each cycle
 
 		return;
 	}
@@ -63,16 +66,16 @@ namespace cycle_analysis {
 		int num_mol = this->cm.NumUniqueMoleculesInCycle(); 
 		int num_atoms = this->cm.NumUniqueAtomsInCycle(); 
 
-		// single cycles (i.e. only 1 water involved) only have 2 molecules involved... the so2 and the water
-		if (num_mol == 2 && num_atoms == 4)
-			++single_cycles;
+		if (num_mol > cycle_counts.size()) {
+			printf ("num_mol = %d\n", num_mol);
+			fflush(stdout);
+			exit(1);
+		}
 
-		else if (num_mol == 3)
-			++double_cycles;
+		cycle_counts[num_mol]++;
 
 		// found a 3-water cycle
-		else if (num_mol == 4) {
-			++triple_cycles;
+		if (num_mol == 4) {
 			// 3-waters + so2 should make for 8 atoms in the cycle (because the cycle has to be (starting on the S):
 			//		S-O-H-O-H-O-H-O
 			// This can be checked be doing triple_cycles - type_1 - type_2. If the answer isn't 0 then there is some other
@@ -80,9 +83,9 @@ namespace cycle_analysis {
 			if (num_atoms == 8) {
 				std::pair<int,int> minmax = CountMoleculeAtoms(cycle);
 				if (minmax.first == 1 && minmax.second == 3)
-					++type_1_triple_cycles;
+					++triple_type_B_cycles;
 				else if (minmax.first == 2 && minmax.second == 2)
-					++type_2_triple_cycles;
+					++triple_type_A_cycles;
 				else {
 					std::cerr << "check it -- " << minmax.first << "," << minmax.second << "  !" << std::endl;
 					std::for_each (cycle->begin(), cycle->end(), std::mem_fun(&Atom::Print));
@@ -91,13 +94,6 @@ namespace cycle_analysis {
 			}
 		} // 3-water cycles
 
-		// some error check
-		else if (num_mol <= 4) {
-			std::cerr << "hey boo!" << std::endl;
-			std::cerr << num_mol << " mols and " << num_atoms << " atoms" << std::endl;
-			std::for_each (cycle->begin(), cycle->end(), std::mem_fun(&Atom::Print));
-			exit(1);
-		}
 		return;
 	}
 
@@ -143,8 +139,11 @@ namespace cycle_analysis {
 		cm.ParseCycles();
 
 		// check that we're in the right type of coordination for the so2
-		if (this->coordination / 10 >= 1 && this->coordination % 10 >= 1) {
-			++total;
+		int num_o = this->coordination % 10;
+		int num_s = this->coordination / 10;
+		//printf ("%d %d %d\n", this->coordination, num_o, num_s);
+		if (num_o >= 1 && num_s >= 1) {
+			++this->total;
 			this->CheckCycles ();
 		}
 	}
@@ -152,8 +151,20 @@ namespace cycle_analysis {
 	// prints out a single line of data with the following values:
 	void SO2CycleCoordinationAnalyzer::DataOutput () {
 		rewind (this->output);
-		fprintf (this->output, "%d %d %d %d %d %d\n", 
-				total, single_cycles, double_cycles, triple_cycles, type_1_triple_cycles, type_2_triple_cycles);
+		// print out the total times we encountered an SO coordinated so2
+		fprintf (this->output, "%d", total);
+
+		// print out the total number of times a cycle was encountered (of any size)
+		fprintf (this->output, " %d", std::accumulate(cycle_counts.begin(), cycle_counts.end(), 0));
+
+		// print out each cycle-size count
+		for (int i = 2; i < cycle_counts.size(); i++) {
+			fprintf (this->output, " %d", cycle_counts[i]);
+		}
+
+		// lastly print out the breakdown of the 2 types of triple-size cycles
+		fprintf (this->output, " %d %d", triple_type_A_cycles, triple_type_B_cycles);
+
 		fflush (this->output);
 	}
 
@@ -169,62 +180,61 @@ namespace cycle_analysis {
 		cm.BuildGraph();
 		cm.ParseCycles();
 
-		// update the previous step's state, and then find the current step;
-		prev_step_state = step_state;
+		// check that we're in the right type of coordination for the so2
+		int num_o = this->coordination % 10;
+		int num_s = this->coordination / 10;
+		//printf ("%d %d %d\n", this->coordination, num_o, num_s);
+		if (num_o >= 1 && num_s >= 1) {
+			// if the so2 is minimally an SO coordination (at least 1 S and 1 O bond)
+			//if (this->coordination / 10 >= 1 && this->coordination % 10 >= 1)
+			this->CheckCycles ();
+		}
 
-		// if the so2 is minimally an SO coordination (at least 1 S and 1 O bond)
-		//if (this->coordination / 10 >= 1 && this->coordination % 10 >= 1)
-		this->CheckCycles ();
-
+		/*
 		// if we've formed or broken a cycle, reset the timeout
 		if (prev_step_state != step_state) {
-			timeout_counter = 0;
-			inTimeout = true;
+		timeout_counter = 0;
+		inTimeout = true;
 		}
 
 		// during a timeout/debounce
 		else if (inTimeout) {
-			++timeout_counter;
+		++timeout_counter;
 
-			if (timeout_counter >= max_timeout) {
-				// state didn't change after a timeout?
-				if (step_state == cycle_state) {
-					timeout_counter = 0;
-				}
+		if (timeout_counter >= max_timeout) {
+		// state didn't change after a timeout?
+		if (step_state == cycle_state) {
+		timeout_counter = 0;
+		}
 
-				else {
-					// keep track of both the lifespans of cycles, and the lifespans of the breaks
-					if (cycle_state)
-						lifespans.push_back (lifespan_counter);
-					else
-						breakspans.push_back (lifespan_counter);
-					lifespan_counter = 0;
-					cycle_state = step_state;
-				}
-				inTimeout = false;
-			}
+		else {
+		// keep track of both the lifespans of cycles, and the lifespans of the breaks
+		if (cycle_state)
+		lifespans.push_back (lifespan_counter);
+		else
+		breakspans.push_back (lifespan_counter);
+		lifespan_counter = 0;
+		cycle_state = step_state;
+		}
+		inTimeout = false;
+		}
 
 		}
 
 		++lifespan_counter;
+		*/
 
 		return;
 	}
 
 	// print out the list of lifespans and breakspans encountered
 	void SO2CycleLifespanAnalyzer::DataOutput () {
-		std::list<int>::iterator ls,ls_end, bs,bs_end;
-		boost::tie(ls,ls_end) = std::make_pair(lifespans.begin(), lifespans.end());
-		boost::tie(bs,bs_end) = std::make_pair(breakspans.begin(), breakspans.end());
-
-		while (ls != ls_end) {
-			//fprintf (this->output, "%8d\n", *ls);
-			ls++;
-		}
+		//for (std::list<int>::iterator ls = lifespans.begin(); ls != lifespans.end(); ls++) {
+		//fprintf (this->output, "%8d\n", *ls);
+		//ls++;
+		//}
 
 		fflush(this->output);
-		lifespans.clear();
-		breakspans.clear();
 		return;
 	}
 
