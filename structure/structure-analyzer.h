@@ -144,6 +144,7 @@ namespace md_analysis {
 			analyses.push_back(new bond_analysis::SO2CoordinationAngleAnalyzer(analyzer));
 			analyses.push_back(new cycle_analysis::SO2CycleCoordinationAnalyzer(analyzer));
 			analyses.push_back(new cycle_analysis::SO2CycleLifespanAnalyzer(analyzer));
+			analyses.push_back(new cycle_analysis::SO2CycleCoordinateWriter(analyzer));
 			analyses.push_back(new malonic_analysis::MalonicBondLengthAnalysis(analyzer));
 
 			//b = new bond_analysis::SO2BondingAnalyzer<U>(analyzer);					analyses.push_back(b);

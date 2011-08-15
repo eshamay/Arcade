@@ -81,7 +81,7 @@ namespace cycle_analysis {
 			// This can be checked be doing triple_cycles - type_1 - type_2. If the answer isn't 0 then there is some other
 			// type of triple cycle forming! So far, that isn't the case..
 			if (num_atoms == 8) {
-				std::pair<int,int> minmax = CountMoleculeAtoms(cycle);
+				std::pair<int,int> minmax = this->CountMoleculeAtoms(cycle);
 				if (minmax.first == 1 && minmax.second == 3)
 					++triple_type_B_cycles;
 				else if (minmax.first == 2 && minmax.second == 2)
@@ -104,7 +104,7 @@ namespace cycle_analysis {
 	// After sorting those out, we find the number of atoms contributing to the cycle from each molecule,
 	// and the max/min number of atoms contributed. i.e. one water contributes 1 atom (an oxygen) but another
 	// water contributes 3 atoms (2x H and 1x O) to the cycle. Thus we have a min/max of 1/3.
-	std::pair<int,int> SO2CycleCoordinationAnalyzer::CountMoleculeAtoms (CycleManipulator::cycle_list_it& cycle) {
+	std::pair<int,int> SO2CycleAnalyzer::CountMoleculeAtoms (CycleManipulator::cycle_list_it& cycle) {
 
 		typedef std::vector<int> int_vec;
 		typedef int_vec::iterator int_it;
@@ -167,6 +167,125 @@ namespace cycle_analysis {
 
 		fflush (this->output);
 	}
+
+
+	SO2CycleCoordinateWriter::SO2CycleCoordinateWriter (Analyzer * t) :
+		SO2CycleAnalyzer (t, 
+				std::string ("so2 cycle coordinate writer"),
+				std::string ("")),
+		data_root( "cycle_coordinates" ),
+		file_numbers(5,0)
+	{ 
+
+		mkdir ("cycle_coordinates",  S_IRWXU | S_IRWXG | S_IRWXO);
+		mkdir ("cycle_coordinates/single",  S_IRWXU | S_IRWXG | S_IRWXO);
+		mkdir ("cycle_coordinates/double",  S_IRWXU | S_IRWXG | S_IRWXO);
+		mkdir ("cycle_coordinates/triple",  S_IRWXU | S_IRWXG | S_IRWXO);
+		mkdir ("cycle_coordinates/quadruple",  S_IRWXU | S_IRWXG | S_IRWXO);
+		mkdir ("cycle_coordinates/type-A",  S_IRWXU | S_IRWXG | S_IRWXO);
+		mkdir ("cycle_coordinates/type-B",  S_IRWXU | S_IRWXG | S_IRWXO);
+	
+	}
+
+	FILE * SO2CycleCoordinateWriter::GetNextDataPath (const int nummols) {
+
+		std::string paths[6] = { "single", "double", "triple", "quadruple", "type-A", "type-B" };
+
+		std::string filenum;
+		std::stringstream sstr;
+		sstr << file_numbers[nummols-2];
+		filenum = sstr.str();
+		std::string filepath (std::string("cycle_coordinates") + "/" + paths[nummols-2] + "/" + filenum + ".xyz");
+		++file_numbers[nummols-2];
+
+		current_file = (FILE *)NULL;
+		current_file = fopen(filepath.c_str(), "w");
+		if (current_file == (FILE *)NULL) {
+			std::cerr << "something wrong with opening the file: " << filepath << std::endl;
+			exit(1);
+		}
+		return current_file;
+	}
+
+	void SO2CycleCoordinateWriter::OutputCoordinateFile (CycleManipulator::cycle_list_it cycle, const int nummol) {
+
+		current_file = GetNextDataPath(nummol);
+
+		// get a list of all the molecules involved
+		std::vector<MolPtr> mols;
+		std::transform (cycle->begin(), cycle->end(), std::back_inserter(mols), std::mem_fun<MolPtr,Atom>(&Atom::ParentMolecule));
+		std::sort(mols.begin(), mols.end(), Molecule::mol_cmp);
+		mols.resize(std::unique(mols.begin(), mols.end()) - mols.begin());
+
+		fprintf (current_file, "\n%d\n", (int)mols.size() * 3);
+
+		for (Mol_it mol = mols.begin(); mol != mols.end(); mol++) {
+
+			for (Atom_it atom = (*mol)->begin(); atom != (*mol)->end(); atom++) {
+				VecR pos = (*atom)->Position();
+				fprintf (current_file, "%s\t% 8.3f% 8.3f% 8.3f\n", (*atom)->Name().c_str(), pos[x], pos[y], pos[z]);
+			}
+		}
+		fclose(current_file);
+		return;
+	}
+
+
+	void SO2CycleCoordinateWriter::CycleCheckAction (CycleManipulator::cycle_list_it cycle) {
+		this->cm.FindUniqueMembers(*cycle);
+
+		int num_mol = this->cm.NumUniqueMoleculesInCycle(); 
+		int num_atoms = this->cm.NumUniqueAtomsInCycle(); 
+
+		if (num_mol <= 5) {
+			OutputCoordinateFile (cycle, num_mol);
+		}
+
+		// found a 3-water cycle
+		if (num_mol == 4) {
+			// 3-waters + so2 should make for 8 atoms in the cycle (because the cycle has to be (starting on the S):
+			//		S-O-H-O-H-O-H-O
+			// This can be checked be doing triple_cycles - type_1 - type_2. If the answer isn't 0 then there is some other
+			// type of triple cycle forming! So far, that isn't the case..
+			if (num_atoms == 8) {
+				std::pair<int,int> minmax = this->CountMoleculeAtoms(cycle);
+				// type B triple cycles
+				if (minmax.first == 1 && minmax.second == 3) {
+					OutputCoordinateFile (cycle,7);
+				}
+				// type A triple cycles
+				else if (minmax.first == 2 && minmax.second == 2) {
+					OutputCoordinateFile (cycle,6);
+				}
+			}
+		} // 3-water cycles
+		return;
+	}
+
+	void SO2CycleCoordinateWriter::ACycleCheckAction (CycleManipulator::cycle_list_it cycle) {
+	}
+
+	void SO2CycleCoordinateWriter::Analysis () {
+		this->FindCoordination ();
+
+		cm.SetReferenceAtom(so2->S());
+		cm.SetCycleSize (30);
+		cm.BuildGraph();
+		cm.ParseCycles();
+
+		// check that we're in the right type of coordination for the so2
+		int num_o = this->coordination % 10;
+		int num_s = this->coordination / 10;
+		//printf ("%d %d %d\n", this->coordination, num_o, num_s);
+		if (num_o >= 1 && num_s >= 1) {
+			this->CheckCycles ();
+		}
+	}
+
+	void SO2CycleCoordinateWriter::DataOutput () {
+	}
+
+
 
 
 

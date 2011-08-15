@@ -3,6 +3,8 @@
 
 #include "bond-analysis.h"
 #include <boost/utility.hpp>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 namespace cycle_analysis {
 
@@ -21,6 +23,11 @@ namespace cycle_analysis {
 			virtual void ACycleCheckAction (CycleManipulator::cycle_list_it cycle) = 0;
 
 			CycleManipulator cm;
+
+			// CountMoleculeAtoms tells us the min and max # of water atoms involved
+			// so a min of 1 would mean, most likely, that one of the water only has its oxygen involved
+			// whereas the max of 3 would mean that all 3 water atoms are involved in the cycle
+			std::pair<int,int> CountMoleculeAtoms (CycleManipulator::cycle_list_it& cycle);
 
 		public:
 			SO2CycleAnalyzer (Analyzer * t, std::string desc, std::string fn) :
@@ -50,10 +57,6 @@ namespace cycle_analysis {
 			int triple_type_B_cycles, triple_type_A_cycles;	// 2 different types of triple-cycles
 			int total;	// total timesteps we hit an SO coordination
 
-			// CountMoleculeAtoms tells us the min and max # of water atoms involved
-			// so a min of 1 would mean, most likely, that one of the water only has its oxygen involved
-			// whereas the max of 3 would mean that all 3 water atoms are involved in the cycle
-			std::pair<int,int> CountMoleculeAtoms (CycleManipulator::cycle_list_it& cycle);
 
 			bool CycleCheck ( CycleManipulator::cycle_type_it cycle_type, CycleManipulator::cycle_list_it cycle) 
 			{ return this->IsSO_Cycle(cycle_type,cycle); }
@@ -74,6 +77,31 @@ namespace cycle_analysis {
 			virtual void DataOutput ();
 	};
 
+
+
+
+	class SO2CycleCoordinateWriter : public SO2CycleAnalyzer {
+		private:
+
+			bool CycleCheck ( CycleManipulator::cycle_type_it cycle_type, CycleManipulator::cycle_list_it cycle) 
+			{ return this->IsSO_Cycle(cycle_type,cycle); }
+
+			void CycleCheckAction (CycleManipulator::cycle_list_it cycle);
+			void ACycleCheckAction (CycleManipulator::cycle_list_it cycle);
+
+			std::vector<int> file_numbers;
+			FILE * current_file;
+
+			std::string data_root;
+			FILE * GetNextDataPath (const int numWaters);
+			void OutputCoordinateFile  (CycleManipulator::cycle_list_it cycle, const int nummol);
+
+		public:
+			SO2CycleCoordinateWriter (Analyzer * t);
+
+			virtual void Analysis ();
+			virtual void DataOutput ();
+	};
 
 
 
