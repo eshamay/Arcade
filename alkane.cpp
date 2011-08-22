@@ -154,4 +154,17 @@ namespace alkane {
 		this->_co = this->_o->Position() - this->_c->Position();
 	}
 
+	SuccinicAcid::SuccinicAcid ()
+	{
+		this->Rename("sin");
+		_moltype = Molecule::SUCCINIC;
+	}
+
+	void SuccinicAcid::SetDihedralAtoms () {
+		this->dihedral_atoms[0] = this->GetAtom("C1");
+		this->dihedral_atoms[1] = this->GetAtom("C2");
+		this->dihedral_atoms[2] = this->GetAtom("C3");
+		this->dihedral_atoms[3] = this->GetAtom("C4");
+	}
+
 }	// namespace alkane

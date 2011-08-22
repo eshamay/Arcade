@@ -81,6 +81,17 @@ namespace cycle_analysis {
 
 
 	class SO2CycleCoordinateWriter : public SO2CycleAnalyzer {
+		public:
+
+			SO2CycleCoordinateWriter (Analyzer * t);
+
+			virtual void Analysis ();
+			virtual void DataOutput ();
+
+			typedef enum {
+				SINGLE, DOUBLE, TRIPLE, TYPE_A, TYPE_B, QUADRUPLE
+			} cycle_t;
+
 		private:
 
 			bool CycleCheck ( CycleManipulator::cycle_type_it cycle_type, CycleManipulator::cycle_list_it cycle) 
@@ -93,14 +104,9 @@ namespace cycle_analysis {
 			FILE * current_file;
 
 			std::string data_root;
-			FILE * GetNextDataPath (const int numWaters);
-			void OutputCoordinateFile  (CycleManipulator::cycle_list_it cycle, const int nummol);
+			FILE * GetNextDataPath (const cycle_t type);
+			void OutputCoordinateFile  (CycleManipulator::cycle_list_it cycle, const cycle_t type);
 
-		public:
-			SO2CycleCoordinateWriter (Analyzer * t);
-
-			virtual void Analysis ();
-			virtual void DataOutput ();
 	};
 
 

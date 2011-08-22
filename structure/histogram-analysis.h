@@ -35,6 +35,7 @@ namespace md_analysis {
 			double Count () const { return histogram.Count(); }
 			double Population (const double i) const { return histogram.Population(i); }
 
+			void SetOutputFilename (std::string fn) { filename = fn; }
 	}; // histogram 1d agent
 
 
@@ -67,6 +68,7 @@ namespace md_analysis {
 
 			virtual void OutputData ();
 			virtual void OutputDataMatrix ();
+			void SetOutputFilename (std::string fn) { filename = fn; }
 
 			pair_t max () const { return histogram.max; }
 			pair_t min () const { return histogram.min; }

@@ -141,6 +141,63 @@ namespace h2o_analysis {
 		std::sort(analysis_waters.begin(), analysis_waters.end(), typename system_t::molecule_distance_cmp(a));
 	} // find closest waters
 
+
+	void H2ODoubleSurfaceManipulator::FindWaterSurfaceLocation () {
+
+		// sort the waters by position along the reference axis - first waters are lowest, last are highest
+		std::sort (analysis_waters.begin(), analysis_waters.end(), typename system_t::molecule_position_pred(Atom::O));
+		
+		// for both the bottom and top waters, grab a certain number of them and calculate the stats
+		
+		// get the position of the bottom-most waters
+		std::vector<double> surface_water_positions;
+		std::transform (analysis_waters.begin(), analysis_waters.begin()+number_surface_waters, 
+				std::back_inserter(surface_water_positions), WaterLocation());
+
+		// calculate the statistics for the bottom surface
+		bottom_location = gsl_stats_mean (&surface_water_positions[0], 1, number_surface_waters);
+		bottom_width = gsl_stats_sd (&surface_water_positions[0], 1, number_surface_waters);
+
+		// find the top water statistics, similarly - starting from the other end of the water list
+		surface_water_positions.clear();
+		std::transform (analysis_waters.rbegin(), analysis_waters.rbegin()+number_surface_waters, 
+				std::back_inserter(surface_water_positions), WaterLocation());
+
+		// calculate the statistics
+		top_location = gsl_stats_mean (&surface_water_positions[0], 1, number_surface_waters);
+		top_width = gsl_stats_sd (&surface_water_positions[0], 1, number_surface_waters);
+
+
+	}	// find surface water location - double surface
+
+
+
+	// find the shortest distance between the two points given wrapping the unit cell
+	double H2ODoubleSurfaceManipulator::WrappedDistance (double a, double b, double dim) const {
+		// take care of wrapping into the central unit cell
+		while (fabs(a-b) > dim/2.0) {
+			if (a < b) a += dim;
+			else 		 a -= dim;
+		}
+
+		return b-a;
+	}
+
+	surface_distance_t H2ODoubleSurfaceManipulator::TopOrBottom (const double pos) const {
+
+		double dim = MDSystem::Dimensions()[WaterSystem::axis];
+		double top = WrappedDistance(top_location, pos, dim);
+		double bottom = WrappedDistance(pos, bottom_location, dim);
+
+		// if the distance from the position to the top is smaller than the distance from the position to the bottom surface, 
+		// then it's closer to the top surface, and we return true.
+		bool surface = fabs(top) < fabs(bottom);
+		double distance = (surface) ? top : bottom;
+
+		return std::make_pair(surface, distance);
+	}
+
+
 }	// namespace h2o analysis
 
 

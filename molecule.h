@@ -30,6 +30,7 @@ namespace md_system {
 				SO2,
 				ALKANE, DECANE, FORMALDEHYDE, 
 				MALONIC, MALONATE, DIMALONATE,
+				SUCCINIC,
 				HCL, CL, CTC
 			} Molecule_t;
 
@@ -195,6 +196,7 @@ namespace md_system {
 
 
 
+
 		protected:
 			Atom_ptr_vec			_atoms;					// the list of the atoms in the molecule
 			vector_map_vec		_wanniers;			// the wannier centers in the molecule
@@ -223,6 +225,25 @@ namespace md_system {
 
 
 
+	class Dihedral {
+
+		protected:
+			AtomPtr	dihedral_atoms[4];		// the 4 atoms that will define the dihedral angle
+
+			// routine used to set up the atoms that make up the dihedral
+			//	The atoms are ordered such that atom1->atom2->atom3->atom4,
+			//	the line from atom2->atom3 forms the intersection of the planes formed by atom1,atom2,atom3, and atom2,atom3,atom4.
+
+		public:
+
+			// Calculate the dihedral between the two planes formed by the three vectors
+			static double Angle (const VecR& v1, const VecR& v2, const VecR& v3);
+
+			// returns the dihedral angle in radians
+			double CalculateDihedralAngle ();
+			virtual void SetDihedralAtoms () = 0;	
+			AtomPtr DihedralAtom (const int index) const { return dihedral_atoms[index]; }
+	};	
 
 }	// namespace md system
 #endif

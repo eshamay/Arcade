@@ -119,6 +119,7 @@ namespace md_analysis {
 			analyses.push_back (new so2_analysis::SO2PositionRecorder(analyzer));				
 			analyses.push_back (new angle_analysis::SOAngleAnalysis(analyzer));				
 			analyses.push_back (new neighbor_analysis::SO2NearestNeighborAnalysis(analyzer));
+			analyses.push_back (new RDFByDistanceAnalyzer(analyzer));
 
 			//			a = new md_analysis::SystemDipoleAnalyzer(this);				analyses.push_back(a);
 		}

@@ -57,6 +57,12 @@ namespace alkane {
 	}; // class malonic
 
 
+	class SuccinicAcid : public Alkane, public Dihedral {
+		public:
+			SuccinicAcid ();
+			virtual void SetDihedralAtoms();
+	};
+
 
 	class Formaldehyde : public Alkane {
 

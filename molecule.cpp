@@ -358,4 +358,25 @@ namespace md_system {
 
 		return (this);
 	}
+
+
+	double Dihedral::Angle (const VecR& v1, const VecR& v2, const VecR& v3) {
+		// Now the tricky routine that returns the signed value of the dihedral angle
+		double a = (v2.norm() * v1).dot(v2.cross(v3));
+		double b = (v1.cross(v2)).dot(v2.cross(v3));
+		return atan2 (a,b);
+	}
+	
+	double Dihedral::CalculateDihedralAngle () {
+		// set up the atoms that form the dihedral
+		this->SetDihedralAtoms();
+
+		// next find the vectors that are normal to the plane of the molecule
+		VecR v1 = this->dihedral_atoms[1]->Position() - this->dihedral_atoms[0]->Position();
+		VecR v2 = this->dihedral_atoms[2]->Position() - this->dihedral_atoms[1]->Position();
+		VecR v3 = this->dihedral_atoms[3]->Position() - this->dihedral_atoms[2]->Position();
+
+		return Dihedral::Angle (v1,v2,v3);
+	}
+
 }	// namespace md system

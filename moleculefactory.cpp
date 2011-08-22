@@ -16,10 +16,8 @@ namespace md_system {
 			mol = new Proton;
 		else if (name == "so2" || name == "sog" || name == "soa" || name == "soq")
 			mol = new SulfurDioxide;
-		//else if (name == "no3")
-		//mol = new Nitrate;
-		//else if (name == "ctc")
-			//mol = new CarbonTetrachloride;
+		else if (name == "sin")
+			mol = new alkane::SuccinicAcid;
 
 		else {
 			//mol = new Molecule;

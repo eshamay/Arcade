@@ -209,7 +209,6 @@ namespace h2o_analysis {
 					delete *it;
 			}
 
-
 			// find all the system waters and load them into the useable containers
 			void Reload ();
 
@@ -286,6 +285,32 @@ namespace h2o_analysis {
 
 	};	// class H2OSystemManipulator
 
+
+	typedef std::pair<bool,double>	surface_distance_t;
+
+	class H2ODoubleSurfaceManipulator : public H2OSystemManipulator {
+		protected:
+			double top_location, bottom_location;
+			double top_width, bottom_width;
+
+		public:
+
+			H2ODoubleSurfaceManipulator (system_t * t, const int number_of_waters_for_surface_calc = 70) :
+				H2OSystemManipulator (t, number_of_waters_for_surface_calc) 
+		{ }
+
+			virtual void FindWaterSurfaceLocation ();		
+
+			double TopSurfaceLocation () const { return top_location; }
+			double BottomSurfaceLocation () const { return bottom_location; }
+
+			double TopSurfaceWidth () const { return top_width; }
+			double BottomSurfaceWidth () const { return bottom_width; }
+
+			double WrappedDistance (double, double, double) const;
+			// is the given value closer to the top or the bottom surface?
+			surface_distance_t TopOrBottom (const double) const;
+	};
 
 
 } // namespace h2o analysis

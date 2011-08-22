@@ -174,7 +174,7 @@ namespace cycle_analysis {
 				std::string ("so2 cycle coordinate writer"),
 				std::string ("")),
 		data_root( "cycle_coordinates" ),
-		file_numbers(5,0)
+		file_numbers(4,0)
 	{ 
 
 		mkdir ("cycle_coordinates",  S_IRWXU | S_IRWXG | S_IRWXO);
@@ -182,22 +182,64 @@ namespace cycle_analysis {
 		mkdir ("cycle_coordinates/double",  S_IRWXU | S_IRWXG | S_IRWXO);
 		mkdir ("cycle_coordinates/triple",  S_IRWXU | S_IRWXG | S_IRWXO);
 		mkdir ("cycle_coordinates/quadruple",  S_IRWXU | S_IRWXG | S_IRWXO);
-		mkdir ("cycle_coordinates/type-A",  S_IRWXU | S_IRWXG | S_IRWXO);
-		mkdir ("cycle_coordinates/type-B",  S_IRWXU | S_IRWXG | S_IRWXO);
+		//mkdir ("cycle_coordinates/type-A",  S_IRWXU | S_IRWXG | S_IRWXO);
+		//mkdir ("cycle_coordinates/type-B",  S_IRWXU | S_IRWXG | S_IRWXO);
 	
 	}
 
-	FILE * SO2CycleCoordinateWriter::GetNextDataPath (const int nummols) {
+	FILE * SO2CycleCoordinateWriter::GetNextDataPath (const cycle_t type) {
 
-		std::string paths[6] = { "single", "double", "triple", "quadruple", "type-A", "type-B" };
+		int bin_num;
+		std::string basepath;
 
+		switch (type) {
+			case SINGLE:
+				bin_num = 0;
+				basepath = "single";
+				break;
+			case DOUBLE:
+				bin_num = 1;
+				basepath = "double";
+				break;
+			case TRIPLE:
+				bin_num = 2;
+				basepath = "triple";
+				break;
+			case QUADRUPLE:
+				bin_num = 3;
+				basepath = "quadruple";
+				break;
+			case TYPE_A:
+				bin_num = 2;
+				basepath = "triple";
+				break;
+			case TYPE_B:
+				bin_num = 2;
+				basepath = "triple";
+				break;
+			default:
+				std::cerr << "Couldn't figure out the cycle-type: cyclic coordinate writer: get next data path." << std::endl;
+				exit(1);
+				break;
+		}
+
+		// form the filepath to the new data output file
 		std::string filenum;
 		std::stringstream sstr;
-		sstr << file_numbers[nummols-2];
+		sstr << file_numbers[bin_num];
 		filenum = sstr.str();
-		std::string filepath (std::string("cycle_coordinates") + "/" + paths[nummols-2] + "/" + filenum + ".xyz");
-		++file_numbers[nummols-2];
+		std::string filepath (std::string("cycle_coordinates") + "/" + basepath + "/" + filenum);
+		// for the two specific triple types, append an identifier
+		if (type == TYPE_A)
+			filepath += "-A";
+		if (type == TYPE_B)
+			filepath += "-B";
+		filepath += ".xyz";
 
+		// increment the file number for each type
+		++file_numbers[bin_num];
+
+		// check the validity of the file that was just opened
 		current_file = (FILE *)NULL;
 		current_file = fopen(filepath.c_str(), "w");
 		if (current_file == (FILE *)NULL) {
@@ -207,9 +249,11 @@ namespace cycle_analysis {
 		return current_file;
 	}
 
-	void SO2CycleCoordinateWriter::OutputCoordinateFile (CycleManipulator::cycle_list_it cycle, const int nummol) {
 
-		current_file = GetNextDataPath(nummol);
+	void SO2CycleCoordinateWriter::OutputCoordinateFile (CycleManipulator::cycle_list_it cycle, const cycle_t type) {
+
+		current_file = GetNextDataPath(type);
+
 
 		// get a list of all the molecules involved
 		std::vector<MolPtr> mols;
@@ -219,13 +263,43 @@ namespace cycle_analysis {
 
 		fprintf (current_file, "\n%d\n", (int)mols.size() * 3);
 
+		VecR pos;
+		AtomPtr reference_atom = *cycle->begin();	// grabs the sulfur atom
+		/*
+		if (type == TYPE_A) {
+			std::list<AtomPtr>::const_iterator ref_it = cycle->begin();
+			ref_it++; ref_it++; ref_it++; ref_it++;
+			reference_atom = *ref_it;
+		}
+		*/
+		VecR reference_position = reference_atom->Position();
+		/*
+		VecR com (0.0,0.0,0.0);
+		double mass = 0.0;
+		// grab the reference atom and wrap all the other atoms in to it.
 		for (Mol_it mol = mols.begin(); mol != mols.end(); mol++) {
-
 			for (Atom_it atom = (*mol)->begin(); atom != (*mol)->end(); atom++) {
-				VecR pos = (*atom)->Position();
+				// wrap the atom in to the reference position image
+				pos = (*atom)->Position(); 
+				pos = MDSystem::Distance(reference_position, pos);
+				// Calculate the center of mass of the wrapped atoms
+				com += pos * (*atom)->Mass();
+				mass += (*atom)->Mass();
+			}
+		}
+
+		com = com / mass;
+		*/
+		// now rewrap everything closest to the center of mass
+		for (Mol_it mol = mols.begin(); mol != mols.end(); mol++) {
+			for (Atom_it atom = (*mol)->begin(); atom != (*mol)->end(); atom++) {
+				// wrap the atom in to the center of mass image
+				pos = (*atom)->Position(); 
+				//pos = MDSystem::Distance(reference_position, (*atom)->Position());
 				fprintf (current_file, "%s\t% 8.3f% 8.3f% 8.3f\n", (*atom)->Name().c_str(), pos[x], pos[y], pos[z]);
 			}
 		}
+
 		fclose(current_file);
 		return;
 	}
@@ -237,28 +311,48 @@ namespace cycle_analysis {
 		int num_mol = this->cm.NumUniqueMoleculesInCycle(); 
 		int num_atoms = this->cm.NumUniqueAtomsInCycle(); 
 
-		if (num_mol <= 5) {
-			OutputCoordinateFile (cycle, num_mol);
+		switch (num_mol) {
+			// single
+			case 2:
+				OutputCoordinateFile (cycle, SINGLE);
+				break;
+
+			// double
+			case 3:
+				OutputCoordinateFile (cycle, DOUBLE);
+				break;
+
+			// triple
+			case 4:
+				// 3-waters + so2 should make for 8 atoms in the cycle (because the cycle has to be (starting on the S):
+				//		S-O-H-O-H-O-H-O
+				// This can be checked be doing triple_cycles - type_1 - type_2. If the answer isn't 0 then there is some other
+				// type of triple cycle forming! So far, that isn't the case..
+				if (num_atoms == 8) {
+					std::pair<int,int> minmax = this->CountMoleculeAtoms(cycle);
+					// type B triple cycles
+					if (minmax.first == 1 && minmax.second == 3) {
+						OutputCoordinateFile (cycle,TYPE_B);
+					}
+					// type A triple cycles
+					else if (minmax.first == 2 && minmax.second == 2) {
+						OutputCoordinateFile (cycle,TYPE_A);
+					}
+					else {
+						OutputCoordinateFile (cycle,TRIPLE);
+					}
+				}
+				else {
+					OutputCoordinateFile (cycle,TRIPLE);
+				}
+				break;
+
+			// quadruple
+			case 5:
+				OutputCoordinateFile (cycle, QUADRUPLE);
+				break;
 		}
 
-		// found a 3-water cycle
-		if (num_mol == 4) {
-			// 3-waters + so2 should make for 8 atoms in the cycle (because the cycle has to be (starting on the S):
-			//		S-O-H-O-H-O-H-O
-			// This can be checked be doing triple_cycles - type_1 - type_2. If the answer isn't 0 then there is some other
-			// type of triple cycle forming! So far, that isn't the case..
-			if (num_atoms == 8) {
-				std::pair<int,int> minmax = this->CountMoleculeAtoms(cycle);
-				// type B triple cycles
-				if (minmax.first == 1 && minmax.second == 3) {
-					OutputCoordinateFile (cycle,7);
-				}
-				// type A triple cycles
-				else if (minmax.first == 2 && minmax.second == 2) {
-					OutputCoordinateFile (cycle,6);
-				}
-			}
-		} // 3-water cycles
 		return;
 	}
 

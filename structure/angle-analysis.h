@@ -5,6 +5,7 @@
 #include "manipulators.h"
 #include "histogram-analysis.h"
 #include "neighbor-analysis.h"
+#include "molecule-analysis.h"
 
 
 namespace angle_analysis {
@@ -332,6 +333,111 @@ namespace angle_analysis {
 			AngleHelper	angles;	// 2d histogram
 
 	};	// water orientation near so2
+
+
+
+
+
+	class SuccinicAcidDihedralAngleAnalysis : public molecule_analysis::SuccinicAcidAnalysis {
+
+		private:
+			Histogram2DAgent		histo;
+			double angle;
+			double com;
+			h2o_analysis::surface_distance_t	distance;
+
+		public:
+			typedef Analyzer system_t;
+			SuccinicAcidDihedralAngleAnalysis (system_t * t) : 
+				molecule_analysis::SuccinicAcidAnalysis (t,
+						std::string("succinic acid dihedral vs distance to surface"),
+						std::string("")),
+				histo (std::string ("dihedrals.v.distance.dat"), 
+						-20.0, 10.0, 0.2,
+						-180.0,180.0,1.0)
+		{ }
+
+			void DataOutput () { histo.OutputData(); }
+			void SuccinicAcidCalculation (alkane::SuccinicAcid *);
+
+	};	// succinic dihedral analysis
+
+
+	// angle of a bond vector relative to the surface normal
+	class SuccinicAcidBondAngleAnalysis : public molecule_analysis::SuccinicAcidAnalysis {
+
+		private:
+			Histogram2DAgent		histo;
+			double angle;
+			double com;
+			h2o_analysis::surface_distance_t	distance;
+			VecR bond, axis;
+
+			void AngleDistanceCalculation (AtomPtr, AtomPtr);	// does the calculation for each bond
+
+		public:
+			typedef Analyzer system_t;
+			SuccinicAcidBondAngleAnalysis (system_t * t) : 
+				molecule_analysis::SuccinicAcidAnalysis (t,
+						std::string("succinic acid bond-angle analysis"),
+						std::string("")),
+				histo (std::string ("CC-bond-angle.v.distance.dat"), 
+						-20.0, 10.0, 0.2,	// distance to interface
+						-180.0,180.0,1.0),	// angle
+				axis(VecR::UnitY())
+		{ }
+
+			void DataOutput () { histo.OutputData(); }
+			void SuccinicAcidCalculation (alkane::SuccinicAcid *);
+
+	};	// succinic bond angle
+
+	// angle of a bond vector relative to the surface normal
+	class SuccinicAcidCarbonylAngleAnalysis : public molecule_analysis::SuccinicAcidAnalysis {
+
+		private:
+			std::vector<Histogram2DAgent>		histos;
+			double com;
+			h2o_analysis::surface_distance_t	distance;
+			VecR bond, axis, v1, v2, v3;
+			double tilt, twist;
+			double min,max,dr;	// min and max positions we'll consider, and the resolution
+
+			void AngleDistanceCalculation (AtomPtr, AtomPtr);	// does the calculation for each bond
+			Histogram2DAgent * FindHistogram (const double pos);
+
+		public:
+			typedef Analyzer system_t;
+			SuccinicAcidCarbonylAngleAnalysis (system_t * t) : 
+				molecule_analysis::SuccinicAcidAnalysis (t,
+						std::string("succinic acid carbonyl-angle analysis"),
+						std::string("")),
+				axis(VecR::UnitY()),
+				histos (8,			// make 8 slices through the surface region from +4 down to -12
+						Histogram2DAgent(
+							std::string("temp-blurb.dat"),
+							-180.0,180.0,4.0,
+							-180.0,180.0,4.0)	
+						),
+				min(-12.0),max(4.0),dr(2.0) { 
+
+					for (int i = 0; i < histos.size(); i++) {
+						std::string filenum;
+						std::stringstream sstr;
+						double pos = dr * i + min;
+						sstr.clear();
+						sstr << pos;
+						filenum = sstr.str();
+						std::string filepath (std::string("./carbonyl_angles/tilt-dihedral.") + filenum + ".dat");
+						histos[i].SetOutputFilename (filepath);
+					}
+				}
+
+			void DataOutput ();
+			void SuccinicAcidCalculation (alkane::SuccinicAcid *);
+			void AngleDistanceCalculation (AtomPtr aliphatic, AtomPtr carbonyl, AtomPtr oxygen);
+
+	};	// succinic carbonyl angle
 
 
 }	// namespace angle analysis
