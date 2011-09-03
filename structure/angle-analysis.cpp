@@ -324,16 +324,111 @@ namespace angle_analysis {
 	}	// analysis
 
 
-	void SuccinicAcidDihedralAngleAnalysis::SuccinicAcidCalculation (alkane::SuccinicAcid * succ) {
-		// calculate the dihedral angle
-		angle = succ->CalculateDihedralAngle() * 180.0/M_PI;
+	void SuccinicAcidCarbonChainDihedralAngleAnalysis::SuccinicAcidCalculation (alkane::SuccinicAcid * succ) {
+		// calculate the dihedral angle of the carbon chain.
+		// the method sets the atoms of the carbon chain for the dihedral calculation...
+		this->angle = succ->CalculateDihedralAngle() * 180.0/M_PI;
 
 		// find the center of mass location of the succinic acid
-		com = succ->UpdateCenterOfMass() [WaterSystem::axis];
-		distance = this->h2os.TopOrBottom(com);
+		this->com = succ->UpdateCenterOfMass() [WaterSystem::axis];
+		this->distance = this->h2os.TopOrBottom(com);
 
-		histo(distance.second, angle);
+		this->histo(this->distance.second, fabs(this->angle));
 	}
+
+
+	void SuccinicAcidCarbonylDihedralAngleAnalysis::SuccinicAcidCalculation (alkane::SuccinicAcid * succ) {
+		this->com = succ->UpdateCenterOfMass() [WaterSystem::axis];
+		this->distance = this->h2os.TopOrBottom(com);
+
+		succ->SetDihedralAtoms();
+		// Aliphatic carbons are C2 and C3
+		// Carbonyl carbons are C1 and C4
+		// alcohol oxygens are O1 and O3
+		// carbonyl oxygens are O2 and O4
+		DihedralCalculation (succ->DihedralAtom(0), succ->GetAtom("O2"), succ->GetAtom("O1"));
+		DihedralCalculation (succ->DihedralAtom(3), succ->GetAtom("O4"), succ->GetAtom("O3"));
+	}
+
+	// This calculates the two dihedrals of the y-axis, the aliphatic carbon, carbonyl carbon, and carbonyl oxygen.
+	// The twist/dihedral value will tell us where the carbonyl oxygen is pointing, and if the O-C-O of the carbonyl group
+	// is flat or perpendicular to the interface
+	void SuccinicAcidCarbonylDihedralAngleAnalysis::DihedralCalculation (AtomPtr carbon, AtomPtr carbonyl, AtomPtr alcohol) {
+
+		// calculate the dihedral of the ref-axis - aiphatic - carbonyl - oxygen set of vectors
+		v1 = axis;// the reference axis - perp to the surface
+		if (!(this->distance.first))
+			v1 = -v1;
+
+		// the bisector of the two C-O bonds
+		v2 = ((carbonyl->Position() - carbon->Position()) + (alcohol->Position() - carbon->Position())).normalized();
+		// v3 points from carbonyl carbon to the carbonyl oxygen
+		v3 = carbonyl->Position() - carbon->Position();
+
+		twist = Dihedral::Angle(v1,v2,v3) * 180.0 / M_PI;
+
+		this->histo (distance.second,fabs(twist));
+	}
+
+	//// TILT TWIST ///// 
+
+	void SuccinicAcidCarbonylTiltTwistAnglesAnalysis::SuccinicAcidCalculation (alkane::SuccinicAcid * succ) {
+		this->com = succ->UpdateCenterOfMass() [WaterSystem::axis];
+		this->distance = this->h2os.TopOrBottom(com);
+
+		succ->SetDihedralAtoms();
+		// Aliphatic carbons are C2 and C3
+		// Carbonyl carbons are C1 and C4
+		// alcohol oxygens are O1 and O3
+		// carbonyl oxygens are O2 and O4
+		DihedralCalculation (succ->DihedralAtom(0), succ->GetAtom("O2"), succ->GetAtom("O1"));
+		DihedralCalculation (succ->DihedralAtom(3), succ->GetAtom("O4"), succ->GetAtom("O3"));
+	}
+
+	// This calculates the two dihedrals of the y-axis, the aliphatic carbon, carbonyl carbon, and carbonyl oxygen.
+	// The twist/dihedral value will tell us where the carbonyl oxygen is pointing, and if the O-C-O of the carbonyl group
+	// is flat or perpendicular to the interface
+	void SuccinicAcidCarbonylTiltTwistAnglesAnalysis::DihedralCalculation (AtomPtr carbon, AtomPtr carbonyl, AtomPtr alcohol) {
+
+		// calculate the dihedral of the ref-axis - aiphatic - carbonyl - oxygen set of vectors
+		v1 = axis;// the reference axis - perp to the surface
+		if (!(this->distance.first))
+			v1 = -v1;
+
+		// the bisector of the two C-O bonds
+		v2 = ((carbonyl->Position() - carbon->Position()) + (alcohol->Position() - carbon->Position())).normalized();
+		// v3 points from carbonyl carbon to the carbonyl oxygen
+		v3 = carbonyl->Position() - carbon->Position();
+
+		twist = Dihedral::Angle(v1,v2,v3) * 180.0 / M_PI;
+		tilt = acos(v2 < v1) * 180.0/M_PI;
+
+		Histogram2DAgent* histo2d = FindHistogram(distance.second);
+		histo2d->operator() (tilt,fabs(twist));
+		return;
+	}
+
+	Histogram2DAgent* SuccinicAcidCarbonylTiltTwistAnglesAnalysis::FindHistogram (const double pos) {
+		// given the max/min/res parameters for chopping up the system/surface into slices
+		// this will return the corrent histogram to use
+		Histogram2DAgent* histo;
+
+		if (pos <= posmin)
+			histo = &histos.front();
+
+		else if (pos >= posmax)
+			histo = &histos.back();
+
+		else {
+			int r = int((pos-posmin)/posres);
+			histo = &histos[r];
+		}
+
+		return histo;
+	}
+
+
+
 
 
 	void SuccinicAcidBondAngleAnalysis::SuccinicAcidCalculation (alkane::SuccinicAcid * succ) {
@@ -342,11 +437,19 @@ namespace angle_analysis {
 		// get the molecule's position, and the surface it's closest to
 		com = succ->UpdateCenterOfMass() [WaterSystem::axis];
 
-		AngleDistanceCalculation (succ->DihedralAtom(1), succ->DihedralAtom(0));
-		AngleDistanceCalculation (succ->DihedralAtom(2), succ->DihedralAtom(3));
+		// check the alphatic C-C bond orientation
+		// Aliphatic carbons are C2 and C3
+		// Carbonyl carbons are C1 and C4
+		//AngleDistanceCalculation (succ->DihedralAtom(1), succ->DihedralAtom(0));
+		//AngleDistanceCalculation (succ->DihedralAtom(2), succ->DihedralAtom(3));
 
+		// grab the aliphatic carbon and then the alcohol oxygen
+		AngleDistanceCalculation (succ->DihedralAtom(0), succ->GetAtom("O2"));
+		AngleDistanceCalculation (succ->DihedralAtom(3), succ->GetAtom("O4"));
 		return;
 	}
+
+
 
 	void SuccinicAcidBondAngleAnalysis::AngleDistanceCalculation (AtomPtr aliphatic, AtomPtr carbonyl) {
 		distance = this->h2os.TopOrBottom(com);
@@ -368,71 +471,6 @@ namespace angle_analysis {
 
 
 
-	void SuccinicAcidCarbonylAngleAnalysis::AngleDistanceCalculation (
-			AtomPtr aliphatic, AtomPtr carbonyl, AtomPtr oxygen) {
-
-		// find the tilt angle of the c-c bond
-		// the vector points from the aliphatic towards the carbonyl carbons
-		bond = carbonyl->Position() - aliphatic->Position();
-
-		tilt = bond < axis;
-		// if closer to the top surface, then no problem. Otherwise, invert the angle value
-		if (!distance.first)
-			tilt = -tilt;
-		tilt = acos(tilt) * 180.0 / M_PI;
-
-		// calculate the dihedral of the ref-axis - aiphatic - carbonyl - oxygen set of vectors
-		v1 = axis;// the reference axis - perp to the surface
-		if (!distance.first)
-			v1 = -v1;
-		v3 = oxygen->Position() - carbonyl->Position();	// carbonyl C double-bond O
-
-		twist = Dihedral::Angle(v1,bond,v3) * 180.0 / M_PI;
-
-		// then find the histogram to use, and bin the values
-		Histogram2DAgent * histo = FindHistogram(distance.second);
-
-		histo->operator() (tilt,twist);
-
-		return;
-	}
-
-
-	void SuccinicAcidCarbonylAngleAnalysis::SuccinicAcidCalculation (alkane::SuccinicAcid * succ) {
-		// Set the atoms in the succinic acid molecule
-		succ->SetDihedralAtoms();
-		com = succ->UpdateCenterOfMass() [WaterSystem::axis];
-		// get the molecule's position, and the surface it's closest to
-		distance = this->h2os.TopOrBottom(com);
-
-		AngleDistanceCalculation (succ->DihedralAtom(1), succ->DihedralAtom(0), succ->GetAtom("O2"));
-		AngleDistanceCalculation (succ->DihedralAtom(2), succ->DihedralAtom(3), succ->GetAtom("O4"));
-	}
-
-	void SuccinicAcidCarbonylAngleAnalysis::DataOutput () {
-		// for each histogram, we set up the filename and then output the histogram's data
-		for (int i = 0; i < histos.size(); i++) {
-			histos[i].OutputData();
-		}
-	}
-
-	Histogram2DAgent* SuccinicAcidCarbonylAngleAnalysis::FindHistogram (const double pos) {
-		// given the max/min/res parameters for chopping up the system/surface into slices
-		// this will return the corrent histogram to use
-		Histogram2DAgent* histo;
-		if (pos <= min)
-			histo = &histos.front();
-
-		else if (pos >= max)
-			histo = &histos.back();
-
-		else {
-			int h = int((pos-min)/dr);
-			histo = &histos[h];
-		}
-
-		return histo;
-	}
 
 
 } // namespace angle_analysis

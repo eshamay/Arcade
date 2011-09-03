@@ -109,14 +109,19 @@ namespace md_analysis {
 		//succ->SetDihedralAtoms();
 
 		double distance;
-		// the carbonyl oxygens
+		// alcohol oxygens are O1 and O3
+		// carbonyl oxygens are O2 and O4
 		AtomPtr o1 = succ->GetAtom ("O2");
-		AtomPtr o2 = succ->GetAtom ("O3");
+		AtomPtr o2 = succ->GetAtom ("O4");
 
 		for (Wat_it wat = h2os.begin(); wat != h2os.end(); wat++) {
-			distance = MDSystem::Distance (o1, (*wat)->O()).norm();
+			distance = MDSystem::Distance (o1, (*wat)->H1()).norm();
 			rdf->operator()(distance);
-			distance = MDSystem::Distance (o2, (*wat)->O()).norm();
+			distance = MDSystem::Distance (o1, (*wat)->H2()).norm();
+			rdf->operator()(distance);
+			distance = MDSystem::Distance (o2, (*wat)->H1()).norm();
+			rdf->operator()(distance);
+			distance = MDSystem::Distance (o2, (*wat)->H2()).norm();
 			rdf->operator()(distance);
 		}
 

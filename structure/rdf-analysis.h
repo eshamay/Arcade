@@ -71,7 +71,8 @@ namespace md_analysis {
 					filenum.clear();
 					sstr << pos;
 					filenum = sstr.str();
-					std::string filepath (std::string("./alcohol-oxygen-water-oxygen.distance-rdfs/rdf.") + filenum + ".dat");
+					//std::string filepath (std::string("./alcohol-oxygen-water-hydrogen.distance-rdfs/rdf.") + filenum + ".dat");
+					std::string filepath (std::string("./carbonyl-oxygen-water-hydrogen.distance-rdfs/rdf.") + filenum + ".dat");
 					rdfs[i].SetOutputFilename (filepath);
 				}
 			}

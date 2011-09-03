@@ -120,6 +120,10 @@ namespace md_analysis {
 			analyses.push_back (new angle_analysis::SOAngleAnalysis(analyzer));				
 			analyses.push_back (new neighbor_analysis::SO2NearestNeighborAnalysis(analyzer));
 			analyses.push_back (new RDFByDistanceAnalyzer(analyzer));
+			analyses.push_back (new angle_analysis::SuccinicAcidBondAngleAnalysis(analyzer));
+			analyses.push_back (new angle_analysis::SuccinicAcidCarbonChainDihedralAngleAnalysis(analyzer));
+			analyses.push_back (new angle_analysis::SuccinicAcidCarbonylDihedralAngleAnalysis(analyzer));
+			analyses.push_back (new angle_analysis::SuccinicAcidCarbonylTiltTwistAnglesAnalysis(analyzer));
 
 			//			a = new md_analysis::SystemDipoleAnalyzer(this);				analyses.push_back(a);
 		}
