@@ -127,6 +127,28 @@ namespace md_analysis {
 
 
 
+	// interface for an analysis that creates multiple 2d histograms for a 3rd dimension of analysis
+	class Multi2DHistogramAgent {
+		protected:
+
+			// the 2d histograms that will be divided by slices
+			std::vector<Histogram2DAgent>	histos;
+			double min, max, res;	// extents for the 3rd dimension
+
+
+			virtual Histogram2DAgent * FindHistogram (const double val);	// finds the particular histogram governed by the extents of the 1st dimension
+
+		public:
+			Multi2DHistogramAgent (
+					const double minimum1, const double maximum1, const double resolution1
+					const double minimum2, const double maximum2, const double resolution2
+					const double minimum3, const double maximum3, const double resolution3,
+					std::string prefix, std::string suffix);
+
+			void operator() (const double val1, const double val2, const double val3);
+			virtual void DataOutput (DataOutput2DFunction func);
+	};
+
 	/*
 		 template <typename T, typename U=double>
 		 class histogram_analysis : public AnalysisSet< Analyzer<T> > {
