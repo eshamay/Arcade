@@ -16,13 +16,32 @@ namespace alkane {
 
 			static int numAlkanes;			// total number of carbon chains in the system
 
-			VecR ReferencePoint () const { 
+			virtual VecR ReferencePoint () const { 
 				return this->CenterOfMass(); 
 			}
 			// Functions for analysis
 			//virtual void SetAtoms () = 0;
-	
-			void ClearAlkaneAtoms () {
+
+
+	};
+
+
+
+
+	class MalonicAcid : public Alkane {
+
+
+		public:
+			MalonicAcid (Molecule_t moltype);
+			virtual ~MalonicAcid ();
+
+			static int numMalonicAcid;
+			static int numMalonate;
+			static int numDimalonate;
+
+			void SetAtoms ();
+
+			void UnsetAtoms () {
 				carbonyl_c.clear();
 				carbonyl_o.clear();
 				aliphatic_c.clear();
@@ -33,7 +52,17 @@ namespace alkane {
 			Atom_ptr_vec carbonyl_o;
 			Atom_ptr_vec aliphatic_c;
 			Atom_ptr_vec acid_o;
+
+			std::vector< std::vector<double> > distances;
+	}; // class malonic
+
+
+	class SuccinicAcid : public Alkane, public Dihedral {
+		public:
+			SuccinicAcid ();
+			virtual void SetDihedralAtoms();
 	};
+
 
 	class Formaldehyde : public Alkane {
 
@@ -61,5 +90,6 @@ namespace alkane {
 			AtomPtr _c, _o, _h1, _h2;
 			VecR _co, _ch1, _ch2;
 	};
+
 }
 #endif

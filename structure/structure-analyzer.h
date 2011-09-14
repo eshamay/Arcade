@@ -1,12 +1,6 @@
 #ifndef TEST_H_
 #define TEST_H_
 
-//#define EIGEN_MATRIXBASE_PLUGIN "/home/eric/md/Arcade/EigenMatrixAddon.h"
-//#define EIGEN_MATRIXBASE_PLUGIN "/home/eshamay/md/src/Arcade/EigenMatrixAddon.h"
-//#include <Eigen/Core>
-//using namespace Eigen;
-//USING_PART_OF_NAMESPACE_EIGEN
-
 #include "analysis.h"
 #include "utility.h"
 #include "angle-bond-analysis.h"
@@ -18,6 +12,8 @@
 #include "so2-angle-analysis.h"
 #include "so2-system-analysis.h"
 #include "bond-analysis.h"
+#include "cycle-analysis.h"
+#include "malonic-analysis.h"
 
 
 typedef std::vector<double> double_vec;
@@ -25,117 +21,138 @@ typedef double_vec::const_iterator double_it;
 
 namespace md_analysis {
 
-	template <typename T>
-		class StructureAnalyzer : public Analyzer<T>
-	{
-		public:
-			typedef Analyzer<T> system_t;
-			typedef std::vector<AnalysisSet<T> *>	analysis_vec;
+	using namespace md_system;
+	using namespace md_files;
 
-			StructureAnalyzer (const int choice = -1) 
-				: system_t (), _analysis_choice(choice) {
+	typedef enum {AMBER=0, XYZ, TRR, XTC} system_type;
+
+
+	template <typename T>
+		class StructureAnalyzer {
+			public:
+				typedef std::vector<AnalysisSet *>	analysis_vec;
+
+				StructureAnalyzer (const int choice = -1) : _analysis_choice(choice) {
 					LoadSystemAnalyses ();
 					PromptForAnalysisFunction(); 
 				}
 
-			virtual ~StructureAnalyzer () {
-				for (typename analysis_vec::iterator it = analyses.begin(); it != analyses.end(); it++) {
-					delete *it;
+				virtual ~StructureAnalyzer () {
+					for (typename analysis_vec::iterator it = analyses.begin(); it != analyses.end(); it++) {
+						delete *it;
+					}
+					delete analyzer;
+					delete sys;
 				}
+
+				void SystemAnalysis (AnalysisSet& an);
+
+			protected:
+				WaterSystem * sys;
+				Analyzer * analyzer;
+
+				int _analysis_choice;
+				// output a bit of text to stdout and ask the user for a choice as to which type of analysis to perform - then do it.
+				void PromptForAnalysisFunction ();
+				//! Loads all the analyses that are compatible with the given system-type
+				void LoadSystemAnalyses ();
+				// The set of possible analyses to perform on a given system
+				analysis_vec analyses;
+		};
+
+
+	template <typename T>
+	void StructureAnalyzer<T>::SystemAnalysis (AnalysisSet& an) {
+		// do some initial setup
+		an.Setup();
+
+		// start the analysis - run through each timestep
+		for (Analyzer::timestep = 0; Analyzer::timestep < Analyzer::timesteps; Analyzer::timestep++) {
+
+			try {
+				// Perform the main loop analysis that works on every timestep of the simulation
+				an.Analysis ();
+			} catch (std::exception& ex) {
+				std::cout << "Caught an exception during the system analysis at timestep " << Analyzer::timestep << "." << std::endl;
+				throw;
 			}
 
-		protected:
-			int _analysis_choice;
-			// output a bit of text to stdout and ask the user for a choice as to which type of analysis to perform - then do it.
-			void PromptForAnalysisFunction ();
-			//! Loads all the analyses that are compatible with the given system-type
-			void LoadSystemAnalyses ();
-			// The set of possible analyses to perform on a given system
-			analysis_vec analyses;
-	};
+			// output the status of the analysis (to the screen or somewhere useful)
+			analyzer->OutputStatus ();
+			// Output the actual data being collected to a file or something for processing later
+			if (analyzer->ReadyToOutputData())
+				an.DataOutput();
+
+			try {
+				// load the next timestep
+				analyzer->LoadNext();
+			} catch (std::exception& ex) {
+				throw;
+			}
+		}
+		// do one final data output to push out the finalized data set
+		an.DataOutput();
+
+		// do a little work after the main analysis loop (normalization of a histogram? etc.)
+		an.PostAnalysis ();
+		return;
+	} // System Analysis w/ analysis set
 
 
 	//! Loads all the system analyses that can be performed on Amber systems
 	template <>
 		void StructureAnalyzer<AmberSystem>::LoadSystemAnalyses () {
-			typedef AmberSystem T;
-			AnalysisSet<T> * a;
+			sys = new AmberWaterSystem ();
+			analyzer = new Analyzer (sys);
 
-			a = new H2OAngleBondAnalysis<T>(this);									analyses.push_back(a);
-			a = new AtomicDensityAnalysis<T>(this);									analyses.push_back(a);
-			a = new SystemDensitiesAnalysis<T>(this);						analyses.push_back(a);
-			a = new angle_analysis::H2OAngleAnalysis<T>(this);			analyses.push_back(a);
-			a = new angle_analysis::ReferenceSO2AngleAnalysis<T>(this);			analyses.push_back(a);
-			a = new neighbor_analysis::SO2BondingCycleAnalysis<T>(this);	analyses.push_back(a);
-			a = new neighbor_analysis::SO2HBondingAnalysis<T>(this);			analyses.push_back(a);
-			a = new md_analysis::H2OSurfaceStatisticsAnalysis<T>(this);		analyses.push_back(a);
-			a = new angle_analysis::SO2AdsorptionWaterAngleAnalysis<T>(this);	analyses.push_back(a);
-			a = new angle_analysis::WaterOHAngleAnalysis<T>(this);				analyses.push_back(a);
-			a = new so2_analysis::SO2PositionRecorder<T>(this);						analyses.push_back(a);
-			a = new angle_analysis::SOAngleAnalysis<T>(this);						analyses.push_back(a);
-			a = new neighbor_analysis::SO2NearestNeighborAnalysis<T>(this);						analyses.push_back(a);
+			analyses.push_back (new H2OAngleBondAnalysis(analyzer));									
+			analyses.push_back (new AtomicDensityAnalysis(analyzer));							
+			analyses.push_back (new SystemDensitiesAnalysis(analyzer));					
+			analyses.push_back (new angle_analysis::H2OAngleAnalysis(analyzer));
+			analyses.push_back (new angle_analysis::ReferenceSO2AngleAnalysis(analyzer));			
+			analyses.push_back (new neighbor_analysis::SO2BondingCycleAnalysis(analyzer));	
+			analyses.push_back (new neighbor_analysis::SO2HBondingAnalysis(analyzer));		
+			analyses.push_back (new md_analysis::H2OSurfaceStatisticsAnalysis(analyzer));		
+			analyses.push_back (new angle_analysis::SO2AdsorptionWaterAngleAnalysis(analyzer));	
+			analyses.push_back (new angle_analysis::WaterOHAngleAnalysis(analyzer));				
+			analyses.push_back (new angle_analysis::OHAngleAnalysis(analyzer));				
+			analyses.push_back (new so2_analysis::SO2PositionRecorder(analyzer));				
+			analyses.push_back (new angle_analysis::SOAngleAnalysis(analyzer));				
+			analyses.push_back (new neighbor_analysis::SO2NearestNeighborAnalysis(analyzer));
+			analyses.push_back (new RDFByDistanceAnalyzer(analyzer));
+			analyses.push_back (new angle_analysis::SuccinicAcidBondAngleAnalysis(analyzer));
+			analyses.push_back (new angle_analysis::SuccinicAcidCarbonChainDihedralAngleAnalysis(analyzer));
+			analyses.push_back (new angle_analysis::SuccinicAcidCarbonylDihedralAngleAnalysis(analyzer));
+			analyses.push_back (new angle_analysis::SuccinicAcidCarbonylTiltTwistAnglesAnalysis(analyzer));
 
-
-//			a = new md_analysis::SystemDipoleAnalyzer<T>(this);				analyses.push_back(a);
+			//			a = new md_analysis::SystemDipoleAnalyzer(this);				analyses.push_back(a);
 		}
 
-	/*
-		 template <>
-		 void StructureAnalyzer<gromacs::GMXSystem< gromacs::XTCFile> >::LoadSystemAnalyses () {
-		 typedef gromacs::GMXSystem<gromacs::XTCFile>  T;
-		 AnalysisSet<system_t> * a;
-
-		 a = new h2o_angle_bond_histogram_analyzer<T>();
-		 analyses.push_back(a);
-		 a = new so2_angle_bond_histogram_analyzer<T>();
-		 analyses.push_back(a);
-		 a = new h2o_dipole_magnitude_histogram_analyzer<T>();
-		 analyses.push_back(a);
-		 a = new atomic_density_analysis<T>();
-		 analyses.push_back(a);
-		 a = new so2_uptake_analysis<T>();
-		 analyses.push_back(a);
-		 }
-
-		 template <>
-		 void StructureAnalyzer<gromacs::GMXSystem< gromacs::TRRFile> >::LoadSystemAnalyses () {
-		 typedef gromacs::GMXSystem<gromacs::TRRFile>  T;
-		 AnalysisSet<system_t> * a;
-
-		 a = new h2o_angle_bond_histogram_analyzer<T>();
-		 analyses.push_back(a);
-		 a = new so2_angle_bond_histogram_analyzer<T>();
-		 analyses.push_back(a);
-		 a = new h2o_dipole_magnitude_histogram_analyzer<T>();
-		 analyses.push_back(a);
-		 a = new atomic_density_analysis<T>();
-		 analyses.push_back(a);
-		 }
-
-*/
 
 	template <>
 		void StructureAnalyzer<XYZSystem>::LoadSystemAnalyses () {
-			typedef XYZSystem T;
-			typedef TopologyXYZSystem U;
-			AnalysisSet<T> * a;
-			AnalysisSet<TopologyXYZSystem> * b;
+			sys = new XYZWaterSystem ();
+			analyzer = new Analyzer (sys);
+			AnalysisSet * a;
 
-			a = new md_analysis::SystemDipoleAnalyzer<T>(this);				analyses.push_back(a);
-			a = new neighbor_analysis::SO2BondingAnalysis<T>(this);					analyses.push_back(a);
-			//a = new so2_analysis::SO2DipoleAnalyzer<T>(this);					analyses.push_back(a);
-			a = new so2_analysis::SO2BondLengthAnalyzer<T>(this);					analyses.push_back(a);
-			a = new so2_angle_analysis::SO2Angles2D<T>(this);					analyses.push_back(a);
-			a = new so2_angle_analysis::SO2Angles1D<T>(this);					analyses.push_back(a);
-			a = new so2_analysis::ClosestWaterBondlengths<T>(this);					analyses.push_back(a);
-		//	a = new so2_analysis::WaterBondLengthAnalyzer <T>(this);					analyses.push_back(a);
-			a = new bond_analysis::BondLengthAnalyzer <T>(this);					analyses.push_back(a);
-			a = new bond_analysis::SO2BondingAnalyzer<T>(this);					analyses.push_back(a);
-			a = new angle_analysis::WaterOrientationNearSO2<T>(this);		analyses.push_back(a);
-			a = new md_analysis::RDFAnalyzer<T>(this);		analyses.push_back(a);
-			a = new so2_angle_analysis::SO2_H2O_Angles2D<T>(this);		analyses.push_back(a);
+			analyses.push_back(new md_analysis::SystemDipoleAnalyzer<XYZSystem>(analyzer));
+			analyses.push_back(new neighbor_analysis::SO2BondingAnalysis(analyzer));
+			analyses.push_back(new so2_analysis::SO2BondLengthAnalyzer(analyzer));
+			analyses.push_back(new so2_angle_analysis::SO2Angles2D(analyzer));
+			analyses.push_back(new so2_angle_analysis::SO2Angles1D(analyzer));
+			analyses.push_back(new so2_analysis::ClosestWaterBondlengths(analyzer));
+			analyses.push_back(new bond_analysis::BondLengthAnalyzer (analyzer));
+			analyses.push_back(new bond_analysis::SO2CoordinationAnalyzer(analyzer));
+			analyses.push_back(new angle_analysis::WaterOrientationNearSO2(analyzer));
+			analyses.push_back(new md_analysis::RDFAnalyzer(analyzer));
+			analyses.push_back(new so2_angle_analysis::SO2_H2O_Angles2D(analyzer));
+			analyses.push_back(new bond_analysis::SO2CoordinationAngleAnalyzer(analyzer));
+			analyses.push_back(new cycle_analysis::SO2CycleCoordinationAnalyzer(analyzer));
+			analyses.push_back(new cycle_analysis::SO2CycleLifespanAnalyzer(analyzer));
+			analyses.push_back(new cycle_analysis::SO2CycleCoordinateWriter(analyzer));
+			analyses.push_back(new malonic_analysis::MalonicBondLengthAnalysis(analyzer));
 
-			b = new bond_analysis::SO2BondingAnalyzer<U>(this);					analyses.push_back(b);
+			//b = new bond_analysis::SO2BondingAnalyzer<U>(analyzer);					analyses.push_back(b);
 		}
 
 
@@ -154,12 +171,12 @@ namespace md_analysis {
 				exit(1);
 			}
 
-			else this->SystemAnalysis(*analyses[_analysis_choice]);
+			else SystemAnalysis(*analyses[_analysis_choice]);
 
 			return;
 		}
 
-}
+}	// namespace md_analysis
 
 #endif
 

@@ -45,6 +45,8 @@ namespace md_files {
 		WannierFile::numWanniers.insert(std::pair<Molecule::Molecule_t, int> (Molecule::SO2, 9));
 		WannierFile::numWanniers.insert(std::pair<Molecule::Molecule_t, int> (Molecule::FORMALDEHYDE, 6));
 		WannierFile::numWanniers.insert(std::pair<Molecule::Molecule_t, int> (Molecule::MALONIC, 19));
+		WannierFile::numWanniers.insert(std::pair<Molecule::Molecule_t, int> (Molecule::MALONATE, 19));
+		WannierFile::numWanniers.insert(std::pair<Molecule::Molecule_t, int> (Molecule::DIMALONATE, 19));
 		WannierFile::numWanniers.insert(std::pair<Molecule::Molecule_t, int> (Molecule::CL, 4));
 		WannierFile::numWanniers.insert(std::pair<Molecule::Molecule_t, int> (Molecule::ZUNDEL, 8));
 		WannierFile::numWanniers.insert(std::pair<Molecule::Molecule_t, int> (Molecule::H3O, 4));

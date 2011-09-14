@@ -29,13 +29,12 @@
 
 namespace md_analysis {
 
-	template <typename T>
-		class AtomicDensityAnalysis : public AnalysisSet<T> {
+		class AtomicDensityAnalysis : public AnalysisSet {
 			public:
-				typedef Analyzer<T> system_t;
+				typedef Analyzer system_t;
 
 				AtomicDensityAnalysis (system_t * t) : 
-					AnalysisSet<T> (t,
+					AnalysisSet (t,
 							std::string("An analysis of the density of atoms in a system relative to surface position"),
 							std::string("atomic-density.dat")),
 					h2os(t) { } 
@@ -54,7 +53,7 @@ namespace md_analysis {
 				typedef std::pair<std::string, histogram_t>				histogram_map_elmt;
 				typedef std::map<std::string, histogram_t>				histogram_map;
 				histogram_map																			histograms;
-				h2o_analysis::H2OSystemManipulator<T>							h2os;
+				h2o_analysis::H2OSystemManipulator							h2os;
 
 				class atomic_position_binner : public std::unary_function<AtomPtr,void> {
 					private:
@@ -82,41 +81,38 @@ namespace md_analysis {
 		};	// atomic density class
 
 
-	template <class T>
-		void AtomicDensityAnalysis<T>::Setup () {
+		void AtomicDensityAnalysis::Setup () {
 
-			AnalysisSet<T>::Setup();
+			AnalysisSet::Setup();
 
 			this->_system->LoadAll();
 
 			// grab the list of atomic names/types that will be used for the analysis and create the vector-histograms
-			libconfig::Setting &atom_names = WaterSystem<T>::SystemParameterLookup("analysis.density.atom-names");
+			libconfig::Setting &atom_names = WaterSystem::SystemParameterLookup("analysis.density.atom-names");
 			for (int i = 0; i < atom_names.getLength(); i++)
 			{
 				std::string atom_name = atom_names[i];
 				atom_name_list.push_back(atom_name);
 
-				histogram_t hs (histogram_t(system_t::posmin, system_t::posmax, system_t::posres));
+				histogram_t hs (histogram_t(WaterSystem::posmin, WaterSystem::posmax, Analyzer::posres));
 				histograms.insert(histogram_map_elmt(atom_name, hs));
 			}
 
 			// narrow down the system atoms to just those with names we're looking for
-			md_name_utilities::KeepByNames (this->_system->int_atoms, atom_name_list);
+			md_name_utilities::KeepByNames (this->Atoms(), atom_name_list);
 
 		}	// Setup
 
 
-	template <class T>
-		void AtomicDensityAnalysis<T>::Analysis () { 
+		void AtomicDensityAnalysis::Analysis () { 
 
 			h2os.FindWaterSurfaceLocation();
 
 			atomic_position_binner binner (h2os.SurfaceLocation(), &histograms, h2os.TopSurface());
-			std::for_each (this->_system->int_atoms.begin(), this->_system->int_atoms.end(), binner);
+			std::for_each (this->begin(), this->end(), binner);
 		}
 
-	template <class T>
-		void AtomicDensityAnalysis<T>::DataOutput () {
+		void AtomicDensityAnalysis::DataOutput () {
 
 			rewind(this->output);
 
@@ -129,8 +125,8 @@ namespace md_analysis {
 
 			// output the data from the histograms
 			double dr = system_t::posres;
-			double min = system_t::posmin;
-			double max = system_t::posmax;
+			double min = WaterSystem::posmin;
+			double max = WaterSystem::posmax;
 
 			for (double r = min; r < max; r+=dr) {
 				fprintf (this->output, "% 8.4f ", r);	// print the position
@@ -148,13 +144,12 @@ namespace md_analysis {
 		}	// Data Output
 
 	//********************* Atomic System Density - not correlated to surface location ********************/
-	template <typename T>
-		class SystemDensitiesAnalysis : public AnalysisSet<T> {
+		class SystemDensitiesAnalysis : public AnalysisSet {
 			public:
-				typedef Analyzer<T> system_t;
+				typedef Analyzer system_t;
 
 				SystemDensitiesAnalysis (system_t * t) : 
-					AnalysisSet<T> (t,
+					AnalysisSet (t,
 							std::string("An analysis of the density of atoms in a system based on atomic position"),
 							std::string("system-densities.dat")) { }
 
@@ -194,39 +189,36 @@ namespace md_analysis {
 		};	// atomic density class
 
 
-	template <class T>
-		void SystemDensitiesAnalysis<T>::Setup () {
+		void SystemDensitiesAnalysis::Setup () {
 
-			AnalysisSet<T>::Setup();
+			AnalysisSet::Setup();
 
 			this->_system->LoadAll();
 
 			// grab the list of atomic names/types that will be used for the analysis and create the vector-histograms
-			libconfig::Setting &atom_names = WaterSystem<T>::SystemParameterLookup("analysis.density.atom-names");
+			libconfig::Setting &atom_names = WaterSystem::SystemParameterLookup("analysis.density.atom-names");
 			for (int i = 0; i < atom_names.getLength(); i++)
 			{
 				std::string atom_name = atom_names[i];
 				atom_name_list.push_back(atom_name);
 
-				histogram_t hs (histogram_t(system_t::posmin, system_t::posmax, system_t::posres));
+				histogram_t hs (histogram_t(WaterSystem::posmin, WaterSystem::posmax, system_t::posres));
 				histograms.insert(histogram_map_elmt(atom_name, hs));
 			}
 
 			// narrow down the system atoms to just those with names we're looking for
-			md_name_utilities::KeepByNames (this->_system->int_atoms, atom_name_list);
+			md_name_utilities::KeepByNames (this->Atoms(), atom_name_list);
 
 		}	// Setup
 
 
-	template <class T>
-		void SystemDensitiesAnalysis<T>::Analysis () { 
+		void SystemDensitiesAnalysis::Analysis () { 
 
 			this->_system->LoadAll();
-			std::for_each (this->_system->int_atoms.begin(), this->_system->int_atoms.end(), atomic_position_binner (&histograms));
+			std::for_each (this->begin(), this->end(), atomic_position_binner (&histograms));
 		}
 
-	template <class T>
-		void SystemDensitiesAnalysis<T>::DataOutput () {
+		void SystemDensitiesAnalysis::DataOutput () {
 
 			rewind(this->output);
 
@@ -239,8 +231,8 @@ namespace md_analysis {
 
 			// output the data from the histograms
 			double dr = system_t::posres;
-			double min = system_t::posmin;
-			double max = system_t::posmax;
+			double min = WaterSystem::posmin;
+			double max = WaterSystem::posmax;
 
 			for (double r = min; r < max; r+=dr) {
 				fprintf (this->output, "% 8.4f ", r);	// print the position
@@ -263,17 +255,16 @@ namespace md_analysis {
 	//********************** H2O Surface Statistics ***************/
 
 	// output some statistics about the water surface - i.e. standard deviation of the position of the top several waters
-	template <typename T>
-		class H2OSurfaceStatisticsAnalysis : public AnalysisSet<T> {
+		class H2OSurfaceStatisticsAnalysis : public AnalysisSet {
 			public:
-				typedef Analyzer<T> system_t;
+				typedef Analyzer system_t;
 
 				H2OSurfaceStatisticsAnalysis (system_t * t) : 
-					AnalysisSet<T> (t,
+					AnalysisSet (t,
 													std::string("Surface water statistical analysis"),
 													std::string("h2o-surface-statistics.dat")),
 					h2os(t) { 
-						//h2os.ReferencePoint(WaterSystem<T>::SystemParameterLookup("analysis.reference-location"));
+						//h2os.ReferencePoint(WaterSystem::SystemParameterLookup("analysis.reference-location"));
 						h2os.ReferencePoint(45.0);
 					}
 
@@ -281,14 +272,13 @@ namespace md_analysis {
 
 			private:
 				double	std;	// standard deviation
-				h2o_analysis::H2OSystemManipulator<T>	h2os;
+				h2o_analysis::H2OSystemManipulator	h2os;
 				std::vector<double>		surface_locations;
 
 
 		};	// h2o surface statistics analysis
 
-	template <typename T>
-		void H2OSurfaceStatisticsAnalysis<T>::Analysis () {
+		void H2OSurfaceStatisticsAnalysis::Analysis () {
 			h2os.Reload();
 			h2os.FindWaterSurfaceLocation();
 
@@ -309,10 +299,9 @@ namespace md_analysis {
 	 *		# of SO2s in the water phase
 	 */
 	/*
-		 template <typename T>
-		 class so2_uptake_analysis : public AnalysisSet< Analyzer<T> > {
+		 class so2_uptake_analysis : public AnalysisSet< Analyzer > {
 		 public:
-		 typedef Analyzer<T> system_t;
+		 typedef Analyzer system_t;
 
 		 so2_uptake_analysis () : 
 		 AnalysisSet<system_t> (
@@ -332,8 +321,7 @@ namespace md_analysis {
 	void CountSO2InWater (system_t& t);
 	};
 
-	template <typename T>
-	void so2_uptake_analysis<T>::FindHighAndLowWaters (system_t& t) {
+	void so2_uptake_analysis::FindHighAndLowWaters (system_t& t) {
 
 	t.LoadWaters();
 
@@ -341,14 +329,13 @@ namespace md_analysis {
 	std::sort(t.int_wats.begin(), t.int_wats.end(), Analyzer<AmberSystem>::molecule_position_pred(Atom::O));
 	// find the highest and the lowest at the extents of the water slab
 	high_water = t.int_wats.back();
-	high_position = Analyzer<T>::Position(high_water->GetAtom(Atom::O));
+	high_position = Analyzer::Position(high_water->GetAtom(Atom::O));
 	low_water = t.int_wats.front();
-	low_position = Analyzer<T>::Position(low_water->GetAtom(Atom::O));
+	low_position = Analyzer::Position(low_water->GetAtom(Atom::O));
 
 	}
 
-	template <typename T>
-	void so2_uptake_analysis<T>::CountSO2InWater (system_t& t) {
+	void so2_uptake_analysis::CountSO2InWater (system_t& t) {
 
 	// get the listing of the SO2s in the system
 	t.LoadAll();
@@ -362,15 +349,14 @@ namespace md_analysis {
 	numAdsorbed = 0;
 	double pos;
 	for (Mol_it so2 = t.int_mols.begin(); so2 != t.int_mols.end(); so2++) {
-	pos = (*so2)->GetAtom(Atom::O)->Position()[WaterSystem<T>::axis];
+	pos = (*so2)->GetAtom(Atom::O)->Position()[WaterSystem::axis];
 	if (pos < high_position && pos > low_position) {
 	++numAdsorbed;
 	}
 	}
 	}
 
-	template <typename T>
-	void so2_uptake_analysis<T>::Analysis (system_t& t) {
+	void so2_uptake_analysis::Analysis (system_t& t) {
 	this->FindHighAndLowWaters(t);
 	this->CountSO2InWater(t);
 

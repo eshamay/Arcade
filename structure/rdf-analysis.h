@@ -1,21 +1,20 @@
 #ifndef __RDF_ANALYSIS_H
 #define __RDF_ANALYSIS_H
 
-#include "../analysis.h"
+#include "analysis.h"
+#include "molecule-analysis.h"
 
 namespace md_analysis {
 
-
-	template <class T>
-		class RDFAnalyzer : public AnalysisSet<T> {
+		class RDFAnalyzer : public AnalysisSet {
 			public:
-			typedef Analyzer<T> system_t;
+			typedef Analyzer system_t;
 
 				RDFAnalyzer (system_t * t) :
-					AnalysisSet<T> (t,
+					AnalysisSet (t,
 						std::string("RDF Analysis"),
-						std::string("rdf.wat-H.wat-H.dat")),
-					histo(0.5, 15.0, 0.05) { }
+						std::string("rdf.so2-O.wat-H.dat")),
+					histo(0.5, 6.0, 0.05) { }
 
 				void Analysis ();
 				void DataOutput ();
@@ -23,72 +22,71 @@ namespace md_analysis {
 			protected:
 
 				histogram_utilities::Histogram1D<double> histo;
-				
 		};
 
-	template <typename T>
-	void RDFAnalyzer<T>::Analysis () {
+		class RDFAgent {
+			protected:
+				Histogram1DAgent histo;
+				std::string filename;
 
-		this->LoadAll();
+			public:
 
-		// find the so2
-		MolPtr mol = Molecule::FindByType(this->begin_mols(), this->end_mols(), Molecule::SO2);
-		SulfurDioxide * so2 = static_cast<SulfurDioxide *>(mol);
-		so2->SetAtoms();
+				RDFAgent (std::string fn, const double minimum, const double maximum, const double resolution) :
+					histo (fn, minimum, maximum, resolution),
+					filename (fn) { }
 
-		// find the waters
-		this->LoadWaters();
+				void operator() (const double d) { histo(d); }
 
-		WaterPtr wat, wat2;
-		double distance;
-		for (Mol_it mol = this->begin_wats(); mol != this->end_wats(); mol++) {
-		for (Mol_it mol2 = mol+1; mol2 != this->end_wats(); mol2++) {
+				std::vector<double> CalcRDF ();
+				//double Max () const { return histo.max; }
+				//double Min () const { return histo.min; }
+				//double Res () const { return histo.res; }
+				void SetOutputFilename (std::string fn) { filename = fn; }
+				void OutputData ();
+		};
 
-			wat = static_cast<WaterPtr>(*mol);
-			wat2 = static_cast<WaterPtr>(*mol2);
 
-			// grab the distances from the so2 sulfur to all the water oxygens
-			distance = MDSystem::Distance (wat->H1(), wat2->H1()).Magnitude();
-			histo(distance);
-			distance = MDSystem::Distance (wat->H2(), wat2->H1()).Magnitude();
-			histo(distance);
-			distance = MDSystem::Distance (wat->H1(), wat2->H2()).Magnitude();
-			histo(distance);
-			distance = MDSystem::Distance (wat->H2(), wat2->H2()).Magnitude();
-			histo(distance);
-		}}
+		class RDFByDistanceAnalyzer : public molecule_analysis::SuccinicAcidAnalysis {
+			protected:
+				std::vector<RDFAgent> rdfs;
+				double posmin, posmax, posres;
 
-	}
+			public:
+				RDFByDistanceAnalyzer (Analyzer * t) :
+					SuccinicAcidAnalysis (t,
+							std::string ("RDF v. Distance analysis"),
+							std::string ("")),
+					posmin (-12.0), posmax(4.0), posres(2.0) 
 
-	template <typename T>
-		void RDFAnalyzer<T>::DataOutput () {
-			rewind (this->output);
+			{	// positions of slices of the surface/slab
+				rdfs.clear();
+				rdfs.resize (8, RDFAgent (std::string (""), 0.5, 6.0, 0.05));	// RDF parameters
 
-			//double minimum = WaterSystem<T>::SystemParameterLookup("analysis.rdf.minimum");
-			//double maximum = WaterSystem<T>::SystemParameterLookup("analysis.rdf.maximum");
-			//double resolution = WaterSystem<T>::SystemParameterLookup("analysis.rdf.resolution");
-
-			double min = histo.Min();
-			double max = histo.Max();
-			double res = histo.Resolution();
-
-			double dV, n, N;
-			double total_volume = 4.0/3.0 * M_PI * pow(max, 3);
-
-			// go through each value in the RDF position range
-			for (double r = min; r < max; r += res) {
-				// print the position to the first column
-				fprintf (this->output, "%12.3f ", r);
-				dV = 4.0 * M_PI * pow(r, 2) * res;	// volume of the shell being considered
-
-				n = histo.Population(r);
-				N = histo.Count();
-				fprintf (this->output, "%12.3f\n", n * total_volume / dV / N);
+				double pos;
+				for (int i = 0; i < rdfs.size(); i++) {
+					pos = posres * i + posmin;
+					std::stringstream sstr;
+					sstr.clear();
+					std::string filenum;
+					filenum.clear();
+					sstr << pos;
+					filenum = sstr.str();
+					//std::string filepath (std::string("./alcohol-oxygen-water-hydrogen.distance-rdfs/rdf.") + filenum + ".dat");
+					std::string filepath (std::string("./carbonyl-oxygen-water-hydrogen.distance-rdfs/rdf.") + filenum + ".dat");
+					rdfs[i].SetOutputFilename (filepath);
+				}
 			}
 
-			fflush(this->output);
-			return;
-		}
+				void SuccinicAcidCalculation (alkane::SuccinicAcid *);
+				void DataOutput () {
+					for (int i = 0; i < rdfs.size(); i++) {
+						rdfs[i].OutputData();
+					}
+				}
+
+				RDFAgent * FindRDFAgent (const double pos);
+
+		};
 
 } // namespace md_analysis
 #endif

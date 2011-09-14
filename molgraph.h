@@ -58,7 +58,6 @@ namespace molgraph {
 
 			Atom_ptr_vec Atoms () const;
 
-
 			Atom_ptr_vec BondedAtoms (
 					const AtomPtr ap,
 					const bondgraph::bondtype btype = bondgraph::covalent

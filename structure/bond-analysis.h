@@ -2,174 +2,118 @@
 #define BOND_ANALYSIS_H
 
 #include "analysis.h"
-#include "dipole-analysis.h"
+#include "manipulators.h"
+#include "histogram-analysis.h"
 
 namespace bond_analysis {
 
 	using namespace md_system;
 	using namespace md_analysis;
 
-	template <typename T>
-		class BondLengthAnalyzer : public AnalysisSet<T> {
 
-			public:
-				typedef Analyzer<T> system_t;
-				BondLengthAnalyzer (system_t * t) :
-					AnalysisSet<T> (t,
-							std::string ("bondlength analysis"),
-							std::string ("so2-bond+angles.normal_modes.dat")) { }
+	class BondLengthAnalyzer : public AnalysisSet {
 
-				void Analysis ();
+		public:
+			typedef Analyzer system_t;
+			BondLengthAnalyzer (system_t * t) :
+				AnalysisSet (t,
+						std::string ("bondlength analysis"),
+						std::string ("so2-bond+angles.normal_modes.dat")) { }
 
-		};	 // bond length analyzer class
+			void Analysis ();
 
-	template <typename T>
-		void BondLengthAnalyzer<T>::Analysis () {
-			this->LoadAll();
-
-			bondgraph::BondGraph& graph = this->_system->BondGraph();
-			bondgraph::WaterCoordination_pred p (bondgraph::OH, graph);
-
-			Water_ptr_vec wats;
-			VecR_vec ohs;
-			VecR z_ax = VecR::UnitZ();
-			for (Mol_it it = this->begin_mols(); it != this->end_mols(); it++) {
-				if ((*it)->MolType() != Molecule::H2O) continue;
-				WaterPtr wat = static_cast<Water *>(*it);
-
-				//if ((wat->OH1() < z_ax) > 0.9659258)
-				if (fabs(wat->OH1() < z_ax) < 0.25882)
-					ohs.push_back(wat->OH1());
-				//if ((wat->OH2() < z_ax) > 0.9659258)
-				if (fabs(wat->OH2() < z_ax) < 0.25882)
-					ohs.push_back(wat->OH2());
-			}
-
-			/*
-			// grab the molecule
-
-			//std::cout << std::endl << wats.size() << " --> ";
-			wats.erase(std::remove_if(wats.begin(), wats.end(), std::not1(p)), wats.end());
-			if (wats.empty())
-				std::cerr << std::endl << "didn't find any" << std::endl;
-			//std::cout << wats.size() << std::endl;
-			*/
-
-				 //MolPtr mol = Molecule::FindByType(this->begin_mols(), this->end_mols(), Molecule::SO2);
-				 //SulfurDioxide * so2 = static_cast<SulfurDioxide *>(mol);
-				 //so2->SetAtoms();
-			/*
-				 int N = 5;
-			//std::sort (wats.begin(), wats.end(), WaterToSO2Distance_cmp (so2));
-			std::sort (wats.begin(), wats.end(), typename system_t::molecule_position_pred(Atom::O));
-			// take the top 10 waters and sort by distance to the so2
-			Water_ptr_vec close_wats;
-			std::copy (wats.rbegin(), wats.rbegin()+(2*N), std::back_inserter(close_wats));
-			std::sort (close_wats.begin(), close_wats.end(), WaterToSO2Distance_cmp(so2)); 
-			*/
-
-			if (ohs.size() > 0) {
-				double sum = 0.0;
-				for (VecR_it it = ohs.begin(); it != ohs.end(); it++) {
-					sum += it->Magnitude();
-				}
-				fprintf (this->output, "% 9.4f\n", sum/(double)ohs.size());
-			}
-			/*
-			if (wats.size() > 0) {
-				double sym = 0.0;
-				double antisym = 0.0;
-				for (Wat_it it = wats.begin(); it != wats.end(); it++) {
-					double oh1 = ((*it)->OH1()).Magnitude();
-					double oh2 = ((*it)->OH2()).Magnitude();
-
-					sym += oh1 + oh2;
-					antisym += oh1 - oh2;
-				}
-
-				fprintf (this->output, "% 9.4f % 9.4f\n", sym/(double)wats.size(), antisym/(double)wats.size());
-			}
-			*/
-
-			//fprintf (this->output, "%7.4f %7.4f %7.4f\n", so2->SO1().Magnitude(), so2->SO2().Magnitude(), acos(so2->Angle())*180.0/M_PI);
-			//
-			//
-			//
-			//alkane::Alkane * mal = static_cast<alkane::Alkane *>(mol);
-
-			/*
-			// print out some bond info
-			double co, ch1, ch2;
-			fprintf (this->output, " %12.5f %12.5f %12.5f\n",
-			form->CH1().Magnitude(),
-			form->CH2().Magnitude(),
-			form->CO().Magnitude()
-			);
-
-			delete form;
-			*/
-		}
+	};	 // bond length analyzer class
 
 
+	typedef struct {
+		AtomPtr atom;
+		double bondlength;
+	} bond_t;
+
+	typedef int atom_coordination_t;
+
+	typedef enum {
+		unbound = 0,
+		O = 1, OO = 2, OOO = 3, OOOO=4,
+		S=10, SO = 11, SOO=12, SOOO=13,
+		SS=20, SSO=21, SSOO=22, SSOOO=23,
+		SSS=30, SSSO=31, SSSOO=32, SSSOOO=33
+	} coordination_t;
 
 	// find the coordination of the so2 molecule for the 3 atoms separately
-	template <typename T>
-		class SO2BondingAnalyzer : public AnalysisSet<T> {
-			protected:
-				so2_analysis::XYZSO2Manipulator<T>		so2s;
+	class SO2BondingAnalyzer : public AnalysisSet {
 
-			public:
-				typedef Analyzer<T> system_t;
+		public:
+			typedef Analyzer system_t;
 
-				typedef struct {
-					AtomPtr atom;
-					double bondlength;
-				} bond;
-					
-				SO2BondingAnalyzer (system_t * t) :
-					AnalysisSet<T> (t,
-							std::string ("so2 Coordination analyzer"),
-							std::string ("so2-coordination.dat")),
-					so2s(t) {
-						so2s.Initialize();
-					}
+			SO2BondingAnalyzer (system_t * t, const std::string& desc, const std::string& fn) :
+				AnalysisSet (t, desc, fn),
+				so2s(t) {
+					so2s.Initialize();
+				}
+			virtual ~SO2BondingAnalyzer () { }
 
-				void Analysis ();
+			virtual void Analysis () = 0;
+			void FindCoordination ();
 
-				// comparator for bondlengths
-				class Bond_cmp : public std::binary_function<bond,bond,bool> {
-					public:
-						bool operator() (const bond& left, const bond& right) const {
-							return left.bondlength < right.bondlength;
-						}
-				};
-		};	 // bond length analyzer class
+		protected:
+			so2_analysis::XYZSO2Manipulator		so2s;
+			SulfurDioxide * so2;
+			atom_coordination_t	coordination, s, o1, o2;
+			Atom_ptr_vec				s_bonds, o1_bonds, o2_bonds;
+			bondgraph::BondGraph graph;
 
-	template <typename T>
-		void SO2BondingAnalyzer<T>::Analysis () {
-			this->LoadAll();
-			this->so2s.UpdateSO2();
-
-			bondgraph::BondGraph& graph = this->_system->BondGraph();
-			//bondgraph::WaterCoordination_pred p (bondgraph::OH, graph);
-
-			graph.UpdateGraph(this->begin(), this->end());
-
-			int o1, o2, s;
-			// for each of the three so2 atoms, find the bonds made to them
-			AtomPtr atom = this->so2s.O1();	// set the atom we're interested in
-			o1 = graph.NumHBonds(atom);
-
-			atom = this->so2s.O2();	
-			o2 = graph.NumHBonds(atom);
-
-			atom = this->so2s.S();	
-			s = graph.NumInteractions(atom);
-
-			fprintf (this->output, "%d\n", s*100 + o1*10+ o2);
-		} // analysis
+	};	 // bond length analyzer class
 
 
+	// comparator for bondlengths
+	class Bond_cmp : public std::binary_function<bond_t,bond_t,bool> {
+		public:
+			bool operator() (const bond_t& left, const bond_t& right) const {
+				return left.bondlength < right.bondlength;
+			}
+	};
+
+	class SO2CoordinationAnalyzer : public SO2BondingAnalyzer {
+		public:
+
+			typedef enum {
+				UNBOUND = 0, O = 1, OO = 2, OOO = 3, OOOO = 4, OOOOO = 5,
+				S = 10, SO = 11, SOO = 12, SOOO = 13, SOOOO = 14,
+				SS = 20, SSO = 21, SSOO = 22, SSOOO = 23, SSOOOO = 24,
+				SSS = 30, SSSO = 31, SSSOO = 32
+			} coordination_t;
+
+			SO2CoordinationAnalyzer (Analyzer * t) :
+				SO2BondingAnalyzer (t, 
+						std::string ("so2 Coordination analyzer"),
+						std::string ("so2-coordination.dat")) { }
+
+			void Analysis ();
+	};
+
+
+	class SO2CoordinationAngleAnalyzer : public SO2BondingAnalyzer {
+		protected:
+			Histogram1DAgent theta;
+			Histogram1DAgent phi;
+			atom_coordination_t ref_coord;
+
+		public:
+			SO2CoordinationAngleAnalyzer (Analyzer * t) :
+				SO2BondingAnalyzer (t, 
+						std::string ("so2 Angle by Coordination"),
+						std::string ("")),
+				theta ("so2.theta.OO.dat",
+						0.0, 180.0, 2.0),
+				phi ("so2.phi.OO.dat",
+						-180.0, 180.0, 1.0),
+				ref_coord(1)
+	 	{ }
+
+			void Analysis ();
+			void DataOutput () { theta.OutputData(); phi.OutputData(); return; }
+	};
 
 }	// namespace bond analysis
 

@@ -92,18 +92,19 @@ namespace md_files {
 		}
 	}	// find molecules by molecule graph
 
+
+
 	void TopologyXYZSystem::_FindMolecules () {
 
 		if (!_parsed) {
 
 			int id = 0;
 			for (MolecularTopologyFile::mol_topology_it top = _topology.begin(); top != _topology.end(); top++) {
-				MolPtr mol = new Molecule();
-				mol->Name(top->name);
+				MolPtr mol = MoleculeFactory (top->name);
 				mol->MolID(id++);
 
 				for (std::vector<int>::iterator atom_id = top->atoms.begin(); atom_id != top->atoms.end(); atom_id++) {
-					mol->AddAtom(_xyzfile[atom_id]);
+					mol->AddAtom(_xyzfile[*atom_id]);
 				}
 
 				this->_mols.push_back(mol);
