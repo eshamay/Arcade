@@ -5,6 +5,46 @@
 
 namespace md_analysis {
 
+	// The output function takes the two points in the 2d histo and the value (population) and returns something based on them to manipulate the data somehow
+	class DataOutput2DFunction {
+		public:
+			virtual double operator() (
+					const double left, const double right, const double val) const = 0;
+	};
+
+	// a class that just does nothing to the output
+	class DoNothing2D : public DataOutput2DFunction {
+		public:
+			virtual double operator() (
+					const double left, const double right, const double val) const {
+				return val;
+			}
+	};
+			
+	// Takes the val and divides it by the sine of the second dimension
+	class DivideByRightSineDegrees : public DataOutput2DFunction {
+		public:
+			virtual double operator() (
+					const double left, const double right, const double val) const {
+				return val/sin(right*M_PI/180.0);
+			}
+	};
+	// Takes the val and divides it by the sine of the second dimension
+	class DivideByLeftSineDegrees : public DataOutput2DFunction {
+		public:
+			virtual double operator() (
+					const double left, const double right, const double val) const {
+				return val/sin(left*M_PI/180.0);
+			}
+	};
+	// Takes the val and divides it by the sine of the second dimension
+	class DivideByBothSineDegrees : public DataOutput2DFunction {
+		public:
+			virtual double operator() (
+					const double left, const double right, const double val) const {
+				return val/sin(left*M_PI/180.0)/sin(right*M_PI/180.0);
+			}
+	};
 
 	// used for analyses that have histograms  - should help with organization and output
 	class Histogram1DAgent {
@@ -67,8 +107,10 @@ namespace md_analysis {
 			~Histogram2DAgent () { }
 
 			virtual void OutputData ();
+			virtual void OutputData (const DataOutput2DFunction& func);
 			virtual void OutputDataMatrix ();
 			void SetOutputFilename (std::string fn) { filename = fn; }
+			std::string OutputFilename () const { return filename; }
 
 			pair_t max () const { return histogram.max; }
 			pair_t min () const { return histogram.min; }

@@ -424,14 +424,14 @@ namespace angle_analysis {
 						std::string("succinic acid carbonyl bisector twist vs dihedral twist"),
 						std::string ("temp")),
 				axis(VecR::UnitY()),
-				posmin (-12.0), posmax(4.0), posres(2.0) // extents of the analysis and thickness of the slices
+				posmin (-14.0), posmax(4.0), posres(1.0) // extents of the analysis and thickness of the slices
 		{
 
 					histos.clear();
-					histos.resize (8, 
+					histos.resize (18, 
 							Histogram2DAgent (std::string (""), 
-								0.0,180.0,4.0,
-								0.0,180.0,4.0));	// angle parameters
+								5.0,175.0,2.5,
+								5.0,175.0,2.5));	// angle parameters
 
 					// set the name for each of the histograms
 					double pos;
@@ -450,8 +450,9 @@ namespace angle_analysis {
 				}
 
 			void DataOutput () {
-				for (int i = 0; i < histos.size(); i++) {
-					histos[i].OutputData();
+				DivideByLeftSineDegrees func;
+				for (std::vector<Histogram2DAgent>::iterator hist = histos.begin(); hist != histos.end(); hist++) {
+					hist->OutputData(func);
 				}
 			}
 
@@ -480,13 +481,16 @@ namespace angle_analysis {
 				molecule_analysis::SuccinicAcidAnalysis (t,
 						std::string("succinic acid bond-angle analysis"),
 						std::string("")),
-				histo (std::string ("CO-carbonyl-bond-angle.v.distance.dat"), 
-						-20.0, 10.0, 0.2,	// distance to interface
-						-180.0,180.0,1.0),	// angle
+				histo (std::string ("CO-alcohol-bond-angle.v.distance.dat"), 
+						-15.0, 4.0, 0.2,	// distance to interface
+						5.0,175.0,2.0),	// angle
 				axis(VecR::UnitY())
 		{ }
 
-			void DataOutput () { histo.OutputData(); }
+			void DataOutput () { 
+				DivideByRightSineDegrees func;
+				histo.OutputData(func); 
+			}
 			void SuccinicAcidCalculation (alkane::SuccinicAcid *);
 
 	};	// succinic bond angle

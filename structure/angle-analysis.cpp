@@ -405,6 +405,7 @@ namespace angle_analysis {
 
 		Histogram2DAgent* histo2d = FindHistogram(distance.second);
 		histo2d->operator() (tilt,fabs(twist));
+		//histo2d->operator() (tilt,twist);
 		return;
 	}
 
@@ -430,7 +431,6 @@ namespace angle_analysis {
 
 
 
-
 	void SuccinicAcidBondAngleAnalysis::SuccinicAcidCalculation (alkane::SuccinicAcid * succ) {
 		// Set the atoms in the succinic acid molecule
 		succ->SetDihedralAtoms();
@@ -444,8 +444,8 @@ namespace angle_analysis {
 		//AngleDistanceCalculation (succ->DihedralAtom(2), succ->DihedralAtom(3));
 
 		// grab the aliphatic carbon and then the alcohol oxygen
-		AngleDistanceCalculation (succ->DihedralAtom(0), succ->GetAtom("O2"));
-		AngleDistanceCalculation (succ->DihedralAtom(3), succ->GetAtom("O4"));
+		AngleDistanceCalculation (succ->DihedralAtom(0), succ->GetAtom("O1"));
+		AngleDistanceCalculation (succ->DihedralAtom(3), succ->GetAtom("O3"));
 		return;
 	}
 

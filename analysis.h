@@ -58,7 +58,9 @@ namespace md_analysis {
 
 			void OutputStatus ();
 			bool ReadyToOutputData () const { 
-				return Analyzer::timestep % (Analyzer::output_freq * 10) || Analyzer::timestep;
+				int ready = Analyzer::timestep % (Analyzer::output_freq);
+				//printf ("ready = %d %d\n", !ready, !Analyzer::timestep);
+				return  !ready || !Analyzer::timestep;
 			}	
 
 			//Atom_ptr_vec& Atoms () { return WaterSystem::int_atoms; } 
