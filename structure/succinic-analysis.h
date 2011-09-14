@@ -84,8 +84,7 @@ namespace succinic {
 		protected:
 			VecR axis, v1, v2, v3;
 			double tilt, twist;
-			std::vector<Histogram2DAgent>	histos;
-			double posmin, posmax, posres;
+			Multi2DHistogramAgent	histos;
 
 		public:
 			typedef Analyzer system_t;
@@ -94,41 +93,20 @@ namespace succinic {
 						std::string("succinic acid carbonyl bisector twist vs dihedral twist"),
 						std::string ("temp")),
 				axis(VecR::UnitY()),
-				posmin (-14.0), posmax(4.0), posres(1.0) // extents of the analysis and thickness of the slices
-		{
-
-					histos.clear();
-					histos.resize (18, 
-							Histogram2DAgent (std::string (""), 
-								5.0,175.0,2.5,
-								5.0,175.0,2.5));	// angle parameters
-
-					// set the name for each of the histograms
-					double pos;
-					for (int i = 0; i < histos.size(); i++) {
-						pos = posres * i + posmin;
-						std::stringstream sstr;
-						sstr.clear();
-						std::string filenum;
-						filenum.clear();
-						sstr << pos;
-						filenum = sstr.str();
-						//std::string filepath (std::string("./alcohol-oxygen-water-hydrogen.distance-rdfs/rdf.") + filenum + ".dat");
-						std::string filepath (std::string("./carbonyl-tilt-twist-histos/carbonyl-tilt-twist.") + filenum + ".dat");
-						histos[i].SetOutputFilename (filepath);
-					}
-				}
+				histos (
+						-14.0, 4.0, 1.0,
+						5.0,175.0,2.5,
+						5.0,175.0,2.5,
+						std::string("./carbonyl-tilt-twist-histos/carbonyl-tilt-twist."),
+						std::string(".dat")) { }
 
 			void DataOutput () {
 				DivideByLeftSineDegrees func;
-				for (std::vector<Histogram2DAgent>::iterator hist = histos.begin(); hist != histos.end(); hist++) {
-					hist->OutputData(func);
-				}
+				histos.DataOutput(func);
 			}
 
 			void DihedralCalculation (AtomPtr aliphatic, AtomPtr carbonyl, AtomPtr oxygen);
 			void SuccinicAcidCalculation (alkane::SuccinicAcid *);
-			Histogram2DAgent * FindHistogram (const double pos);
 
 	};	// succinic dihedral analysis
 

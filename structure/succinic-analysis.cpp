@@ -53,7 +53,11 @@ namespace succinic {
 		this->histo (distance.second,fabs(twist));
 	}
 
-	//// TILT TWIST ///// 
+
+
+
+
+	//// //// TILT TWIST ///// ///// 
 
 	void SuccinicAcidCarbonylTiltTwistAnglesAnalysis::SuccinicAcidCalculation (alkane::SuccinicAcid * succ) {
 		this->com = succ->UpdateCenterOfMass() [WaterSystem::axis];
@@ -67,6 +71,7 @@ namespace succinic {
 		DihedralCalculation (succ->DihedralAtom(0), succ->GetAtom("O2"), succ->GetAtom("O1"));
 		DihedralCalculation (succ->DihedralAtom(3), succ->GetAtom("O4"), succ->GetAtom("O3"));
 	}
+
 
 	// This calculates the two dihedrals of the y-axis, the aliphatic carbon, carbonyl carbon, and carbonyl oxygen.
 	// The twist/dihedral value will tell us where the carbonyl oxygen is pointing, and if the O-C-O of the carbonyl group
@@ -86,30 +91,13 @@ namespace succinic {
 		twist = Dihedral::Angle(v1,v2,v3) * 180.0 / M_PI;
 		tilt = acos(v2 < v1) * 180.0/M_PI;
 
-		Histogram2DAgent* histo2d = FindHistogram(distance.second);
-		histo2d->operator() (tilt,fabs(twist));
-		//histo2d->operator() (tilt,twist);
+		histos(distance.second, tilt, fabs(twist));
+
 		return;
 	}
 
-	Histogram2DAgent* SuccinicAcidCarbonylTiltTwistAnglesAnalysis::FindHistogram (const double pos) {
-		// given the max/min/res parameters for chopping up the system/surface into slices
-		// this will return the corrent histogram to use
-		Histogram2DAgent* histo;
 
-		if (pos <= posmin)
-			histo = &histos.front();
 
-		else if (pos >= posmax)
-			histo = &histos.back();
-
-		else {
-			int r = int((pos-posmin)/posres);
-			histo = &histos[r];
-		}
-
-		return histo;
-	}
 
 
 

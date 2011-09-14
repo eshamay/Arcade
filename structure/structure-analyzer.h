@@ -14,6 +14,7 @@
 #include "bond-analysis.h"
 #include "cycle-analysis.h"
 #include "malonic-analysis.h"
+#include "succinic-analysis.h"
 
 
 typedef std::vector<double> double_vec;
@@ -120,10 +121,10 @@ namespace md_analysis {
 			analyses.push_back (new angle_analysis::SOAngleAnalysis(analyzer));				
 			analyses.push_back (new neighbor_analysis::SO2NearestNeighborAnalysis(analyzer));
 			analyses.push_back (new RDFByDistanceAnalyzer(analyzer));
-			analyses.push_back (new angle_analysis::SuccinicAcidBondAngleAnalysis(analyzer));
-			analyses.push_back (new angle_analysis::SuccinicAcidCarbonChainDihedralAngleAnalysis(analyzer));
-			analyses.push_back (new angle_analysis::SuccinicAcidCarbonylDihedralAngleAnalysis(analyzer));
-			analyses.push_back (new angle_analysis::SuccinicAcidCarbonylTiltTwistAnglesAnalysis(analyzer));
+			analyses.push_back (new succinic::SuccinicAcidBondAngleAnalysis(analyzer));
+			analyses.push_back (new succinic::SuccinicAcidCarbonChainDihedralAngleAnalysis(analyzer));
+			analyses.push_back (new succinic::SuccinicAcidCarbonylDihedralAngleAnalysis(analyzer));
+			analyses.push_back (new succinic::SuccinicAcidCarbonylTiltTwistAnglesAnalysis(analyzer));
 
 			//			a = new md_analysis::SystemDipoleAnalyzer(this);				analyses.push_back(a);
 		}
