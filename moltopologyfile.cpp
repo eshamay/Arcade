@@ -1,4 +1,4 @@
-#include "xyztopologyfile.h"
+#include "moltopologyfile.h"
 namespace md_files {
 
 	// open the file for reading
