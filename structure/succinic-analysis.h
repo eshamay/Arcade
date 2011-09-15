@@ -76,6 +76,25 @@ namespace succinic {
 	};	// succinic dihedral analysis
 
 
+	class DensityDistribution : public molecule_analysis::SuccinicAcidAnalysis {
+		protected:
+			Histogram1DAgent histo;
+
+		public:
+			typedef Analyzer system_t;
+			DensityDistribution (system_t * t) :
+				SuccinicAcidAnalysis (t,
+						std::string("density distribution of succinic acid"),
+						std::string ("")),
+				histo (
+						std::string ("density-distribution.dat"),
+						-15.0, 7.0, 0.1) { }
+
+
+			void SuccinicAcidCalculation (alkane::SuccinicAcid *);
+			void DataOutput () { histo.OutputData(); }
+
+	};
 
 
 	// cuts the surface into slices and gets the tilt-twist histogram for each depth
@@ -126,12 +145,11 @@ namespace succinic {
 				SuccinicAcidDihedralAngleAnalysis (t,
 						std::string("orientation of waters around succinic acid carboxylic acid headgroups"),
 						std::string ("temp")),
-				axis(VecR::UnitY()),
 				histos (
-						-9.0, 2.0, 2.0,	// depths
+						-7.0, 3.0, 1.0,	// depths
 						1.0, 8.0, 0.1,	// distance from carboxy to water
 						5.0,175.0,2.5,	// tilt of water
-						std::string("./nearby-water-orientation/water-orientation."),
+						std::string("./nearby-water-orientation/alcohol-oxygen."),
 						std::string(".dat")),
 				axis(VecR::UnitY()) { }
 
@@ -141,6 +159,7 @@ namespace succinic {
 			}
 
 			void SuccinicAcidCalculation (alkane::SuccinicAcid *);
+			void AngleDepthCalculation (AtomPtr oxygen, WaterPtr wat);
 
 	};	// succinic dihedral analysis
 

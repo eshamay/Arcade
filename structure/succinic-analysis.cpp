@@ -5,6 +5,11 @@ namespace succinic {
 
 
 
+	void DensityDistribution::SuccinicAcidCalculation (alkane::SuccinicAcid * succ) {
+		this->com = succ->UpdateCenterOfMass() [WaterSystem::axis];
+		this->position = this->h2os.TopOrBottom(com);
+		histo(this->position.second);
+	}
 
 
 	void SuccinicAcidCarbonChainDihedralAngleAnalysis::SuccinicAcidCalculation (alkane::SuccinicAcid * succ) {
@@ -141,7 +146,7 @@ namespace succinic {
 
 
 
-	void NeighboringWaterOrientation::SuccinicAcidCalculation (alkane::SuccinicAcid *) {
+	void NeighboringWaterOrientation::SuccinicAcidCalculation (alkane::SuccinicAcid * succ) {
 		// first find the depth of the acid
 		//this->com = succ->UpdateCenterOfMass()[WaterSystem::axis];
 
@@ -150,23 +155,35 @@ namespace succinic {
 		// then we cycle through each water in the system and find out it's distance to the acid
 		for (Wat_it wat = this->h2os.begin(); wat != this->h2os.end(); wat++) {
 
-			oxygen = succ->GetAtom("O1");
+			AngleDepthCalculation(succ->GetAtom("O1"), *wat); // alcohol oxygens
+			AngleDepthCalculation(succ->GetAtom("O3"), *wat); 
+
+			//AngleDepthCalculation(succ->GetAtom("O2"), *wat); // carbonyl oxygens
+			//AngleDepthCalculation(succ->GetAtom("O4"), *wat); 
+		}
+	}
+
+	void NeighboringWaterOrientation::AngleDepthCalculation (AtomPtr oxygen, WaterPtr wat) {
 			// for the given carboxylic acid oxygen, calculate the distance to the water
-			oo_dist = CarboxylicOxygenToWaterDistance(oxygen, *wat);
+			oo_distance = MDSystem::Distance (oxygen, wat->O()).Magnitude();
 			
 			// if the distance is close enough
-			if (oo_dist > 10.0) continue;
+			VecR ax = axis;
+			if (oo_distance < 10.0) {
 
-			// we find the depth of the acid oxygen
-			this->distance = this->h2os.TopOrBottom(oxygen->Position()[WaterSystem::axis]);
-			depth = distance.second;
-			
-			// and also calculate its tilt wrt the water surface
-			tilt = (*wat)->Bisector() < axis;
-			tilt = acos(tilt) * 180.0/M_PI;
+				// we find the depth of the acid oxygen
+				this->distance = this->h2os.TopOrBottom(oxygen->Position()[WaterSystem::axis]);
+				depth = distance.second;
 
-			histos(depth, oo_dist, tilt);
-		}
+				// and also calculate its tilt wrt the water surface
+				if (!this->distance.first)
+					ax = -ax;
+
+				tilt = wat->Bisector() < axis;
+				tilt = acos(tilt) * 180.0/M_PI;
+
+				histos(depth, oo_distance, tilt);
+			}
 	}
 
 

@@ -15,6 +15,7 @@
 #include "cycle-analysis.h"
 #include "malonic-analysis.h"
 #include "succinic-analysis.h"
+#include "h2o-analysis.h"
 
 
 typedef std::vector<double> double_vec;
@@ -121,13 +122,14 @@ namespace md_analysis {
 			analyses.push_back (new angle_analysis::SOAngleAnalysis(analyzer));				
 			analyses.push_back (new neighbor_analysis::SO2NearestNeighborAnalysis(analyzer));
 			analyses.push_back (new RDFByDistanceAnalyzer(analyzer));
+			analyses.push_back (new succinic::DensityDistribution(analyzer));
 			analyses.push_back (new succinic::SuccinicAcidBondAngleAnalysis(analyzer));
 			analyses.push_back (new succinic::SuccinicAcidCarbonChainDihedralAngleAnalysis(analyzer));
 			analyses.push_back (new succinic::SuccinicAcidCarbonylDihedralAngleAnalysis(analyzer));
 			analyses.push_back (new succinic::SuccinicAcidCarbonylTiltTwistAnglesAnalysis(analyzer));
 			analyses.push_back (new succinic::NeighboringWaterOrientation(analyzer));
-
-			//			a = new md_analysis::SystemDipoleAnalyzer(this);				analyses.push_back(a);
+			analyses.push_back (new h2o_analysis::BisectorAnalysis(analyzer));
+			analyses.push_back (new h2o_analysis::TwistAnalysis(analyzer));
 		}
 
 
