@@ -9,6 +9,7 @@
 
 namespace succinic {
 
+	using namespace md_analysis;
 	// 2D analysis of the dihedral angle of the carbon chain in succinic acid as a function
 	// of position relative to the water surface.
 	class SuccinicAcidDihedralAngleAnalysis : public molecule_analysis::SuccinicAcidAnalysis {
@@ -145,3 +146,5 @@ namespace succinic {
 
 
 }	 // namespace succinic
+
+#endif

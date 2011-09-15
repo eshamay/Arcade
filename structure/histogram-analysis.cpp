@@ -83,9 +83,9 @@ namespace md_analysis {
 
 
 	///////////// Multi 2D Histogram Agent //////////////
-	Multi2DHistogram::Multi2DHistogram (
-			const double minimum1, const double maximum1, const double resolution1
-			const double minimum2, const double maximum2, const double resolution2
+	Multi2DHistogramAgent::Multi2DHistogramAgent (
+			const double minimum1, const double maximum1, const double resolution1,
+			const double minimum2, const double maximum2, const double resolution2,
 			const double minimum3, const double maximum3, const double resolution3,
 			std::string prefix, std::string suffix) :
 
@@ -142,7 +142,7 @@ namespace md_analysis {
 	}
 
 
-	void Multi2DHistogramAgent::DataOutput (DataOutput2DFunction func) {
+	void Multi2DHistogramAgent::DataOutput (const DataOutput2DFunction& func) {
 		for (std::vector<Histogram2DAgent>::iterator hist = histos.begin(); hist != histos.end(); hist++) {
 			hist->OutputData(func);
 		}
