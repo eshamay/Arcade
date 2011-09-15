@@ -140,4 +140,34 @@ namespace succinic {
 	}
 
 
+
+	void NeighboringWaterOrientation::SuccinicAcidCalculation (alkane::SuccinicAcid *) {
+		// first find the depth of the acid
+		//this->com = succ->UpdateCenterOfMass()[WaterSystem::axis];
+
+		succ->SetDihedralAtoms();
+
+		// then we cycle through each water in the system and find out it's distance to the acid
+		for (Wat_it wat = this->h2os.begin(); wat != this->h2os.end(); wat++) {
+
+			oxygen = succ->GetAtom("O1");
+			// for the given carboxylic acid oxygen, calculate the distance to the water
+			oo_dist = CarboxylicOxygenToWaterDistance(oxygen, *wat);
+			
+			// if the distance is close enough
+			if (oo_dist > 10.0) continue;
+
+			// we find the depth of the acid oxygen
+			this->distance = this->h2os.TopOrBottom(oxygen->Position()[WaterSystem::axis]);
+			depth = distance.second;
+			
+			// and also calculate its tilt wrt the water surface
+			tilt = (*wat)->Bisector() < axis;
+			tilt = acos(tilt) * 180.0/M_PI;
+
+			histos(depth, oo_dist, tilt);
+		}
+	}
+
+
 } // namespace succinic

@@ -125,6 +125,7 @@ namespace md_analysis {
 			analyses.push_back (new succinic::SuccinicAcidCarbonChainDihedralAngleAnalysis(analyzer));
 			analyses.push_back (new succinic::SuccinicAcidCarbonylDihedralAngleAnalysis(analyzer));
 			analyses.push_back (new succinic::SuccinicAcidCarbonylTiltTwistAnglesAnalysis(analyzer));
+			analyses.push_back (new succinic::NeighboringWaterOrientation(analyzer));
 
 			//			a = new md_analysis::SystemDipoleAnalyzer(this);				analyses.push_back(a);
 		}

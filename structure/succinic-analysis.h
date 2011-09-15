@@ -111,6 +111,38 @@ namespace succinic {
 
 	};	// succinic dihedral analysis
 
+	// cuts the surface into slices and gets the angle of neighboring waters around the carbonyl groups
+	// dimensions are: depth under surface, distance of water to the carbonyl group, tilt of water molecule wrt surface
+	class NeighboringWaterOrientation : public SuccinicAcidDihedralAngleAnalysis {
+		protected:
+			double oo_distance, tilt, depth;
+			Multi2DHistogramAgent	histos;
+			AtomPtr oxygen;
+			VecR axis;
+
+		public:
+			typedef Analyzer system_t;
+			NeighboringWaterOrientation (system_t * t) :
+				SuccinicAcidDihedralAngleAnalysis (t,
+						std::string("orientation of waters around succinic acid carboxylic acid headgroups"),
+						std::string ("temp")),
+				axis(VecR::UnitY()),
+				histos (
+						-9.0, 2.0, 2.0,	// depths
+						1.0, 8.0, 0.1,	// distance from carboxy to water
+						5.0,175.0,2.5,	// tilt of water
+						std::string("./nearby-water-orientation/water-orientation."),
+						std::string(".dat")),
+				axis(VecR::UnitY()) { }
+
+			void DataOutput () {
+				DivideByRightSineDegrees func;
+				histos.DataOutput(func);
+			}
+
+			void SuccinicAcidCalculation (alkane::SuccinicAcid *);
+
+	};	// succinic dihedral analysis
 
 	// angle of a bond vector relative to the surface normal
 	class SuccinicAcidBondAngleAnalysis : public molecule_analysis::SuccinicAcidAnalysis {
