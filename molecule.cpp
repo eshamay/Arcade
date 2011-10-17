@@ -219,15 +219,13 @@ namespace md_system {
 		}
 	}
 
+	*/
 	void Molecule::Shift (VecR& shift) {
-
-		for (Atom_it it = this->begin(); it != this->end(); it++) {
+		for (Atom_it it = this->begin(); it != this->end(); it++)
 			(*it)->Shift (shift);
-		}
 
 		return;
 	}
-	*/
 
 	void Molecule::Print () const {
 
@@ -377,6 +375,16 @@ namespace md_system {
 		VecR v3 = this->dihedral_atoms[3]->Position() - this->dihedral_atoms[2]->Position();
 
 		return Dihedral::Angle (v1,v2,v3);
+	}
+
+	// calculates the bisector vector that runs between the bonds:
+	//		center->left and center->right
+	// so usage for an H2O to find the bisector would be:
+	//	Bisector (h1, o, h2)
+	VecR Molecule::Bisector (AtomPtr left, AtomPtr center, AtomPtr right) {
+		VecR bond1 (left->Position() - center->Position());
+		VecR bond2 (right->Position() - center->Position());
+		return (bond1 + bond2).normalized();
 	}
 
 }	// namespace md system

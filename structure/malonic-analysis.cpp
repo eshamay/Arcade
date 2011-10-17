@@ -2,6 +2,7 @@
 
 namespace malonic_analysis {
 
+
 	void MalonicTest::Analysis () {
 		this->LoadAll();
 
@@ -45,6 +46,30 @@ namespace malonic_analysis {
 		return distance;
 	}
 
+
+	void MethyleneTilt::Analysis () {
+		this->LoadAll();
+
+		for (Mol_it mol = this->begin_mols(); mol != this->end_mols(); mol++) {
+			if ((*mol)->MolType() != Molecule::MALONIC 
+					&& (*mol)->MolType() != Molecule::MALONATE 
+					&& (*mol)->MolType() != Molecule::DIMALONATE) continue;
+
+			mal = static_cast<alkane::MalonicAcid *>(*mol);
+
+			// methylene carbon is index 3
+			// methylene hydrogen IDs are 7 and 10
+			// However, that corresponds to atom #:
+			// carbon = 3, hyd1 = 6, hyd2 = 7
+			bisector = Molecule::Bisector(mal->GetAtom(6), mal->GetAtom(3), mal->GetAtom(7));
+			angle = bisector < VecR::UnitZ();
+			angle = acos(angle)*180.0/M_PI;
+
+			histo (angle);
+
+		}
+
+	}
 
 
 }

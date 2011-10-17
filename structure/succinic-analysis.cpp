@@ -3,39 +3,37 @@
 
 namespace succinic {
 
-
-
-	void DensityDistribution::SuccinicAcidCalculation (alkane::SuccinicAcid * succ) {
-		this->com = succ->UpdateCenterOfMass() [WaterSystem::axis];
+	void DensityDistribution::MoleculeCalculation () {
+		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
 		this->position = this->h2os.TopOrBottom(com);
 		histo(this->position.second);
 	}
 
 
-	void SuccinicAcidCarbonChainDihedralAngleAnalysis::SuccinicAcidCalculation (alkane::SuccinicAcid * succ) {
+	void SuccinicAcidCarbonChainDihedralAngleAnalysis::MoleculeCalculation () {
 		// calculate the dihedral angle of the carbon chain.
 		// the method sets the atoms of the carbon chain for the dihedral calculation...
-		this->angle = succ->CalculateDihedralAngle() * 180.0/M_PI;
+		this->angle = this->mol->CalculateDihedralAngle() * 180.0/M_PI;
 
 		// find the center of mass location of the succinic acid
-		this->com = succ->UpdateCenterOfMass() [WaterSystem::axis];
-		this->distance = this->h2os.TopOrBottom(com);
+		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
+		this->position = this->h2os.TopOrBottom(com);
 
-		this->histo(this->distance.second, fabs(this->angle));
+		this->histo(this->position.second, fabs(this->angle));
 	}
 
 
-	void SuccinicAcidCarbonylDihedralAngleAnalysis::SuccinicAcidCalculation (alkane::SuccinicAcid * succ) {
-		this->com = succ->UpdateCenterOfMass() [WaterSystem::axis];
-		this->distance = this->h2os.TopOrBottom(com);
+	void SuccinicAcidCarbonylDihedralAngleAnalysis::MoleculeCalculation () {
+		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
+		this->position = this->h2os.TopOrBottom(com);
 
-		succ->SetDihedralAtoms();
+		this->mol->SetDihedralAtoms();
 		// Aliphatic carbons are C2 and C3
 		// Carbonyl carbons are C1 and C4
 		// alcohol oxygens are O1 and O3
 		// carbonyl oxygens are O2 and O4
-		DihedralCalculation (succ->DihedralAtom(0), succ->GetAtom("O2"), succ->GetAtom("O1"));
-		DihedralCalculation (succ->DihedralAtom(3), succ->GetAtom("O4"), succ->GetAtom("O3"));
+		DihedralCalculation (this->mol->DihedralAtom(0), this->mol->GetAtom("O2"), this->mol->GetAtom("O1"));
+		DihedralCalculation (this->mol->DihedralAtom(3), this->mol->GetAtom("O4"), this->mol->GetAtom("O3"));
 	}
 
 	// This calculates the two dihedrals of the y-axis, the aliphatic carbon, carbonyl carbon, and carbonyl oxygen.
@@ -45,7 +43,7 @@ namespace succinic {
 
 		// calculate the dihedral of the ref-axis - aiphatic - carbonyl - oxygen set of vectors
 		v1 = axis;// the reference axis - perp to the surface
-		if (!(this->distance.first))
+		if (!(this->position.first))
 			v1 = -v1;
 
 		// the bisector of the two C-O bonds
@@ -55,7 +53,7 @@ namespace succinic {
 
 		twist = Dihedral::Angle(v1,v2,v3) * 180.0 / M_PI;
 
-		this->histo (distance.second,fabs(twist));
+		this->histo (this->position.second,fabs(twist));
 	}
 
 
@@ -64,17 +62,17 @@ namespace succinic {
 
 	//// //// TILT TWIST ///// ///// 
 
-	void SuccinicAcidCarbonylTiltTwistAnglesAnalysis::SuccinicAcidCalculation (alkane::SuccinicAcid * succ) {
-		this->com = succ->UpdateCenterOfMass() [WaterSystem::axis];
-		this->distance = this->h2os.TopOrBottom(com);
+	void SuccinicAcidCarbonylTiltTwistAnglesAnalysis::MoleculeCalculation () {
+		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
+		this->position = this->h2os.TopOrBottom(com);
 
-		succ->SetDihedralAtoms();
+		this->mol->SetDihedralAtoms();
 		// Aliphatic carbons are C2 and C3
 		// Carbonyl carbons are C1 and C4
 		// alcohol oxygens are O1 and O3
 		// carbonyl oxygens are O2 and O4
-		DihedralCalculation (succ->DihedralAtom(0), succ->GetAtom("O2"), succ->GetAtom("O1"));
-		DihedralCalculation (succ->DihedralAtom(3), succ->GetAtom("O4"), succ->GetAtom("O3"));
+		DihedralCalculation (this->mol->DihedralAtom(0), this->mol->GetAtom("O2"), this->mol->GetAtom("O1"));
+		DihedralCalculation (this->mol->DihedralAtom(3), this->mol->GetAtom("O4"), this->mol->GetAtom("O3"));
 	}
 
 
@@ -85,7 +83,7 @@ namespace succinic {
 
 		// calculate the dihedral of the ref-axis - aiphatic - carbonyl - oxygen set of vectors
 		v1 = axis;// the reference axis - perp to the surface
-		if (!(this->distance.first))
+		if (!(this->position.first))
 			v1 = -v1;
 
 		// the bisector of the two C-O bonds
@@ -96,7 +94,7 @@ namespace succinic {
 		twist = Dihedral::Angle(v1,v2,v3) * 180.0 / M_PI;
 		tilt = acos(v2 < v1) * 180.0/M_PI;
 
-		histos(distance.second, tilt, fabs(twist));
+		histos(this->position.second, tilt, fabs(twist));
 
 		return;
 	}
@@ -107,11 +105,11 @@ namespace succinic {
 
 
 
-	void SuccinicAcidBondAngleAnalysis::SuccinicAcidCalculation (alkane::SuccinicAcid * succ) {
+	void SuccinicAcidBondAngleAnalysis::MoleculeCalculation () {
 		// Set the atoms in the succinic acid molecule
-		succ->SetDihedralAtoms();
+		this->mol->SetDihedralAtoms();
 		// get the molecule's position, and the surface it's closest to
-		com = succ->UpdateCenterOfMass() [WaterSystem::axis];
+		com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
 
 		// check the alphatic C-C bond orientation
 		// Aliphatic carbons are C2 and C3
@@ -120,43 +118,43 @@ namespace succinic {
 		//AngleDistanceCalculation (succ->DihedralAtom(2), succ->DihedralAtom(3));
 
 		// grab the aliphatic carbon and then the alcohol oxygen
-		AngleDistanceCalculation (succ->DihedralAtom(0), succ->GetAtom("O1"));
-		AngleDistanceCalculation (succ->DihedralAtom(3), succ->GetAtom("O3"));
+		AngleDistanceCalculation (this->mol->DihedralAtom(0), this->mol->GetAtom("O1"));
+		AngleDistanceCalculation (this->mol->DihedralAtom(3), this->mol->GetAtom("O3"));
 		return;
 	}
 
 
 
 	void SuccinicAcidBondAngleAnalysis::AngleDistanceCalculation (AtomPtr aliphatic, AtomPtr carbonyl) {
-		distance = this->h2os.TopOrBottom(com);
+		this->position = this->h2os.TopOrBottom(com);
 
 		// the vector points from C2 to C1 (from the aliphatic towards the carbonyl)
 		bond = MDSystem::Distance (aliphatic, carbonyl);
 
 		angle = bond < axis;
 		// if closer to the top surface, then no problem. Otherwise, invert the angle value
-		if (!distance.first)
+		if (!position.first)
 			angle = -angle;
 		angle = acos(angle) * 180.0 / M_PI;
 
-		histo(distance.second, angle);
+		histo(this->position.second, angle);
 
 		return;
 	}
 
 
 
-	void NeighboringWaterOrientation::SuccinicAcidCalculation (alkane::SuccinicAcid * succ) {
+	void NeighboringWaterOrientation::MoleculeCalculation () {
 		// first find the depth of the acid
 		//this->com = succ->UpdateCenterOfMass()[WaterSystem::axis];
 
-		succ->SetDihedralAtoms();
+		this->mol->SetDihedralAtoms();
 
 		// then we cycle through each water in the system and find out it's distance to the acid
 		for (Wat_it wat = this->h2os.begin(); wat != this->h2os.end(); wat++) {
 
-			AngleDepthCalculation(succ->GetAtom("O1"), *wat); // alcohol oxygens
-			AngleDepthCalculation(succ->GetAtom("O3"), *wat); 
+			AngleDepthCalculation(this->mol->GetAtom("O1"), *wat); // alcohol oxygens
+			AngleDepthCalculation(this->mol->GetAtom("O3"), *wat); 
 
 			//AngleDepthCalculation(succ->GetAtom("O2"), *wat); // carbonyl oxygens
 			//AngleDepthCalculation(succ->GetAtom("O4"), *wat); 
@@ -172,11 +170,11 @@ namespace succinic {
 			if (oo_distance < 10.0) {
 
 				// we find the depth of the acid oxygen
-				this->distance = this->h2os.TopOrBottom(oxygen->Position()[WaterSystem::axis]);
-				depth = distance.second;
+				this->position = this->h2os.TopOrBottom(oxygen->Position()[WaterSystem::axis]);
+				depth = this->position.second;
 
 				// and also calculate its tilt wrt the water surface
-				if (!this->distance.first)
+				if (!this->position.first)
 					ax = -ax;
 
 				tilt = wat->Bisector() < axis;
@@ -185,6 +183,38 @@ namespace succinic {
 				histos(depth, oo_distance, tilt);
 			}
 	}
+
+	void CarbonylGroupDistance::MoleculeCalculation () {
+		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
+		this->position = this->h2os.TopOrBottom(com);
+
+		this->mol->SetDihedralAtoms();
+
+		//distance = MDSystem::Distance(succ->DihedralAtom(0), succ->DihedralAtom(3)).Magnitude();
+		distance = this->mol->DihedralAtom(0)->Position()[WaterSystem::axis] - this->mol->DihedralAtom(3)->Position()[WaterSystem::axis];
+		distance = fabs(distance);
+			
+		histo (this->position.second, distance);
+	}
+
+
+	void MethyleneBisectorTilt::MoleculeCalculation () {
+		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
+		this->position = this->h2os.TopOrBottom(com);
+
+		ax = VecR::UnitY();
+		if (!this->position.first)
+			ax = -ax;
+
+		this->mol->SetMethyleneBisectors();
+
+		//angle = acos(succ->CH2_1() < succ->CH2_2())*180.0/M_PI;
+		//histo (this->position.second, angle);
+		histo (this->position.second, acos(this->mol->CH2_1() < ax)*180.0/M_PI);
+		histo (this->position.second, acos(this->mol->CH2_2() < ax)*180.0/M_PI);
+		return;
+	}
+
 
 
 } // namespace succinic

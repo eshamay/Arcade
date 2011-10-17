@@ -21,15 +21,12 @@ namespace alkane {
 			}
 			// Functions for analysis
 			//virtual void SetAtoms () = 0;
-
-
 	};
 
 
 
 
 	class MalonicAcid : public Alkane {
-
 
 		public:
 			MalonicAcid (Molecule_t moltype);
@@ -58,9 +55,18 @@ namespace alkane {
 
 
 	class SuccinicAcid : public Alkane, public Dihedral {
+		protected:
+			VecR ch2_1, ch2_2;
+
 		public:
 			SuccinicAcid ();
 			virtual void SetDihedralAtoms();
+			VecR Bisector (AtomPtr left, AtomPtr center, AtomPtr right);
+
+			void SetMethyleneBisectors ();
+			VecR& CH2_1 () { return ch2_1; }
+			VecR& CH2_2 () { return ch2_2; }
+
 	};
 
 
@@ -89,6 +95,16 @@ namespace alkane {
 		protected:
 			AtomPtr _c, _o, _h1, _h2;
 			VecR _co, _ch1, _ch2;
+	};
+
+
+
+	class Diacid : public Alkane {
+
+			Diacid ();			// a default constructor
+			virtual ~Diacid ();
+			Diacid (const Molecule& molecule);		// copy constructor for casting from a molecule
+
 	};
 
 }

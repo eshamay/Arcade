@@ -35,7 +35,10 @@ namespace h2o_analysis {
 		number_surface_waters(number_of_waters_for_surface_calc) 
 	{ 
 		this->Reload();
+		//this->reference_point = MDSystem::Dimensions()[WaterSystem::axis];
 	}
+
+
 
 	void H2OSystemManipulator::Reload () {
 
@@ -144,9 +147,27 @@ namespace h2o_analysis {
 
 	void H2ODoubleSurfaceManipulator::FindWaterSurfaceLocation () {
 
+
+		VecR shift (0.0,0.0,0.0);
+		shift[WaterSystem::axis] = MDSystem::Dimensions()[WaterSystem::axis];
+		shift = -shift;
+
+		/*
+		printf ("shift vector = ");
+		shift.Print();
+
+		printf ("\nreference point = %f\n", this->reference_point);
+		*/
+
+		// wrap all waters above the top reference point down a box
+		for (Wat_it it = analysis_waters.begin(); it != analysis_waters.end(); it++) {
+			if ((*it)->ReferencePoint()[WaterSystem::axis] > this->reference_point) {
+				(*it)->Shift(shift);
+			}
+		}
+
 		// sort the waters by position along the reference axis - first waters are lowest, last are highest
 		std::sort (analysis_waters.begin(), analysis_waters.end(), typename system_t::molecule_position_pred(Atom::O));
-		
 		// for both the bottom and top waters, grab a certain number of them and calculate the stats
 		
 		// get the position of the bottom-most waters
@@ -167,6 +188,12 @@ namespace h2o_analysis {
 		top_location = gsl_stats_mean (&surface_water_positions[0], 1, number_surface_waters);
 		top_width = gsl_stats_sd (&surface_water_positions[0], 1, number_surface_waters);
 
+		if (top_width > 3.0) {
+			std::for_each (analysis_waters.rbegin(), analysis_waters.rbegin()+number_surface_waters, std::mem_fun(&Molecule::Print));
+		}
+
+		printf ("\n\ntop = %.2f  %.2f\n", top_location, top_width);
+		printf ("bottom = %.2f  %.2f\n", bottom_location, bottom_width);
 
 	}	// find surface water location - double surface
 

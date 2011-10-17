@@ -17,8 +17,6 @@ namespace succinic {
 		protected:
 			Histogram2DAgent		histo;
 			double angle;
-			double com;
-			h2o_analysis::surface_distance_t	distance;
 
 		public:
 			typedef Analyzer system_t;
@@ -32,7 +30,6 @@ namespace succinic {
 		{ }
 
 			virtual void DataOutput () { histo.OutputData(); }
-			virtual void SuccinicAcidCalculation (alkane::SuccinicAcid *) = 0;
 
 	};	// succinic dihedral analysis
 
@@ -49,7 +46,7 @@ namespace succinic {
 						std::string("succinic acid carbon-chain dihedral vs distance to surface"),
 						std::string ("dihedrals.v.distance.dat")) { }
 
-			void SuccinicAcidCalculation (alkane::SuccinicAcid *);
+			void MoleculeCalculation ();
 
 	};	// succinic dihedral analysis
 
@@ -71,7 +68,7 @@ namespace succinic {
 				axis(VecR::UnitY()) { }
 
 			void DihedralCalculation (AtomPtr aliphatic, AtomPtr carbonyl, AtomPtr oxygen);
-			void SuccinicAcidCalculation (alkane::SuccinicAcid *);
+			void MoleculeCalculation ();
 
 	};	// succinic dihedral analysis
 
@@ -91,7 +88,7 @@ namespace succinic {
 						-15.0, 7.0, 0.1) { }
 
 
-			void SuccinicAcidCalculation (alkane::SuccinicAcid *);
+			void MoleculeCalculation ();
 			void DataOutput () { histo.OutputData(); }
 
 	};
@@ -126,7 +123,7 @@ namespace succinic {
 			}
 
 			void DihedralCalculation (AtomPtr aliphatic, AtomPtr carbonyl, AtomPtr oxygen);
-			void SuccinicAcidCalculation (alkane::SuccinicAcid *);
+			void MoleculeCalculation ();
 
 	};	// succinic dihedral analysis
 
@@ -158,7 +155,7 @@ namespace succinic {
 				histos.DataOutput(func);
 			}
 
-			void SuccinicAcidCalculation (alkane::SuccinicAcid *);
+			void MoleculeCalculation ();
 			void AngleDepthCalculation (AtomPtr oxygen, WaterPtr wat);
 
 	};	// succinic dihedral analysis
@@ -169,8 +166,6 @@ namespace succinic {
 		private:
 			Histogram2DAgent		histo;
 			double angle;
-			double com;
-			h2o_analysis::surface_distance_t	distance;
 			VecR bond, axis;
 
 			void AngleDistanceCalculation (AtomPtr, AtomPtr);	// does the calculation for each bond
@@ -191,11 +186,56 @@ namespace succinic {
 				DivideByRightSineDegrees func;
 				histo.OutputData(func); 
 			}
-			void SuccinicAcidCalculation (alkane::SuccinicAcid *);
+			void MoleculeCalculation ();
 
 	};	// succinic bond angle
 
+	class CarbonylGroupDistance : public molecule_analysis::SuccinicAcidAnalysis {
+		protected:
+			Histogram2DAgent histo;
+			double distance;
 
+		public:
+			typedef Analyzer system_t;
+			CarbonylGroupDistance (system_t * t) :
+				SuccinicAcidAnalysis (t,
+						std::string("Distribution of distances between carboxylic head groups in succinic acid"),
+						std::string ("")),
+				histo (
+						std::string ("head-group-distance.dat"),
+						-12.0, 5.0, 0.1,
+						0.0, 5.0, 0.02) { }
+
+
+			void MoleculeCalculation ();
+			void DataOutput () { histo.OutputData(); }
+	};
+
+	class MethyleneBisectorTilt : public molecule_analysis::SuccinicAcidAnalysis {
+		protected:
+			Histogram2DAgent histo;
+			double angle;
+			VecR ax;
+
+		public:
+			typedef Analyzer system_t;
+			MethyleneBisectorTilt (system_t * t) :
+				SuccinicAcidAnalysis (t,
+						std::string("Succinic acid CH2 bisector tilt distribution"),
+						std::string ("")),
+				histo (
+						std::string ("succinic-CH2.dat"),
+						-12.0, 3.0, 0.5,
+						5.0, 175.0, 2.5) { }
+
+
+			void MoleculeCalculation ();
+			void DataOutput () { 
+				DivideByRightSineDegrees func;
+				histo.OutputData(func); 
+				//histo.OutputData(); 
+			}
+	};
 }	 // namespace succinic
 
 #endif

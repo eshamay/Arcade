@@ -167,4 +167,24 @@ namespace alkane {
 		this->dihedral_atoms[3] = this->GetAtom("C4");
 	}
 
+
+	void SuccinicAcid::SetMethyleneBisectors () {
+		// get the atoms of the two methylene/CH2 groups
+		AtomPtr c1 = this->GetAtom("C2");
+		AtomPtr h1_1 = this->GetAtom("H3");
+		AtomPtr h1_2 = this->GetAtom("H4");
+
+		ch2_1 = Molecule::Bisector(h1_1, c1, h1_2);
+
+		AtomPtr c2 = this->GetAtom("C3");
+		AtomPtr h2_1 = this->GetAtom("H5");
+		AtomPtr h2_2 = this->GetAtom("H6");
+
+		ch2_2 = Molecule::Bisector(h2_1, c2, h2_2);
+	}
+
+	Diacid::Diacid () : Alkane () { this->Rename("Diacid"); _moltype = Molecule::DIACID; } 
+	Diacid::~Diacid () { } 
+	Diacid::Diacid (const Molecule& molecule) : Alkane(molecule) { }
+
 }	// namespace alkane

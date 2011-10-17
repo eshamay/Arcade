@@ -113,9 +113,11 @@ namespace md_analysis {
 			bool operator()(const Molecule* left, const Molecule* right) const {
 				AtomPtr left_o = left->GetAtom(_elmt);
 				AtomPtr right_o = right->GetAtom(_elmt);
-				double left_pos = Analyzer::Position(left_o);
-				double right_pos = Analyzer::Position(right_o);
+				//double left_pos = Analyzer::Position(left_o);
+				//double right_pos = Analyzer::Position(right_o);
 
+				double left_pos = left_o->Position()[WaterSystem::axis];
+				double right_pos = right_o->Position()[WaterSystem::axis];
 				return left_pos < right_pos;
 			}
 	};

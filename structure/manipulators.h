@@ -279,7 +279,8 @@ namespace h2o_analysis {
 			class WaterLocation : public std::unary_function <WaterPtr, double> {
 				public:
 					double operator() (const WaterPtr wat) const {
-						return system_t::Position(wat);
+						//return system_t::Position(wat);
+						return wat->ReferencePoint()[WaterSystem::axis];
 					}
 			}; // water location
 

@@ -68,8 +68,8 @@ namespace md_system {
 			void MolID (const int mol) { _molid = mol; }	// sets the ID of the molecule containing this atom
 			void ParentMolecule (const MolPtr mol) { _pmolecule = mol;  }	// sets a pointer to the molecule that contains the atom
 
-			//void Shift (vector_base& shift)			// shift the atom's position
-			//{ _position += shift; }
+			void Shift (VecR& shift)			// shift the atom's position
+			{ _position += shift; }
 
 			// Output
 			std::string Name () const 	{ return _name; }

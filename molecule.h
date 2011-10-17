@@ -30,7 +30,7 @@ namespace md_system {
 				SO2,
 				ALKANE, DECANE, FORMALDEHYDE, 
 				MALONIC, MALONATE, DIMALONATE,
-				SUCCINIC,
+				DIACID, SUCCINIC,
 				HCL, CL, CTC
 			} Molecule_t;
 
@@ -98,6 +98,7 @@ namespace md_system {
 			AtomPtr operator[] (const int index) const { return _atoms[index]; }	// retrieve an atom by array index
 			AtomPtr operator[] (const std::string& atomname) const;			// retrieve a particular atom using its unique name/ID
 			AtomPtr operator[] (const Atom::Element_t elmt) const;
+			AtomPtr GetAtom (const int index) const { return _atoms[index]; }
 			AtomPtr GetAtom (const std::string& atomname) const;
 			AtomPtr GetAtom (const Atom::Element_t elmt) const;
 			//int operator+= (Atom * newAtom);					// adds an atom into the molecule
@@ -124,6 +125,8 @@ namespace md_system {
 			// get the rotation matrix to rotate a molecule to lab-frame coordinates
 			virtual MatR const & DCMToLab ();
 			virtual const MatR& DCM () { return _DCM; }
+
+			static VecR Bisector (AtomPtr left, AtomPtr center, AtomPtr right);
 
 			static bool mol_cmp (const MolPtr first, const MolPtr second) {
 				return first->MolID() < second->MolID();
