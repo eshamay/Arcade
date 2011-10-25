@@ -30,12 +30,13 @@ namespace h2o_analysis {
 
 	H2OSystemManipulator::H2OSystemManipulator (system_t * t, const int number_of_waters_for_surface_calc) : 
 		SystemManipulator(t), 
-		reference_point(WaterSystem::SystemParameterLookup("analysis.reference-location")),
+		upper_reference_point(WaterSystem::SystemParameterLookup("analysis.upper-reference-point")),
+		lower_reference_point(WaterSystem::SystemParameterLookup("analysis.lower-reference-point")),
 		top_surface(WaterSystem::SystemParameterLookup("analysis.top-surface")),
 		number_surface_waters(number_of_waters_for_surface_calc) 
 	{ 
 		this->Reload();
-		//this->reference_point = MDSystem::Dimensions()[WaterSystem::axis];
+		//this->upper_reference_point = MDSystem::Dimensions()[WaterSystem::axis];
 	}
 
 
@@ -83,12 +84,12 @@ namespace h2o_analysis {
 		// get rid of everything above (or below) the reference point
 		if (top_surface) {
 			analysis_waters.erase(
-					remove_if(analysis_waters.begin(), analysis_waters.end(), typename system_t::MoleculeAbovePosition(reference_point, WaterSystem::axis)), analysis_waters.end());
+					remove_if(analysis_waters.begin(), analysis_waters.end(), typename system_t::MoleculeAbovePosition(upper_reference_point, WaterSystem::axis)), analysis_waters.end());
 		}
 
 		else if (!top_surface) {
 			analysis_waters.erase(
-					remove_if(analysis_waters.begin(), analysis_waters.end(), typename system_t::MoleculeBelowPosition(reference_point, WaterSystem::axis)), analysis_waters.end()); // bottom surface
+					remove_if(analysis_waters.begin(), analysis_waters.end(), typename system_t::MoleculeBelowPosition(lower_reference_point, WaterSystem::axis)), analysis_waters.end()); // bottom surface
 		}
 
 		// sort the waters by position along the reference axis - first waters are lowest, last are highest
@@ -150,7 +151,13 @@ namespace h2o_analysis {
 
 		VecR shift (0.0,0.0,0.0);
 		shift[WaterSystem::axis] = MDSystem::Dimensions()[WaterSystem::axis];
-		shift = -shift;
+
+		// wrap all waters below the pbc-flip boundary up a box
+		for (Wat_it it = analysis_waters.begin(); it != analysis_waters.end(); it++) {
+			if ((*it)->ReferencePoint()[WaterSystem::axis] < this->lower_reference_point) {
+				(*it)->Shift(shift);
+			}
+		}
 
 		/*
 		printf ("shift vector = ");
@@ -160,8 +167,9 @@ namespace h2o_analysis {
 		*/
 
 		// wrap all waters above the top reference point down a box
+		shift = -shift;
 		for (Wat_it it = analysis_waters.begin(); it != analysis_waters.end(); it++) {
-			if ((*it)->ReferencePoint()[WaterSystem::axis] > this->reference_point) {
+			if ((*it)->ReferencePoint()[WaterSystem::axis] > this->upper_reference_point) {
 				(*it)->Shift(shift);
 			}
 		}
@@ -192,8 +200,8 @@ namespace h2o_analysis {
 			std::for_each (analysis_waters.rbegin(), analysis_waters.rbegin()+number_surface_waters, std::mem_fun(&Molecule::Print));
 		}
 
-		printf ("\n\ntop = %.2f  %.2f\n", top_location, top_width);
-		printf ("bottom = %.2f  %.2f\n", bottom_location, bottom_width);
+		//printf ("\n\ntop = %.2f  %.2f\n", top_location, top_width);
+		//printf ("bottom = %.2f  %.2f\n", bottom_location, bottom_width);
 
 	}	// find surface water location - double surface
 

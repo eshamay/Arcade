@@ -5,6 +5,7 @@
 #include "h2o-analysis.h"
 #include "so2-system-analysis.h"
 #include "molecule-analysis.h"
+#include "angle-analysis.h"
 
 namespace so2_angle_analysis {
 
@@ -13,31 +14,27 @@ namespace so2_angle_analysis {
 	// ************* so2 angle analysis *****************
 	class SO2ThetaPhiAnalyzer : public molecule_analysis::SO2Analysis {
 		protected:
-			double theta, phi;
-			Multi2DHistogramAgent	histos;
-			VecR axis, v1, v2, v3;
+			angle_analysis::ThetaPhiAgent angles;
 
 		public:
-
 			SO2ThetaPhiAnalyzer (system_t * t) :
 				SO2Analysis (t,
 						std::string("SO2 theta-phi 2d angle analysis - slices by depth"),
 						std::string ("temp")),
-				axis(VecR::UnitY()),
-				histos (
-						-10.0, 8.0, 2.0,
-						//-5.0, 4.0, 1.0,
-						5.0,175.0,2.5,
-						0.0,90.0,1.0,
-						std::string("./theta-phi/so2-theta-phi."),
-						std::string(".dat")) { }
+				angles (
+						std::string ("./theta-phi/so2-theta-phi."), // filename prefix
+						std::string (".dat"),	// suffix
+						-4.0, 14.0, 2.0, // depths
+						5.0, 175.0, 2.5, // theta range
+						0.0, 90.0, 1.0) // phi range
+		{ }
+
+			virtual void PreCalculation () {
+				algorithm_extra::copy_if (this->begin_mols(), this->end_mols(), std::back_inserter(analysis_mols), member_functional::mem_fun_eq (&Molecule::MolID, 89));
+			}
 
 			void MoleculeCalculation ();
-
-			void DataOutput () {
-				DivideByLeftSineDegrees func;
-				histos.DataOutput(func);
-			}
+			void DataOutput () { angles.DataOutput(); }
 	};
 
 

@@ -17,6 +17,7 @@
 #include "malonic-analysis.h"
 #include "succinic-analysis.h"
 #include "h2o-analysis.h"
+#include "diacid-analysis.h"
 
 
 typedef std::vector<double> double_vec;
@@ -137,6 +138,7 @@ namespace md_analysis {
 			analyses.push_back (new so2_angle_analysis::SO2ThetaAnalyzer(analyzer));
 			analyses.push_back (new h2o_analysis::WaterThetaPhiAnalysis(analyzer));
 			analyses.push_back (new so2_analysis::SO2RDFAnalysis(analyzer));
+			analyses.push_back (new diacid::CarbonylThetaPhiAnalysis(analyzer));
 
 		}
 

@@ -18,6 +18,8 @@ namespace md_system {
 			mol = new SulfurDioxide;
 		else if (name == "sin")
 			mol = new alkane::SuccinicAcid;
+		else if (name == "oxd" || name == "mad" || name == "sad" || name == "gld" || name == "apd")
+			mol = new alkane::Diacid;
 
 		else {
 			//mol = new Molecule;

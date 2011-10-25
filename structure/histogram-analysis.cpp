@@ -121,6 +121,7 @@ namespace md_analysis {
 		// this will return the corrent histogram to use
 		Histogram2DAgent* histo;
 
+		/*
 		if (val <= min)
 			histo = &histos.front();
 
@@ -128,14 +129,18 @@ namespace md_analysis {
 			histo = &histos.back();
 
 		else {
+		*/
 			int r = int((val-min)/res);
 			histo = &histos[r];
-		}
+		//}
 
 		return histo;
 	}
 
 	void Multi2DHistogramAgent::operator() (const double val1, const double val2, const double val3) {
+		if (val1 < min) return;
+		else if (val1 > max) return;
+
 		Histogram2DAgent* histo = FindHistogram(val1);
 		histo->operator() (val2,val3);
 		return;

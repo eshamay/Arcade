@@ -98,14 +98,40 @@ namespace alkane {
 	};
 
 
-
 	class Diacid : public Alkane {
-
+		public:
 			Diacid ();			// a default constructor
 			virtual ~Diacid ();
 			Diacid (const Molecule& molecule);		// copy constructor for casting from a molecule
 
+			// refer to the carbonyl carbons
+			AtomPtr CarbonylCarbon1 () { return this->GetAtom("C1"); }
+			AtomPtr CarbonylCarbon2 ();
+
+			// bisector of the O-C-O of the carbonyl group
+			VecR CarbonylBisector1 ();
+			VecR CarbonylBisector2 ();
+
+			// bonds from the carbonyl carbon to the carbonyl oxygens
+			VecR CO1 ();
+			VecR CO2 ();
+
+			void LoadMethylCarbons ();
+			std::map< AtomPtr, std::pair<AtomPtr,AtomPtr> >::iterator methyl_groups_begin () { 
+				return methyl_hydrogens.begin(); }
+			std::map< AtomPtr, std::pair<AtomPtr,AtomPtr> >::iterator methyl_groups_end () { 
+				return methyl_hydrogens.end(); }
+
+			std::list<AtomPtr>::iterator methyl_carbons_begin () { return methyl_carbons.begin(); }
+			std::list<AtomPtr>::iterator methyl_carbons_end () { return methyl_carbons.end(); }
+
+		protected:
+			std::list<AtomPtr> methyl_carbons;
+			std::list<AtomPtr> hydrogens;
+			// a map linking each methyl carbon to the hydrogens bound to it.
+			std::map< AtomPtr, std::pair<AtomPtr,AtomPtr> >	methyl_hydrogens;
 	};
+
 
 }
 #endif

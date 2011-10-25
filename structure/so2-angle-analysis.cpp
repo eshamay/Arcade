@@ -10,21 +10,7 @@ namespace so2_angle_analysis {
 		this->position = this->h2os.TopOrBottom(com);
 		this->mol->SetOrderAxes();
 
-		v1 = axis;// the reference axis - perp to the surface
-		if (!(this->position.first))
-			v1 = -v1;
-
-		v2 = this->mol->Z();
-		v3 = this->mol->SO1();
-
-		theta = acos(v2 < v1) * 180.0 / M_PI;
-		//phi = fabs(acos(this->so2->Y() < axis)) * 180.0 / M_PI;
-		phi = Dihedral::Angle(v1,v2,v3) * 180.0 / M_PI;
-		phi = fabs(phi);
-		if (phi > 90.0)
-			phi = 180.0 - phi;
-
-		histos (this->position.second, theta, fabs(phi));
+		angles (this->mol->Z(), this->mol->SO1(), this->position);
 	}
 
 

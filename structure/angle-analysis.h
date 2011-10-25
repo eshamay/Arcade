@@ -6,6 +6,7 @@
 #include "histogram-analysis.h"
 #include "neighbor-analysis.h"
 #include "molecule-analysis.h"
+#include "h2o-analysis.h"
 
 
 namespace angle_analysis {
@@ -334,6 +335,38 @@ namespace angle_analysis {
 
 	};	// water orientation near so2
 
+
+
+
+	class ThetaPhiAgent {
+		protected:
+			double theta, phi;
+			Multi2DHistogramAgent	histos;
+			VecR axis, v1;
+
+		public:
+			ThetaPhiAgent (
+					std::string prefix,
+					std::string suffix,
+					float a, float b, float c, 
+					float d, float e, float f, 
+					float g, float h, float i) :
+				axis(VecR::UnitY()),
+				histos (
+						a,b,c,
+						d,e,f,
+						g,h,i,
+						prefix, suffix) { }
+
+			void operator() 
+				( VecR bisector, VecR ref_bond, 
+					h2o_analysis::surface_distance_t position);
+
+			void DataOutput () {
+				DivideByLeftSineDegrees func;
+				histos.DataOutput(func);
+			}
+	};
 
 }	// namespace angle analysis
 

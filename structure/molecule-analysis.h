@@ -67,6 +67,15 @@ namespace molecule_analysis {
 	}; // so2 analysis
 
 
+
+	class DiacidAnalysis : public SingleMoleculeAmberAnalysis<alkane::Diacid> {
+		public:
+			DiacidAnalysis (Analyzer * t, std::string desc, std::string fn) : 
+				SingleMoleculeAmberAnalysis<alkane::Diacid> (t, desc, fn) { this->moltype = Molecule::DIACID; }
+	}; // diacid analysis
+
+
+
 	class SuccinicAcidAnalysis : public SingleMoleculeAmberAnalysis<alkane::SuccinicAcid> {
 		public:
 			SuccinicAcidAnalysis (Analyzer * t, std::string desc, std::string fn) : 

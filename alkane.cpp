@@ -187,4 +187,62 @@ namespace alkane {
 	Diacid::~Diacid () { } 
 	Diacid::Diacid (const Molecule& molecule) : Alkane(molecule) { }
 
+	AtomPtr Diacid::CarbonylCarbon2 () {
+		// second carbonyl carbon is always the last carbon (e.g. "C5" if there are 5 carbons)
+		// filter out only carbons, and then grab the last one
+		std::list<AtomPtr> carbons;
+		algorithm_extra::copy_if (this->begin(), this->end(), std::back_inserter(carbons), member_functional::mem_fun_eq(&Atom::Element, Atom::C));
+
+		//std::for_each (carbons.begin(), carbons.end(), std::mem_fun(&Atom::Print));
+		return carbons.back();
+	}
+
+	VecR Diacid::CarbonylBisector1 () {
+		return Molecule::Bisector (this->GetAtom("O3"), this->CarbonylCarbon1(), this->GetAtom("O1"));
+	}
+
+	VecR Diacid::CarbonylBisector2 () {
+		return Molecule::Bisector (this->GetAtom("O4"), this->CarbonylCarbon1(), this->GetAtom("O2"));
+	}
+
+	VecR Diacid::CO1 () { return VecR (this->GetAtom("O1")->Position() - this->CarbonylCarbon1()->Position()); }
+	VecR Diacid::CO2 () { return VecR (this->GetAtom("O2")->Position() - this->CarbonylCarbon2()->Position()); }
+
+	void Diacid::LoadMethylCarbons () {
+		// grab all the hydrogens
+		hydrogens.clear();
+		algorithm_extra::copy_if (this->begin(), this->end(), std::back_inserter(hydrogens), member_functional::mem_fun_eq (&Atom::Element, Atom::H));
+
+		// now load all the methyl carbons (i.e. all but the carbonyl carbons)
+		methyl_carbons.clear();
+		for (Atom_it it = this->begin(); it != this->end(); ++it) {
+			if (*it == CarbonylCarbon1() || *it == CarbonylCarbon2()) continue;
+			methyl_carbons.push_back(*it);
+			// for each carbon, find the 2 closest hydrogens and store them in the hydrogen bond-map 
+			std::pair<AtomPtr,AtomPtr> hyds = FindMethylHydrogens(*it);
+			methyl_hydrogens.insert(std::make_pair(*it, hyds));
+		}
+	}
+
+	std::pair<AtomPtr,AtomPtr> Diacid::FindMethylHydrogens (AtomPtr carbon) {
+		// run through each hydrogen in the molecule to find the one it's bound to
+		AtomPtr first, second;
+		bool one = false;
+		
+		for (Atom_it it = hydrogens.begin(); it != hydrogens.end(); it++) {
+			if ((carbon->Position() - (*it)->Position()).norm() < 1.6) {
+				if (!one) {
+					first = *it;
+					one = true;
+				}
+				else if (!two) {
+					second = *it;
+					break;
+				}
+			}
+		}
+		return std::make_pair(first, second);
+	}
+
+
 }	// namespace alkane

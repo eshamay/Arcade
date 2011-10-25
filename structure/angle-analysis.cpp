@@ -325,9 +325,26 @@ namespace angle_analysis {
 
 
 
+	void ThetaPhiAgent::operator() 
+		( VecR bisector, VecR ref_bond, 
+			h2o_analysis::surface_distance_t position) {
 
+			v1 = axis;// the reference axis - perp to the surface
+			if (!(position.first))
+				v1 = -v1;
 
+			//bisector.Print();
+			//ref_bond.Print();
 
+			theta = acos(bisector < v1) * 180.0 / M_PI;
+			phi = Dihedral::Angle(v1,bisector,ref_bond) * 180.0 / M_PI;
+			phi = fabs(phi);
+			if (phi > 90.0)
+				phi = 180.0 - phi;
+
+			//printf ("\ntheta = %f\nphi = %f\nposition = %f\n", theta, phi, position.second);
+			histos (position.second, theta, fabs(phi));
+		}
 
 
 } // namespace angle_analysis

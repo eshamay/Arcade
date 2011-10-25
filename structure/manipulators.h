@@ -266,7 +266,9 @@ namespace h2o_analysis {
 			Water_ptr_vec all_waters, analysis_waters;
 			Atom_ptr_vec all_water_atoms;
 
-			double reference_point;	// the original location of the so2 along the reference axis
+			double upper_reference_point;	// the original location of the so2 along the reference axis
+			double lower_reference_point;
+			double reference_point;
 			int number_surface_waters;
 			bool	top_surface;
 
