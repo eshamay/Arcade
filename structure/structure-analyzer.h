@@ -6,7 +6,7 @@
 #include "angle-bond-analysis.h"
 #include "dipole-analysis.h"
 #include "neighbor-analysis.h"
-#include "atomic-density-analysis.h"
+#include "density-analysis.h"
 #include "rdf-analysis.h"
 #include "angle-analysis.h"
 #include "so2-analysis.h"
@@ -14,8 +14,6 @@
 #include "so2-system-analysis.h"
 #include "bond-analysis.h"
 #include "cycle-analysis.h"
-#include "malonic-analysis.h"
-#include "succinic-analysis.h"
 #include "h2o-analysis.h"
 #include "diacid-analysis.h"
 
@@ -110,13 +108,13 @@ namespace md_analysis {
 			analyzer = new Analyzer (sys);
 
 			analyses.push_back (new H2OAngleBondAnalysis(analyzer));									
-			analyses.push_back (new AtomicDensityAnalysis(analyzer));							
-			analyses.push_back (new SystemDensitiesAnalysis(analyzer));					
+			analyses.push_back (new density::MolecularDensityDistribution(analyzer));							
+			//analyses.push_back (new SystemDensitiesAnalysis(analyzer));					
 			analyses.push_back (new angle_analysis::H2OAngleAnalysis(analyzer));
 			analyses.push_back (new angle_analysis::ReferenceSO2AngleAnalysis(analyzer));			
 			analyses.push_back (new neighbor_analysis::SO2BondingCycleAnalysis(analyzer));	
 			analyses.push_back (new neighbor_analysis::SO2HBondingAnalysis(analyzer));		
-			analyses.push_back (new md_analysis::H2OSurfaceStatisticsAnalysis(analyzer));		
+			//analyses.push_back (new md_analysis::H2OSurfaceStatisticsAnalysis(analyzer));		
 			analyses.push_back (new angle_analysis::SO2AdsorptionWaterAngleAnalysis(analyzer));	
 			analyses.push_back (new angle_analysis::WaterOHAngleAnalysis(analyzer));				
 			analyses.push_back (new angle_analysis::OHAngleAnalysis(analyzer));				
@@ -124,14 +122,14 @@ namespace md_analysis {
 			analyses.push_back (new angle_analysis::SOAngleAnalysis(analyzer));				
 			analyses.push_back (new neighbor_analysis::SO2NearestNeighborAnalysis(analyzer));
 			//analyses.push_back (new RDFByDistanceAnalyzer(analyzer));
-			analyses.push_back (new succinic::DensityDistribution(analyzer));
-			analyses.push_back (new succinic::SuccinicAcidBondAngleAnalysis(analyzer));
-			analyses.push_back (new succinic::SuccinicAcidCarbonChainDihedralAngleAnalysis(analyzer));
-			analyses.push_back (new succinic::SuccinicAcidCarbonylDihedralAngleAnalysis(analyzer));
-			analyses.push_back (new succinic::SuccinicAcidCarbonylTiltTwistAnglesAnalysis(analyzer));
-			analyses.push_back (new succinic::NeighboringWaterOrientation(analyzer));
-			analyses.push_back (new succinic::CarbonylGroupDistance(analyzer));
-			analyses.push_back (new succinic::MethyleneBisectorTilt(analyzer));
+			//analyses.push_back (new succinic::DensityDistribution(analyzer));
+			//analyses.push_back (new succinic::SuccinicAcidBondAngleAnalysis(analyzer));
+			//analyses.push_back (new succinic::SuccinicAcidCarbonChainDihedralAngleAnalysis(analyzer));
+			//analyses.push_back (new succinic::SuccinicAcidCarbonylDihedralAngleAnalysis(analyzer));
+			//analyses.push_back (new succinic::SuccinicAcidCarbonylTiltTwistAnglesAnalysis(analyzer));
+			//analyses.push_back (new succinic::NeighboringWaterOrientation(analyzer));
+			//analyses.push_back (new succinic::CarbonylGroupDistance(analyzer));
+			//analyses.push_back (new succinic::MethyleneBisectorTilt(analyzer));
 			analyses.push_back (new h2o_analysis::BisectorAnalysis(analyzer));
 			analyses.push_back (new h2o_analysis::TwistAnalysis(analyzer));
 			analyses.push_back (new so2_angle_analysis::SO2ThetaPhiAnalyzer(analyzer));
@@ -139,6 +137,7 @@ namespace md_analysis {
 			analyses.push_back (new h2o_analysis::WaterThetaPhiAnalysis(analyzer));
 			analyses.push_back (new so2_analysis::SO2RDFAnalysis(analyzer));
 			analyses.push_back (new diacid::CarbonylThetaPhiAnalysis(analyzer));
+			analyses.push_back (new diacid::MethylThetaPhiAnalysis(analyzer));
 
 		}
 
@@ -164,8 +163,9 @@ namespace md_analysis {
 			analyses.push_back(new cycle_analysis::SO2CycleCoordinationAnalyzer(analyzer));
 			analyses.push_back(new cycle_analysis::SO2CycleLifespanAnalyzer(analyzer));
 			analyses.push_back(new cycle_analysis::SO2CycleCoordinateWriter(analyzer));
-			analyses.push_back(new malonic_analysis::MalonicBondLengthAnalysis(analyzer));
-			analyses.push_back(new malonic_analysis::MethyleneTilt(analyzer));
+			//analyses.push_back(new malonic_analysis::MalonicBondLengthAnalysis(analyzer));
+			//analyses.push_back(new malonic_analysis::MethyleneTilt(analyzer));
+			analyses.push_back(new so2_analysis::SO2Test(analyzer));
 
 			//b = new bond_analysis::SO2BondingAnalyzer<U>(analyzer);					analyses.push_back(b);
 		}
@@ -186,7 +186,12 @@ namespace md_analysis {
 				exit(1);
 			}
 
-			else SystemAnalysis(*analyses[_analysis_choice]);
+			else if (_analysis_choice < 0 || _analysis_choice >= analyses.size()) {
+				std::cerr << "Analysis choice is out of range." << std::endl;
+				exit(1);
+			}
+			else 
+				SystemAnalysis(*analyses[_analysis_choice]);
 
 			return;
 		}

@@ -34,6 +34,8 @@ namespace md_system {
 				HCL, CL, CTC
 			} Molecule_t;
 
+			static std::string Moltype2String (Molecule_t);
+
 			static int numMolecules;
 
 			// Input functions
@@ -125,8 +127,6 @@ namespace md_system {
 			// get the rotation matrix to rotate a molecule to lab-frame coordinates
 			virtual MatR const & DCMToLab ();
 			virtual const MatR& DCM () { return _DCM; }
-
-			static VecR Bisector (AtomPtr left, AtomPtr center, AtomPtr right);
 
 			static bool mol_cmp (const MolPtr first, const MolPtr second) {
 				return first->MolID() < second->MolID();
@@ -238,7 +238,6 @@ namespace md_system {
 			//	the line from atom2->atom3 forms the intersection of the planes formed by atom1,atom2,atom3, and atom2,atom3,atom4.
 
 		public:
-
 			// Calculate the dihedral between the two planes formed by the three vectors
 			static double Angle (const VecR& v1, const VecR& v2, const VecR& v3);
 
@@ -247,6 +246,19 @@ namespace md_system {
 			virtual void SetDihedralAtoms () = 0;	
 			AtomPtr DihedralAtom (const int index) const { return dihedral_atoms[index]; }
 	};	
+
+	class ThreeAtomGroup {
+		protected:
+			AtomPtr left, center, right;
+		public:
+			ThreeAtomGroup (AtomPtr l, AtomPtr c, AtomPtr r) : left(l), center(c), right(r) { }
+
+			double Angle () const;
+			VecR Bisector () const;
+			VecR Bond1() const { return left->Position() - center->Position(); }
+			VecR Bond2() const { return right->Position() - center->Position(); }
+
+	};
 
 }	// namespace md system
 #endif

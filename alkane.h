@@ -54,6 +54,8 @@ namespace alkane {
 	}; // class malonic
 
 
+
+
 	class SuccinicAcid : public Alkane, public Dihedral {
 		protected:
 			VecR ch2_1, ch2_2;
@@ -63,9 +65,9 @@ namespace alkane {
 			virtual void SetDihedralAtoms();
 			VecR Bisector (AtomPtr left, AtomPtr center, AtomPtr right);
 
-			void SetMethyleneBisectors ();
-			VecR& CH2_1 () { return ch2_1; }
-			VecR& CH2_2 () { return ch2_2; }
+			//void SetMethyleneBisectors ();
+			//VecR& CH2_1 () { return ch2_1; }
+			//VecR& CH2_2 () { return ch2_2; }
 
 	};
 
@@ -116,20 +118,24 @@ namespace alkane {
 			VecR CO1 ();
 			VecR CO2 ();
 
-			void LoadMethylCarbons ();
-			std::map< AtomPtr, std::pair<AtomPtr,AtomPtr> >::iterator methyl_groups_begin () { 
-				return methyl_hydrogens.begin(); }
-			std::map< AtomPtr, std::pair<AtomPtr,AtomPtr> >::iterator methyl_groups_end () { 
-				return methyl_hydrogens.end(); }
+			void LoadAtomGroups () { LoadMethylGroups(); LoadCarbonylGroups(); }
 
-			std::list<AtomPtr>::iterator methyl_carbons_begin () { return methyl_carbons.begin(); }
-			std::list<AtomPtr>::iterator methyl_carbons_end () { return methyl_carbons.end(); }
+			typedef std::list<ThreeAtomGroup> atom_group_list;
+			atom_group_list::iterator methyls_begin () { return methyl_groups.begin(); }
+			atom_group_list::iterator methyls_end () { return methyl_groups.end(); }
+
+			atom_group_list::iterator carbonyls_begin () { return carbonyl_groups.begin(); }
+			atom_group_list::iterator carbonyls_end () { return carbonyl_groups.end(); }
 
 		protected:
-			std::list<AtomPtr> methyl_carbons;
+			void LoadMethylGroups ();
+			void LoadCarbonylGroups ();
+
+			std::list<ThreeAtomGroup> methyl_groups;
+			std::list<ThreeAtomGroup> carbonyl_groups;
 			std::list<AtomPtr> hydrogens;
-			// a map linking each methyl carbon to the hydrogens bound to it.
-			std::map< AtomPtr, std::pair<AtomPtr,AtomPtr> >	methyl_hydrogens;
+
+			std::pair<AtomPtr,AtomPtr> FindMethylHydrogens (AtomPtr carbon);
 	};
 
 

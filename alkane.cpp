@@ -168,6 +168,7 @@ namespace alkane {
 	}
 
 
+	/*
 	void SuccinicAcid::SetMethyleneBisectors () {
 		// get the atoms of the two methylene/CH2 groups
 		AtomPtr c1 = this->GetAtom("C2");
@@ -182,6 +183,10 @@ namespace alkane {
 
 		ch2_2 = Molecule::Bisector(h2_1, c2, h2_2);
 	}
+	*/
+
+
+
 
 	Diacid::Diacid () : Alkane () { this->Rename("Diacid"); _moltype = Molecule::DIACID; } 
 	Diacid::~Diacid () { } 
@@ -197,30 +202,31 @@ namespace alkane {
 		return carbons.back();
 	}
 
-	VecR Diacid::CarbonylBisector1 () {
-		return Molecule::Bisector (this->GetAtom("O3"), this->CarbonylCarbon1(), this->GetAtom("O1"));
-	}
-
-	VecR Diacid::CarbonylBisector2 () {
-		return Molecule::Bisector (this->GetAtom("O4"), this->CarbonylCarbon1(), this->GetAtom("O2"));
-	}
+	VecR Diacid::CarbonylBisector1 () { return carbonyl_groups.front().Bisector(); }
+	VecR Diacid::CarbonylBisector2 () { return carbonyl_groups.back().Bisector(); }
 
 	VecR Diacid::CO1 () { return VecR (this->GetAtom("O1")->Position() - this->CarbonylCarbon1()->Position()); }
 	VecR Diacid::CO2 () { return VecR (this->GetAtom("O2")->Position() - this->CarbonylCarbon2()->Position()); }
 
-	void Diacid::LoadMethylCarbons () {
+	void Diacid::LoadCarbonylGroups () {
+		carbonyl_groups.clear();
+		carbonyl_groups.push_back (ThreeAtomGroup(this->GetAtom("O3"), this->CarbonylCarbon1(), this->GetAtom("O1")));
+		carbonyl_groups.push_back (ThreeAtomGroup(this->GetAtom("O4"), this->CarbonylCarbon2(), this->GetAtom("O2")));
+	}
+
+	// loads the carbon-hydrogen map with the methyl group atoms
+	void Diacid::LoadMethylGroups () {
 		// grab all the hydrogens
 		hydrogens.clear();
 		algorithm_extra::copy_if (this->begin(), this->end(), std::back_inserter(hydrogens), member_functional::mem_fun_eq (&Atom::Element, Atom::H));
 
 		// now load all the methyl carbons (i.e. all but the carbonyl carbons)
-		methyl_carbons.clear();
+		methyl_groups.clear();
 		for (Atom_it it = this->begin(); it != this->end(); ++it) {
-			if (*it == CarbonylCarbon1() || *it == CarbonylCarbon2()) continue;
-			methyl_carbons.push_back(*it);
+			if ((*it)->Element() != Atom::C || *it == CarbonylCarbon1() || *it == CarbonylCarbon2()) continue;
 			// for each carbon, find the 2 closest hydrogens and store them in the hydrogen bond-map 
 			std::pair<AtomPtr,AtomPtr> hyds = FindMethylHydrogens(*it);
-			methyl_hydrogens.insert(std::make_pair(*it, hyds));
+			methyl_groups.push_back(ThreeAtomGroup(hyds.first, *it, hyds.second));
 		}
 	}
 
@@ -229,13 +235,13 @@ namespace alkane {
 		AtomPtr first, second;
 		bool one = false;
 		
-		for (Atom_it it = hydrogens.begin(); it != hydrogens.end(); it++) {
+		for (std::list<AtomPtr>::iterator it = hydrogens.begin(); it != hydrogens.end(); it++) {
 			if ((carbon->Position() - (*it)->Position()).norm() < 1.6) {
 				if (!one) {
 					first = *it;
 					one = true;
 				}
-				else if (!two) {
+				else {
 					second = *it;
 					break;
 				}

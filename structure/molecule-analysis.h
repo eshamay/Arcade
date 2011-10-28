@@ -9,54 +9,92 @@ namespace molecule_analysis {
 
 	using namespace md_analysis;
 
-	template <typename T>
-	class SingleMoleculeAmberAnalysis : public AnalysisSet {
 
+	//////////////// SINGLE MOLECULE ANALYSIS ///////////////////
+	template <typename T>
+	class SingleMoleculeAnalysis : public AnalysisSet {
 		protected:
-			h2o_analysis::H2ODoubleSurfaceManipulator	h2os;
-			double com;
-			h2o_analysis::surface_distance_t position;
 			Mol_ptr_vec analysis_mols;
 			Molecule::Molecule_t moltype;
 			T * mol;
 
 		public:
+
 			typedef Analyzer system_t;
-			SingleMoleculeAmberAnalysis (system_t * t, std::string desc, std::string fn) : 
-				AnalysisSet (t, desc, fn),
-				h2os(t) { }
-
-			virtual void Setup () { h2os.Reload(); }
-			virtual void Analysis ();
-
-			virtual void MoleculeCalculation () = 0;
+			SingleMoleculeAnalysis (system_t * t, std::string desc, std::string fn) : 
+				AnalysisSet (t, desc, fn) { }
 
 			virtual void PreCalculation () {
+				analysis_mols.clear();
 				algorithm_extra::copy_if (this->begin_mols(), this->end_mols(), std::back_inserter(analysis_mols), member_functional::mem_fun_eq (&Molecule::MolType, moltype));
 			}
 
+			virtual void MoleculeCalculation () = 0;
 			virtual void PostCalculation () { return; }
-	}; 
+
+			virtual void Analysis ();
+	};
 
 
 	template <typename T>
-	void SingleMoleculeAmberAnalysis<T>::Analysis () {
-		h2os.FindWaterSurfaceLocation();
-
-		// load up the molecules to be analyzed
-		analysis_mols.clear();
-		PreCalculation ();
-
-		for (Mol_it it = analysis_mols.begin(); it != analysis_mols.end(); it++) {
-			mol = static_cast<T *>(*it);
-			MoleculeCalculation ();
+		void SingleMoleculeAnalysis<T>::Analysis () {
+			// load up the molecules to be analyzed
+			this->PreCalculation ();
+			// run through the analysis
+			for (Mol_it it = analysis_mols.begin(); it != analysis_mols.end(); it++) {
+				mol = static_cast<T *>(*it);
+				this->MoleculeCalculation ();
+			}
+			this->PostCalculation ();
+			return;
 		}
 
-		PostCalculation ();
 
-		return;
-	}
 
+
+	
+	//////////////// XYZ MOLECULE ANALYSIS ///////////////////
+	//
+	//
+	template <typename T>
+	class SingleMoleculeXYZAnalysis : public SingleMoleculeAnalysis<T> {
+		public:
+			typedef Analyzer system_t;
+			SingleMoleculeXYZAnalysis (system_t * t, std::string desc, std::string fn) : 
+				SingleMoleculeAnalysis<T> (t, desc, fn) { }
+	};
+
+
+
+	//////////////// XYZ MOLECULE ANALYSIS ///////////////////
+	//
+	//
+	template <typename T>
+		class SingleMoleculeAmberAnalysis : public SingleMoleculeAnalysis<T> {
+
+			protected:
+				h2o_analysis::H2ODoubleSurfaceManipulator	h2os;
+				double com;
+				h2o_analysis::surface_distance_t position;
+
+			public:
+				typedef Analyzer system_t;
+				SingleMoleculeAmberAnalysis (system_t * t, std::string desc, std::string fn) : 
+					SingleMoleculeAnalysis<T> (t, desc, fn),
+					h2os(t) { }
+
+				virtual void Setup () { 
+					h2os.Reload(); 
+					AnalysisSet::Setup(); 
+				}
+
+				virtual void PreCalculation () {
+					h2os.FindWaterSurfaceLocation();
+					SingleMoleculeAnalysis<T>::PreCalculation ();
+					//this->analysis_mols.clear();
+					//algorithm_extra::copy_if (this->begin_mols(), this->end_mols(), std::back_inserter(this->analysis_mols), member_functional::mem_fun_eq (&Molecule::MolType, moltype));
+				}
+		}; 
 
 
 
@@ -65,6 +103,12 @@ namespace molecule_analysis {
 			SO2Analysis (Analyzer * t, std::string desc, std::string fn) : 
 				SingleMoleculeAmberAnalysis<SulfurDioxide> (t, desc, fn) { this->moltype = Molecule::SO2; }
 	}; // so2 analysis
+
+	class SO2XYZAnalysis : public SingleMoleculeXYZAnalysis<SulfurDioxide> {
+		public:
+			SO2XYZAnalysis (Analyzer * t, std::string desc, std::string fn) : 
+				SingleMoleculeXYZAnalysis<SulfurDioxide> (t, desc, fn) { this->moltype = Molecule::SO2; }
+	}; // so2 xyz analysis
 
 
 

@@ -339,6 +339,18 @@ namespace md_system {
 	}
 	*/
 
+	std::string Molecule::Moltype2String (Molecule_t t) {
+		std::string molname;
+		switch (t) {
+			case Molecule::H2O :
+				molname = "H2O"; break;
+			case Molecule::DIACID :
+				molname = "Diacid"; break;
+			case Molecule::SO2 :
+				molname = "SO2"; break;
+		}
+		return molname;
+	}
 
 	// if given a 2nd molecule, this will merge the current and the new molecules into one larger molecule.
 	MolPtr Molecule::Merge (MolPtr mol) {
@@ -377,11 +389,20 @@ namespace md_system {
 		return Dihedral::Angle (v1,v2,v3);
 	}
 
+
+	// find the angle formed by the three atoms given
+	// returns the cos of the angle
+	double ThreeAtomGroup::Angle () const {
+		VecR cl (left->Position() - center->Position());
+		VecR cr (right->Position() - center->Position());
+		return cl < cr;
+	}
+
 	// calculates the bisector vector that runs between the bonds:
 	//		center->left and center->right
 	// so usage for an H2O to find the bisector would be:
 	//	Bisector (h1, o, h2)
-	VecR Molecule::Bisector (AtomPtr left, AtomPtr center, AtomPtr right) {
+	VecR ThreeAtomGroup::Bisector () const {
 		VecR bond1 (left->Position() - center->Position());
 		VecR bond2 (right->Position() - center->Position());
 		return (bond1 + bond2).normalized();

@@ -8,6 +8,15 @@ namespace so2_analysis {
 
 	using namespace md_analysis;
 
+	class SO2Test : public molecule_analysis::SO2XYZAnalysis {
+		public:
+			SO2Test (system_t * t) :
+				SO2XYZAnalysis (t,
+						std::string("SO2 test run"),
+						std::string ("temp")) { }
+
+			void MoleculeCalculation () { }
+	};
 
 	class SO2RDFAnalysis : public molecule_analysis::SO2Analysis {
 		protected:

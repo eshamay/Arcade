@@ -261,7 +261,7 @@ namespace cycle_analysis {
 		std::sort(mols.begin(), mols.end(), Molecule::mol_cmp);
 		mols.resize(std::unique(mols.begin(), mols.end()) - mols.begin());
 
-		fprintf (current_file, "\n%d\n", (int)mols.size() * 3);
+		fprintf (current_file, "%d\ni = %d, E = %s\n", (int)mols.size() * 3, XYZFile::timestep, XYZFile::system_energy.c_str());
 
 		VecR pos;
 		AtomPtr reference_atom = *cycle->begin();	// grabs the sulfur atom
@@ -296,7 +296,7 @@ namespace cycle_analysis {
 				// wrap the atom in to the center of mass image
 				pos = (*atom)->Position(); 
 				//pos = MDSystem::Distance(reference_position, (*atom)->Position());
-				fprintf (current_file, "%s\t% 8.3f% 8.3f% 8.3f\n", (*atom)->Name().c_str(), pos[x], pos[y], pos[z]);
+				fprintf (current_file, "%s\t% 20.10f% 20.10f% 20.10f\n", (*atom)->Name().c_str(), pos[x], pos[y], pos[z]);
 			}
 		}
 

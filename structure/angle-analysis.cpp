@@ -339,8 +339,8 @@ namespace angle_analysis {
 			theta = acos(bisector < v1) * 180.0 / M_PI;
 			phi = Dihedral::Angle(v1,bisector,ref_bond) * 180.0 / M_PI;
 			phi = fabs(phi);
-			if (phi > 90.0)
-				phi = 180.0 - phi;
+			//if (phi > 90.0)
+				//phi = 180.0 - phi;
 
 			//printf ("\ntheta = %f\nphi = %f\nposition = %f\n", theta, phi, position.second);
 			histos (position.second, theta, fabs(phi));

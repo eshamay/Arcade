@@ -2,13 +2,14 @@
 #define XYZFILE_H_
 
 #include "mdsystem.h"
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace md_files {
 
 	using namespace md_system;
 
 	class XYZFile : public md_system::CoordinateFile {
-
 
 		public:
 
@@ -32,12 +33,18 @@ namespace md_files {
 
 			AtomPtr operator[] (int index) const { return _atoms[index]; }
 
+			static std::string system_energy;	// grabbed from the header line of each timeframe
+			static int timestep;
+
 		protected:
 
 			Atom_ptr_vec  _atoms;		// The listing of the atoms in the file
-
 			bool _initialized;				// To tell wether or not a file has been loaded
+
+			void ParseXYZHeader (std::string);
 	};	 // class xyzfile
+
+
 } // namespace md_files
 
 #endif

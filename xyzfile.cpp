@@ -2,6 +2,9 @@
 
 namespace md_files {
 
+	std::string XYZFile::system_energy;
+	int XYZFile::timestep;
+
 	XYZFile::XYZFile (std::string path) 
 		: 
 			md_system::CoordinateFile (path),
@@ -25,10 +28,14 @@ namespace md_files {
 	void XYZFile::LoadNext () {
 
 		// first process the frame's header
+		//
+		// this grabs the number of atoms in the timeframe
 		fscanf (_file, " %d", &(this->_size));
 		//fscanf (_file, " i = %d", &_currentstep);			// some output xyz files have timestep data added
-		this->ReadLine();
-		this->ReadLine();
+		this->ReadLine();	// skip the rest of the first line
+		// Process the 2nd header line
+		this->ReadLine();	
+		ParseXYZHeader (std::string(this->_line));
 
 		double X, Y, Z;
 		char name[10];
@@ -80,5 +87,33 @@ namespace md_files {
 			printf ("%s % 10.5f % 10.5f % 10.5f\n", (*it)->Name().c_str(), (*it)->Position()[x], (*it)->Position()[y], (*it)->Position()[z]);
 		}
 	}	// write xyz file
+
+
+	// trim up the header line of each xyz frame and extract some info from it
+	void XYZFile::ParseXYZHeader (std::string header) {
+		//std::cout << header << std::endl;
+		boost::erase_all(header, " ");
+		boost::erase_all(header, "\n");
+		//std::cout << header << std::endl;
+		std::vector<std::string> strs;
+		// split the header - comma delimited
+		boost::split(strs, header, boost::is_any_of(","));
+		// go through each piece of the header and grab out the relevant info
+		std::vector<std::string> tokens;
+		for (std::vector<std::string>::iterator it = strs.begin(); it != strs.end(); it++) {
+			tokens.clear();
+			boost::split(tokens, *it, boost::is_any_of("="));
+
+			// parse the possible tokens
+			if (tokens[0] == "E") {
+				XYZFile::system_energy = tokens[1];
+				//printf ("energy = %s\n", system_energy.c_str());
+			}
+			else if (tokens[0] == "i") {
+				XYZFile::timestep = atoi(tokens[1].c_str());
+			}
+		}
+
+	}
 
 } // namespace md_files

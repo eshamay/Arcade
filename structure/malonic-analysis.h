@@ -5,7 +5,7 @@
 #include "manipulators.h"
 #include "histogram-analysis.h"
 
-namespace malonic_analysis {
+namespace malonic {
 
 	using namespace md_analysis;
 

@@ -1,10 +1,42 @@
 #ifndef DENSITY_HISTOGRAM_H
 #define DENSITY_HISTOGRAM_H
 
-#include "../utility.h"
-#include "../analysis.h"
-#include <gsl/gsl_statistics.h>
+#include "analysis.h"
+#include "manipulators.h"
+#include "utility.h"
 #include <map>
+#include <set>
+
+namespace density {
+
+	using namespace md_analysis;
+
+	class MolecularDensityDistribution : public AnalysisSet {
+		protected:
+			typedef histogram_utilities::Histogram1D<double> histo_t;
+			typedef std::map <Molecule::Molecule_t,histo_t> histo_map;
+			histo_map histos;
+
+			double min,max,res;
+
+			h2o_analysis::H2ODoubleSurfaceManipulator	h2os;
+
+		public:
+			MolecularDensityDistribution (Analyzer * t) :
+				AnalysisSet (t, 
+						std::string("Molecular Density Analysis"),
+						std::string("MolecularDensities.dat")),
+				min(-15.0), max(10.0), res(0.1),
+				h2os(t) { }
+
+			void Setup ();
+			void Analysis ();
+			void DataOutput ();
+	};
+
+
+
+
 
 /*
  * This analysis package calculates atomic densities throughout a system along the 3 different axes of the system (X,Y,Z). A system.cfg file is required in the working directory, and the input files from the system must have specific names (or links to the files with specific names). For Amber Systems there must be a files.prmtop file (or link) and a files.mdcrd file, using those names exactly as lsited in system.cfg.
@@ -27,8 +59,8 @@
  *		Analysis will use the position extents listed in system.cfg's analysis.position-range +/- 10-angstroms, with a slice resolution of analysis.resolution.position.
  */
 
-namespace md_analysis {
 
+	/*
 		class AtomicDensityAnalysis : public AnalysisSet {
 			public:
 				typedef Analyzer system_t;
@@ -142,8 +174,10 @@ namespace md_analysis {
 			fflush(this->output);
 
 		}	// Data Output
+		*/
 
 	//********************* Atomic System Density - not correlated to surface location ********************/
+	/*
 		class SystemDensitiesAnalysis : public AnalysisSet {
 			public:
 				typedef Analyzer system_t;
@@ -249,10 +283,12 @@ namespace md_analysis {
 
 		}	// Data Output
 
+		*/
 
 
 
 	//********************** H2O Surface Statistics ***************/
+	/*
 
 	// output some statistics about the water surface - i.e. standard deviation of the position of the top several waters
 		class H2OSurfaceStatisticsAnalysis : public AnalysisSet {
@@ -288,6 +324,7 @@ namespace md_analysis {
 		  fprintf (this->output, "% 8.3f % 8.3f % 8.3f\n", surface_locations.back(), h2os.SurfaceWidth(), gsl_stats_sd(&surface_locations[0], 1, surface_locations.size()));
 		}	// analysis
 
+		*/
 
 
 
@@ -364,7 +401,7 @@ namespace md_analysis {
 	}
 	 */
 
-}	// namespace md_analysis
+}	// namespace density
 
 
 

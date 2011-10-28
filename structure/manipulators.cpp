@@ -196,12 +196,12 @@ namespace h2o_analysis {
 		top_location = gsl_stats_mean (&surface_water_positions[0], 1, number_surface_waters);
 		top_width = gsl_stats_sd (&surface_water_positions[0], 1, number_surface_waters);
 
-		if (top_width > 3.0) {
-			std::for_each (analysis_waters.rbegin(), analysis_waters.rbegin()+number_surface_waters, std::mem_fun(&Molecule::Print));
+		if (bottom_width > 3.0 || top_width > 3.0) {
+			printf ("\n\ntop surface stats = %.2f  width=%.2f\n", top_location, top_width);
+			printf ("bottom surface stats => %.2f  width=%.2f\n", bottom_location, bottom_width);
+			//std::for_each (analysis_waters.rbegin(), analysis_waters.rbegin()+number_surface_waters, std::mem_fun(&Molecule::Print));
 		}
 
-		//printf ("\n\ntop = %.2f  %.2f\n", top_location, top_width);
-		//printf ("bottom = %.2f  %.2f\n", bottom_location, bottom_width);
 
 	}	// find surface water location - double surface
 
@@ -221,8 +221,8 @@ namespace h2o_analysis {
 	surface_distance_t H2ODoubleSurfaceManipulator::TopOrBottom (const double pos) const {
 
 		double dim = MDSystem::Dimensions()[WaterSystem::axis];
-		double top = WrappedDistance(top_location, pos, dim);
-		double bottom = WrappedDistance(pos, bottom_location, dim);
+		double top = WrappedDistance(top_location, pos, dim);	// distance to the top surface
+		double bottom = WrappedDistance(pos, bottom_location, dim);	// distance to the bottom surface
 
 		// if the distance from the position to the top is smaller than the distance from the position to the bottom surface, 
 		// then it's closer to the top surface, and we return true.
