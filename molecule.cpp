@@ -143,9 +143,10 @@ namespace md_system {
 		_mass = 0.0;
 
 		// then run through each atom's coords and add in its contribution.
+		double mi;
 		for (Atom_it atom = _atoms.begin(); atom != _atoms.end(); atom++) {
 			VecR ri = (*atom)->Position();
-			double mi = (*atom)->Mass();
+			mi = (*atom)->Mass();
 			_mass += mi;
 			_centerofmass += (ri * mi);
 		}

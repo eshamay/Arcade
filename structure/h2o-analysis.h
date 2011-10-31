@@ -38,56 +38,48 @@ namespace h2o_analysis {
 	};
 
 
+	class WaterDipoleZComponentAnalysis : public molecule_analysis::H2OAnalysis {
+		public:
+			WaterDipoleZComponentAnalysis (Analyzer * t) :
+				molecule_analysis::H2OAnalysis (t,
+						std::string("Water dipole z-component analysis"),
+						std::string ("WaterOrientation-z.dat")),
+				min (-10.0), max(7.0), res(0.05),
+				histo (int((max-min)/res), 0.0),
+				counts (int((max-min)/res), 0.0),
+				axis(VecR::UnitY()) { }
 
+			void MoleculeCalculation ();
 
-	class DistanceAngleAnalysis : public AnalysisSet {
+			void DataOutput ();
 
 		protected:
-			H2ODoubleSurfaceManipulator h2os;
-			Histogram2DAgent	histo;
-			h2o_analysis::surface_distance_t	distance;
-			double angle;
-			VecR axis;
-
-		public:
-			typedef Analyzer system_t;
-
-			DistanceAngleAnalysis (
-					system_t * t, std::string desc, std::string output_name,
-					double min1, double max1, double res1,
-					double min2, double max2, double res2) :
-				AnalysisSet(t, desc, std::string("")),
-				h2os(t),
-				histo(output_name,
-						min1,max1,res1,
-						min2,max2,res2) { }
-
-			virtual void Setup () { h2os.Reload(); }
-
-			virtual void PreAnalysis () { }
-			virtual void Analysis ();
-			virtual void PostAnalysis () { }
-
-			virtual void MainWaterCalculation (WaterPtr wat) = 0;
-
-			virtual void DataOutput () = 0;
+			double min, max, res;
+			std::vector<double> histo, counts;
+			VecR axis, v1, bisector;
+			double cos_sq, dep, avg;
 	};
 
 
+	class DistanceAngleAnalysis : public molecule_analysis::H2OAnalysis {
 
-	class BisectorAnalysis : public DistanceAngleAnalysis {
+		protected:
+			Histogram2DAgent	histo;
+			double angle;
+			VecR axis, v1;
 
 		public:
-			typedef Analyzer system_t;
 
-			BisectorAnalysis (system_t * t) :
-				DistanceAngleAnalysis(t,
-						std::string ("Water Bisector Angle Analysis"),
-						std::string("water-bisector-angle.dat"),
-						-12.0,4.0,1.0,
-						5.0,175.0,2.5) { }
+			DistanceAngleAnalysis (Analyzer * t) :
+				molecule_analysis::H2OAnalysis (t, 
+						std::string ("H2O - Distance-angle analysis"),
+						std::string ("")),
+				histo(std::string ("WaterOrientation.dat"),
+						-12.0, 5.0, 0.1,
+						5.0, 175.0, 2.5),
+				axis(VecR::UnitY()) { }
 
-			void MainWaterCalculation (WaterPtr wat);
+			void MoleculeCalculation ();
 
 			void DataOutput () {
 				DivideByRightSineDegrees func;
@@ -95,24 +87,8 @@ namespace h2o_analysis {
 			}
 	};
 
-	class TwistAnalysis : public DistanceAngleAnalysis {
 
-		public:
-			typedef Analyzer system_t;
 
-			TwistAnalysis (system_t * t) :
-				DistanceAngleAnalysis(t,
-						std::string ("Water Twist Angle Analysis"),
-						std::string("water-twist-angle.dat"),
-						-12.0,4.0,1.0,
-						5.0,175.0,2.5) { }
-
-			void MainWaterCalculation (WaterPtr wat);
-
-			void DataOutput () {
-				histo.OutputData();
-			}
-	};
 }	// namespace h2o analysis
 
 

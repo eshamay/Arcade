@@ -2,6 +2,39 @@
 
 namespace h2o_analysis {
 
+
+	void WaterDipoleZComponentAnalysis::MoleculeCalculation () {
+		this->mol->SetOrderAxes();
+		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
+		this->position = this->h2os.TopOrBottom(com);
+
+		if (this->position.second < max && this->position.second >= min) {
+			v1 = axis;
+			if (!this->position.first)
+				v1 = -v1;
+
+			bisector = this->mol->Z();
+			cos_sq = acos(bisector < v1) * 180.0 / M_PI;
+			
+
+			int pos = int((this->position.second - min) / res);
+			histo[pos] += cos_sq;
+			++counts[pos];
+		}
+	}
+
+
+	void WaterDipoleZComponentAnalysis::DataOutput () {
+
+		rewind(this->output);
+
+		for (int i = 0; i < histo.size(); i++) {
+			dep = i*res + min;
+			avg = histo[i] / counts[i];
+			fprintf (this->output, "% 12.8f % 12.8f\n", dep, avg);
+		}
+	}
+
 	void WaterThetaPhiAnalysis::MoleculeCalculation () {
 		// find the center of mass location of the succinic acid
 		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
@@ -28,43 +61,19 @@ namespace h2o_analysis {
 
 
 
-	void DistanceAngleAnalysis::Analysis () {
-		h2os.FindWaterSurfaceLocation();
+	void DistanceAngleAnalysis::MoleculeCalculation () {
+		this->mol->SetOrderAxes();
+		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
+		this->position = this->h2os.TopOrBottom(com);
 
-		this->PreAnalysis();
-		for (Wat_it wat = h2os.begin(); wat != h2os.end(); wat++) {
-			this->MainWaterCalculation (*wat);
-		}
-		this->PostAnalysis();
+		v1 = axis;
+		if (!this->position.first)
+			v1 = -v1;
+
+		angle = acos(this->mol->Z() < v1) * 180.0 / M_PI;
+
+		histo(this->position.second, angle);
 	}
 
-
-
-	void BisectorAnalysis::MainWaterCalculation (WaterPtr wat) {
-		// find the center of mass location of the succinic acid
-		this->distance = this->h2os.TopOrBottom(wat->O()->Position()[WaterSystem::axis]);
-
-		axis = VecR::UnitY();
-		if (!this->distance.first)
-			axis = -axis;
-
-		this->angle = wat->Bisector() < axis;
-		this->angle = acos(this->angle) * 180.0/M_PI;
-
-		this->histo(distance.second, this->angle);
-	}
-
-	void TwistAnalysis::MainWaterCalculation (WaterPtr wat) {
-		// find the center of mass location of the succinic acid
-		this->distance = this->h2os.TopOrBottom(wat->O()->Position()[WaterSystem::axis]);
-
-		axis = VecR::UnitY();
-		if (!this->distance.first)
-			axis = -axis;
-
-		this->angle = Dihedral::Angle(axis,wat->Bisector(),wat->OH1()) * 180.0 / M_PI;
-
-		this->histo(distance.second, fabs(this->angle));
-	}
 
 }

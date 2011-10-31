@@ -130,8 +130,8 @@ namespace md_analysis {
 			//analyses.push_back (new succinic::NeighboringWaterOrientation(analyzer));
 			//analyses.push_back (new succinic::CarbonylGroupDistance(analyzer));
 			//analyses.push_back (new succinic::MethyleneBisectorTilt(analyzer));
-			analyses.push_back (new h2o_analysis::BisectorAnalysis(analyzer));
-			analyses.push_back (new h2o_analysis::TwistAnalysis(analyzer));
+			analyses.push_back (new h2o_analysis::WaterDipoleZComponentAnalysis(analyzer));
+			analyses.push_back (new h2o_analysis::DistanceAngleAnalysis(analyzer));
 			analyses.push_back (new so2_angle_analysis::SO2ThetaPhiAnalyzer(analyzer));
 			analyses.push_back (new so2_angle_analysis::SO2ThetaAnalyzer(analyzer));
 			analyses.push_back (new h2o_analysis::WaterThetaPhiAnalysis(analyzer));
