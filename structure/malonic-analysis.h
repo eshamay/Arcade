@@ -1,21 +1,23 @@
 #ifndef MALONIC_ANALYSIS_H_
 #define MALONIC_ANALYSIS_H_
 
-#include "analysis.h"
 #include "manipulators.h"
+#include "molecule-analysis.h"
 #include "histogram-analysis.h"
 
 namespace malonic {
 
 	using namespace md_analysis;
 
-	class MalonicTest : public AnalysisSet {
+	class MalonicTest : public molecule_analysis::MalonicAnalysis {
 
 		public:
 			MalonicTest (Analyzer * t) :
-				AnalysisSet (t, std::string ("Malonic Tester"), std::string("")) { }
+				MalonicAnalysis (t, 
+						std::string ("Malonic Tester"), 
+						std::string("")) { }
 
-			virtual void Analysis ();
+			virtual void MoleculeCalculation ();
 
 	}; // malonic test class
 

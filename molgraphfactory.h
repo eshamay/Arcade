@@ -11,6 +11,9 @@ namespace molgraph {
 	// given a molgraph, find out what molecule it is, and then create a new one
 	MolPtr MoleculeGraph2Molecule (MoleculeGraph& molgraph);
 
+	// error given when a molgraph can't be figured out
+	void MolgraphIdentificationError (MoleculeGraph& molgraph);
+
 	// predicate for checking if a given element is contained in the molgraph
 	bool HasAtom (atomcounter& atomcount, Atom::Element_t elmt);
 

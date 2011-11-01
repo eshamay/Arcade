@@ -132,6 +132,27 @@ namespace molecule_analysis {
 				SingleMoleculeAmberAnalysis<Water> (t, desc, fn) { this->moltype = Molecule::H2O; }
 	}; // succinic analysis
 
+
+
+
+	class MalonicAnalysis : public SingleMoleculeXYZAnalysis<SulfurDioxide> {
+		public:
+			MalonicAnalysis (Analyzer * t, std::string desc, std::string fn) : 
+				SingleMoleculeXYZAnalysis<SulfurDioxide> (t, desc, fn) { }
+
+			virtual void PreCalculation () {
+				// copy in all the different types of malonic acid
+				analysis_mols.clear();
+				algorithm_extra::copy_if (this->begin_mols(), this->end_mols(), std::back_inserter(analysis_mols), member_functional::mem_fun_eq (&Molecule::MolType, Molecule::MALONIC));
+				algorithm_extra::copy_if (this->begin_mols(), this->end_mols(), std::back_inserter(analysis_mols), member_functional::mem_fun_eq (&Molecule::MolType, Molecule::MALONATE));
+				algorithm_extra::copy_if (this->begin_mols(), this->end_mols(), std::back_inserter(analysis_mols), member_functional::mem_fun_eq (&Molecule::MolType, Molecule::DIMALONATE));
+			}
+	}; // malonic xyz analysis
+
+
+
 } // namespace molecule analysis
+
+
 
 #endif

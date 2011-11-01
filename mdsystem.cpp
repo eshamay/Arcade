@@ -11,7 +11,7 @@ namespace md_system {
 		_frame(0),
 		_eof(true) {
 
-			_file = fopen64 (path.c_str(), "r");
+			_file = fopen64 (path.c_str(), "rb");
 			if (_file == (FILE *)NULL) {
 				printf ("Couldn't load the Coordinate file %s\n", path.c_str());
 				exit(1);
@@ -27,7 +27,7 @@ namespace md_system {
 		_frame(0),
 		_eof(true) {
 
-			_file = fopen64 (path.c_str(), "r");
+			_file = fopen64 (path.c_str(), "rb");
 			if (_file == (FILE *)NULL)
 			{
 				printf ("Couldn't load the Coordinate file %s\n", path.c_str());

@@ -16,6 +16,7 @@
 #include "cycle-analysis.h"
 #include "h2o-analysis.h"
 #include "diacid-analysis.h"
+#include "malonic-analysis.h"
 
 
 typedef std::vector<double> double_vec;
@@ -149,25 +150,14 @@ namespace md_analysis {
 			AnalysisSet * a;
 
 			analyses.push_back(new md_analysis::SystemDipoleAnalyzer<XYZSystem>(analyzer));
-			analyses.push_back(new neighbor_analysis::SO2BondingAnalysis(analyzer));
-			//analyses.push_back(new so2_analysis::SO2BondLengthAnalyzer(analyzer));
-			analyses.push_back(new so2_angle_analysis::SO2Angles2D(analyzer));
-			analyses.push_back(new so2_angle_analysis::SO2Angles1D(analyzer));
-			//analyses.push_back(new so2_analysis::ClosestWaterBondlengths(analyzer));
 			analyses.push_back(new bond_analysis::BondLengthAnalyzer (analyzer));
 			analyses.push_back(new bond_analysis::SO2CoordinationAnalyzer(analyzer));
-			analyses.push_back(new angle_analysis::WaterOrientationNearSO2(analyzer));
 			analyses.push_back(new md_analysis::RDFAnalyzer(analyzer));
-			analyses.push_back(new so2_angle_analysis::SO2_H2O_Angles2D(analyzer));
 			analyses.push_back(new bond_analysis::SO2CoordinationAngleAnalyzer(analyzer));
 			analyses.push_back(new cycle_analysis::SO2CycleCoordinationAnalyzer(analyzer));
 			analyses.push_back(new cycle_analysis::SO2CycleLifespanAnalyzer(analyzer));
 			analyses.push_back(new cycle_analysis::SO2CycleCoordinateWriter(analyzer));
-			//analyses.push_back(new malonic_analysis::MalonicBondLengthAnalysis(analyzer));
-			//analyses.push_back(new malonic_analysis::MethyleneTilt(analyzer));
-			analyses.push_back(new so2_analysis::SO2Test(analyzer));
-
-			//b = new bond_analysis::SO2BondingAnalyzer<U>(analyzer);					analyses.push_back(b);
+			analyses.push_back(new malonic::MalonicTest(analyzer));
 		}
 
 

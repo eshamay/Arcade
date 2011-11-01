@@ -80,9 +80,7 @@ namespace molgraph {
 		}
 
 		else {
-			std::cerr << "MoleculeGraphFactory :: Couldn't figure out the molecule based on the graph of the following atoms:" << std::endl;
-			std::for_each (atoms.begin(), atoms.end(), std::mem_fun(&Atom::Print));
-			exit(1);
+			MolgraphIdentificationError (molgraph);
 		}
 
 		// add all the atoms into the new molecule
@@ -101,6 +99,27 @@ namespace molgraph {
 	}
 
 
+
+
+	void MolgraphIdentificationError (MoleculeGraph& molgraph) {
+		std::cerr << "MoleculeGraphFactory :: Couldn't figure out the molecule based on the graph of the following atoms:" << std::endl;
+		printf ("\n");
+		Atom_ptr_vec atoms = molgraph.Atoms();
+		for (Atom_it atom = atoms.begin(); atom != atoms.end(); atom++) {
+			// print the atom
+			printf ("%s(%d)", (*atom)->Name().c_str(), (*atom)->ID());
+
+			// then print all the atoms it's attached to
+			Atom_ptr_vec bonded = molgraph.BondedAtoms (*atom);
+			for (Atom_it it = bonded.begin(); it != bonded.end(); it++) {
+				printf (" -> %s(%d)", (*atom)->Name().c_str(), (*atom)->ID());
+			}
+			printf ("\n");
+		}
+		exit(1);
+	}
+
+
 	// see if the atomcount map has the given atom
 	bool HasAtom (atomcounter& atomcount, Atom::Element_t elmt) {
 		bool ret = false;
@@ -108,6 +127,8 @@ namespace molgraph {
 			ret = true;
 		return ret;
 	}
+
+
 
 	int AtomCount (atomcounter& atomcount, Atom::Element_t elmt) {
 		int count = 0;

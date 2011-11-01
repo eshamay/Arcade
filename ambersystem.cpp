@@ -36,7 +36,7 @@ namespace md_files {
 	// While the crdfile holds spatial coordinate information, and the topology file holds atomic information, the data has to be processed into proper atoms in order to play around with them more effectively.
 	// This function should only be used once when first loading the system up. This info doesn't change during the course of the MD run
 	void AmberSystem::_ParseAtomInformation () {
-		double * frc;	// This isn't set yet!
+		//double * frc;	// This isn't set yet!
 		for (int i = 0; i < _topfile.NumAtoms(); i++) {
 			_atoms[i] = new md_system::Atom(_topfile.AtomNames()[i], _coords(i));//, frc);
 			_atoms[i]->ID(i);// set the atom's index number - because we may need to access ordered/list info elsewhere
