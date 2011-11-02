@@ -68,7 +68,6 @@ namespace malonic {
 
 		void MalonicTest::MoleculeCalculation () {
 			this->mol->SetAtoms();
-			printf ("\n");
 
 			AtomPtr h;
 			AtomPtr o;

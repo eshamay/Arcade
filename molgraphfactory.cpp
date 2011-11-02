@@ -151,6 +151,7 @@ namespace molgraph {
 	// for each C, add 1. For each O add 10, etc.
 	// C = 1, O = 10, H = 100
 
+	/*
 	void SetMalonicAtoms (MolPtr mol) {
 		alkane::MalonicAcid * malonic = static_cast<alkane::MalonicAcid *>(mol);
 		malonic->UnsetAtoms();
@@ -182,5 +183,6 @@ namespace molgraph {
 			else if (num == 11) malonic->acid_o.push_back(*atom);
 		}
 	}	// set malonic atoms
+	*/
 
 }	// namespace molgraph

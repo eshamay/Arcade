@@ -10,7 +10,7 @@ namespace md_files {
 			md_system::CoordinateFile (path),
 			_initialized(false) {
 
-				_file = fopen (path.c_str(), "r");
+				_file = fopen (path.c_str(), "rb");
 				if (_file == (FILE *)NULL) {
 					printf ("Couldn't load the XYZ coordinate file file:: %s\n", path.c_str());
 					exit(1);
@@ -30,44 +30,48 @@ namespace md_files {
 		// first process the frame's header
 		//
 		// this grabs the number of atoms in the timeframe
-		fscanf (_file, " %d", &(this->_size));
+		//fscanf (_file, " %d", &(this->_size));
 		//fscanf (_file, " i = %d", &_currentstep);			// some output xyz files have timestep data added
-		this->ReadLine();	// skip the rest of the first line
+		//this->ReadLine();	// skip the rest of the first line
 		// Process the 2nd header line
-		this->ReadLine();	
-		ParseXYZHeader (std::string(this->_line));
+		//this->ReadLine();	
+		//ParseXYZHeader (std::string(this->_line));
 
-		double X, Y, Z;
-		char name[10];
+		//double X, Y, Z;
+		//char name[10];
 
 		// if we haven't already done so, let's clear out the previous atoms and resize things
 		if (!_initialized) {
+			rewind (_file);
+			fread (&(this->_size), sizeof(unsigned int), 1, _file);
+
 			for (Atom_it it = _atoms.begin(); it != _atoms.end(); it++) {
 				delete *it;
 			}
+			_atoms.clear();
 			this->_coords.resize(3*_size, 0.0);
-		}
 
-		//double frc[3];
-		for (int i = 0; i < _size; i++) {
-			// now parse each line's information into the atoms
-			fscanf (_file, " %s %lf %lf %lf", name, &X, &Y, &Z);
-
-			// if we haven't already done so, let's create all the atoms we'll need
-			if (!_initialized) {
-				AtomPtr new_atom = new Atom (std::string(name), &_coords[3*i]);//, frc);
+			char name[5];
+			unsigned int len;
+			for (int i = 0; i < this->_size; i++) {
+				fread (&len, sizeof(unsigned int), 1, _file);
+				fread (name, sizeof(char), len+1, _file);
+				AtomPtr new_atom = new Atom (std::string(name), &_coords[3*i]);
 				_atoms.push_back (new_atom); 
 				new_atom->ID(i);
 				new_atom->SetAtomProperties();
 			}
-
-			// finally we set the position of each atom for the timestep
-			this->_coords[3*i] = X;
-			this->_coords[3*i+1] = Y;
-			this->_coords[3*i+2] = Z;
+			_initialized = true;
 		}
 
-		_initialized = true;
+		for (int i = 0; i < this->_size; i++) {
+			fread (&_coords[3*i], sizeof(double), 3, _file);
+			// set the position of each atom for the timestep
+			//this->_coords[3*i] = pos[0];
+			//this->_coords[3*i+1] = pos[1];
+			//this->_coords[3*i+2] = pos[2];
+		}
+
 		_frame++;
 
 		return;

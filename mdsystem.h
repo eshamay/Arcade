@@ -64,7 +64,7 @@ namespace md_system {
 			FILE				*_file;				// the file listing all the atom coordinates
 			std::string _path;
 
-			int					_size;				// number of coordinates to parse in each frame (e.g. number of atoms in the system)
+			unsigned int					_size;				// number of coordinates to parse in each frame (e.g. number of atoms in the system)
 
 			std::vector<double>								_coords;				// array of atomic coordinates
 			//coord_set_t												_vectors;				// set of vectors representing positions

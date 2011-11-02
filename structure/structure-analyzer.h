@@ -72,13 +72,13 @@ namespace md_analysis {
 		// start the analysis - run through each timestep
 		for (Analyzer::timestep = 0; Analyzer::timestep < Analyzer::timesteps; Analyzer::timestep++) {
 
-			try {
+			//try {
 				// Perform the main loop analysis that works on every timestep of the simulation
 				an.Analysis ();
-			} catch (std::exception& ex) {
-				std::cout << "Caught an exception during the system analysis at timestep " << Analyzer::timestep << "." << std::endl;
-				throw;
-			}
+			//} catch (std::exception& ex) {
+				//std::cout << "Caught an exception during the system analysis at timestep " << Analyzer::timestep << "." << std::endl;
+				//throw;
+			//}
 
 			// output the status of the analysis (to the screen or somewhere useful)
 			analyzer->OutputStatus ();
@@ -86,12 +86,12 @@ namespace md_analysis {
 			if (analyzer->ReadyToOutputData())
 				an.DataOutput();
 
-			try {
+			//try {
 				// load the next timestep
 				analyzer->LoadNext();
-			} catch (std::exception& ex) {
-				throw;
-			}
+			//} catch (std::exception& ex) {
+				//throw;
+			//}
 		}
 		// do one final data output to push out the finalized data set
 		an.DataOutput();

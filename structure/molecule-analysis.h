@@ -32,41 +32,41 @@ namespace molecule_analysis {
 			virtual void MoleculeCalculation () = 0;
 			virtual void PostCalculation () { return; }
 
-			virtual void Analysis ();
+			void Analysis ();
 	};
 
 
 	template <typename T>
 		void SingleMoleculeAnalysis<T>::Analysis () {
 			// load up the molecules to be analyzed
-			this->PreCalculation ();
+			PreCalculation ();
 			// run through the analysis
 			for (Mol_it it = analysis_mols.begin(); it != analysis_mols.end(); it++) {
 				mol = static_cast<T *>(*it);
-				this->MoleculeCalculation ();
+				MoleculeCalculation ();
 			}
-			this->PostCalculation ();
+			PostCalculation ();
 			return;
 		}
 
 
 
 
-	
+
 	//////////////// XYZ MOLECULE ANALYSIS ///////////////////
 	//
 	//
 	template <typename T>
-	class SingleMoleculeXYZAnalysis : public SingleMoleculeAnalysis<T> {
-		public:
-			typedef Analyzer system_t;
-			SingleMoleculeXYZAnalysis (system_t * t, std::string desc, std::string fn) : 
-				SingleMoleculeAnalysis<T> (t, desc, fn) { }
+		class SingleMoleculeXYZAnalysis : public SingleMoleculeAnalysis<T> {
+			public:
+				typedef Analyzer system_t;
+				SingleMoleculeXYZAnalysis (system_t * t, std::string desc, std::string fn) : 
+					SingleMoleculeAnalysis<T> (t, desc, fn) { }
 
-			virtual void PreCalculation () {
-				this->LoadAll();
-			}
-	};
+				virtual void PreCalculation () {
+					this->LoadAll();
+				}
+		};
 
 
 
@@ -152,6 +152,7 @@ namespace molecule_analysis {
 				algorithm_extra::copy_if (this->begin_mols(), this->end_mols(), std::back_inserter(analysis_mols), member_functional::mem_fun_eq (&Molecule::MolType, Molecule::MALONATE));
 				algorithm_extra::copy_if (this->begin_mols(), this->end_mols(), std::back_inserter(analysis_mols), member_functional::mem_fun_eq (&Molecule::MolType, Molecule::DIMALONATE));
 			}
+
 	}; // malonic xyz analysis
 
 
