@@ -11,7 +11,7 @@ namespace md_files {
 		_reparse_step(0)
 	{
 		MDSystem::Dimensions (size);
-		this->LoadNext();
+		//this->LoadNext();
 	}
 
 
@@ -157,7 +157,6 @@ void XYZSystem::_UpdateUnparsedList (Atom_ptr_vec& parsed) {
 
 	_unparsed.erase(
 			std::remove_if (_unparsed.begin(), _unparsed.end(), std::bind2nd(AtomPtr_In_List<Atom_ptr_vec>(), parsed)), _unparsed.end());
-
 	return;
 } 
 

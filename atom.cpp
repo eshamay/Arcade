@@ -57,7 +57,7 @@ namespace md_system {
 	}
 
 	void Atom::Print () const {
-		printf ("%5s (ID:%6d nuc:%4d)\t%4s (molID:%5d)\t% f\t% f\t% f\n", _name.c_str(), _ID, _element, _residue.c_str(), _molid, _position.x(), _position.y(), _position.z());
+		printf ("%5s (ID:%6d nuc:%4d)\t%4s (molID:%5d)\t% 5.3f % 5.3f % 5.3f\n", _name.c_str(), _ID, _element, _residue.c_str(), _molid, _position.x(), _position.y(), _position.z());
 	}
 
 	void Atom::SetAtomProperties () {

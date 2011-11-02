@@ -158,6 +158,7 @@ namespace md_analysis {
 			analyses.push_back(new cycle_analysis::SO2CycleLifespanAnalyzer(analyzer));
 			analyses.push_back(new cycle_analysis::SO2CycleCoordinateWriter(analyzer));
 			analyses.push_back(new malonic::MalonicTest(analyzer));
+			analyses.push_back(new malonic::BondLengths(analyzer));
 		}
 
 

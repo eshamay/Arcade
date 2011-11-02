@@ -409,4 +409,7 @@ namespace md_system {
 		return (bond1 + bond2).normalized();
 	}
 
+	BlobMolecule::BlobMolecule () : Molecule () { this->Rename("blob"); _moltype = Molecule::BLOB; }
+	BlobMolecule::BlobMolecule (const Molecule& molecule) : Molecule(molecule) { }
+
 }	// namespace md system

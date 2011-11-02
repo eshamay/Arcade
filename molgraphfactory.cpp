@@ -21,12 +21,12 @@ namespace molgraph {
 		int Cl_count = AtomCount(atomcount, Atom::Cl);
 		int Total_count = C_count + N_count + O_count + S_count + H_count + Cl_count;
 
-		if (Cl_count == 1 && Total_count == 1) {
+		if (Cl_count == Total_count) {
 			newmol = new Chlorine ();
 		}
 
 		// check for organics/alkanes
-		else if (C_count == 3 && O_count == 4 && Total_count <= 11) {
+		else if (C_count == 3 && O_count == 4) {
 			alkane::MalonicAcid * mal;
 			switch (H_count) {
 				case 4: 
@@ -39,6 +39,7 @@ namespace molgraph {
 					mal = new alkane::MalonicAcid (Molecule::DIMALONATE);
 					break;
 				default:
+					mal = new alkane::MalonicAcid (Molecule::MALONIC);
 					std::cerr << "MolGraphFactory:: Something funny happening with the malonic acid protons." << std::endl;
 			}
 			newmol = mal;
@@ -79,6 +80,12 @@ namespace molgraph {
 			newmol = new SulfurDioxide ();
 		}
 
+		// if some other glob of Os and Hs
+		// we call these blobs
+		//else if (Total_count == O_count + H_count) {
+			//newmol = new BlobMolecule ();
+		//}
+
 		else {
 			MolgraphIdentificationError (molgraph);
 		}
@@ -111,8 +118,10 @@ namespace molgraph {
 
 			// then print all the atoms it's attached to
 			Atom_ptr_vec bonded = molgraph.BondedAtoms (*atom);
+			double distance;
 			for (Atom_it it = bonded.begin(); it != bonded.end(); it++) {
-				printf (" -> %s(%d)", (*atom)->Name().c_str(), (*atom)->ID());
+				distance = MDSystem::Distance(*atom, *it).norm();
+				printf (" -%.2f-> %s(%d)", distance, (*it)->Name().c_str(), (*it)->ID());
 			}
 			printf ("\n");
 		}

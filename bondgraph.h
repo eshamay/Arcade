@@ -35,7 +35,7 @@ namespace bondgraph {
 	using namespace md_system;
 
 	// various bondlengths to be used
-	const double OHBONDLENGTH = 1.10;				// used to be 1.1
+	const double OHBONDLENGTH = 1.20;				// used to be 1.1
 	const double HBONDLENGTH  = 2.46;				// used to be 2.46
 	//const double HBONDANGLECOS	= cos(30.0*M_PI/180.0);		// bonding angle has to be bigger than this cos (i.e. smaller than ~30 degrees
 	const double NOBONDLENGTH = 2.0;
@@ -43,8 +43,8 @@ namespace bondgraph {
 	const double SOBONDLENGTH = 1.64;
 	const double SOINTERACTIONLENGTH = 3.5;		// S not covalently bound to O
 	const double COBONDLENGTH = 1.5;
-	const double CHBONDLENGTH = 1.5;
-	const double CCBONDLENGTH = 2.0;
+	const double CHBONDLENGTH = 1.2;
+	const double CCBONDLENGTH = 1.8;
 
 
 

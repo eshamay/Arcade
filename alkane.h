@@ -28,6 +28,13 @@ namespace alkane {
 
 	class MalonicAcid : public Alkane {
 
+		private:
+			ThreeAtomGroup carbonyl_1, carbonyl_2;
+			AtomPtr c1,  c2;		// carbonyl carbons
+			AtomPtr oh1, oh2;		// alcohol oxygens
+			AtomPtr o1,  o2;		// carbonyl oxygens
+			AtomPtr h1,  h2;
+
 		public:
 			MalonicAcid (Molecule_t moltype);
 			virtual ~MalonicAcid ();
@@ -38,19 +45,18 @@ namespace alkane {
 
 			void SetAtoms ();
 
-			void UnsetAtoms () {
-				carbonyl_c.clear();
-				carbonyl_o.clear();
-				aliphatic_c.clear();
-				acid_o.clear();
-			}
+			ThreeAtomGroup& COO1 () { return carbonyl_1; }
+			ThreeAtomGroup& COO2 () { return carbonyl_2; }
+			AtomPtr C1 () const { return c1; }
+			AtomPtr C2 () const { return c2; }
+			AtomPtr H1 () const { return h1; }
+			AtomPtr H2 () const { return h2; }
+			AtomPtr O1 () const { return o1; }
+			AtomPtr O2 () const { return o2; }
+			AtomPtr OH1 () const { return oh1; }
+			AtomPtr OH2 () const { return oh2; }
 
-			Atom_ptr_vec carbonyl_c;
-			Atom_ptr_vec carbonyl_o;
-			Atom_ptr_vec aliphatic_c;
-			Atom_ptr_vec acid_o;
 
-			std::vector< std::vector<double> > distances;
 	}; // class malonic
 
 

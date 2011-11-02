@@ -7,13 +7,37 @@
 
 namespace malonic {
 
+	typedef enum {
+		c1o1, c1oh1,
+		c2o2, c2oh2,
+		h1o2, h2o1,
+		h1oh1, h2oh2
+	} bond_t;
+
 	using namespace md_analysis;
+
+	class BondLengths : public molecule_analysis::MalonicAnalysis {
+
+		private:
+			typedef std::map< bond_t, std::vector<double> > bondlength_map;
+			bondlength_map lengths;
+
+			void CalcDistance (AtomPtr atom1, AtomPtr atom2, bond_t bond);
+			void OutputDataPoint (bond_t bond, int timestep);
+
+		public:
+			BondLengths (Analyzer * t);
+
+			virtual void MoleculeCalculation ();
+			void DataOutput ();
+
+	}; // malonic test class
 
 	class MalonicTest : public molecule_analysis::MalonicAnalysis {
 
 		public:
 			MalonicTest (Analyzer * t) :
-				MalonicAnalysis (t, 
+				MalonicAnalysis (t,
 						std::string ("Malonic Tester"), 
 						std::string("")) { }
 

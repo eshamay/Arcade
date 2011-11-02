@@ -62,6 +62,10 @@ namespace molecule_analysis {
 			typedef Analyzer system_t;
 			SingleMoleculeXYZAnalysis (system_t * t, std::string desc, std::string fn) : 
 				SingleMoleculeAnalysis<T> (t, desc, fn) { }
+
+			virtual void PreCalculation () {
+				this->LoadAll();
+			}
 	};
 
 
@@ -135,12 +139,13 @@ namespace molecule_analysis {
 
 
 
-	class MalonicAnalysis : public SingleMoleculeXYZAnalysis<SulfurDioxide> {
+	class MalonicAnalysis : public SingleMoleculeXYZAnalysis<alkane::MalonicAcid> {
 		public:
 			MalonicAnalysis (Analyzer * t, std::string desc, std::string fn) : 
-				SingleMoleculeXYZAnalysis<SulfurDioxide> (t, desc, fn) { }
+				SingleMoleculeXYZAnalysis<alkane::MalonicAcid> (t, desc, fn) { }
 
 			virtual void PreCalculation () {
+				SingleMoleculeXYZAnalysis<alkane::MalonicAcid>::PreCalculation();
 				// copy in all the different types of malonic acid
 				analysis_mols.clear();
 				algorithm_extra::copy_if (this->begin_mols(), this->end_mols(), std::back_inserter(analysis_mols), member_functional::mem_fun_eq (&Molecule::MolType, Molecule::MALONIC));

@@ -4,8 +4,7 @@ namespace md_system {
 
 	int Hydroxide::numHydroxides = 0;
 
-	Hydroxide::Hydroxide () : Molecule()
-	{
+	Hydroxide::Hydroxide () : Molecule() {
 		this->Rename("oh");
 		this->_moltype = Molecule::OH;
 		++numHydroxides;

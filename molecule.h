@@ -31,7 +31,8 @@ namespace md_system {
 				ALKANE, DECANE, FORMALDEHYDE, 
 				MALONIC, MALONATE, DIMALONATE,
 				DIACID, SUCCINIC,
-				HCL, CL, CTC
+				HCL, CL, CTC,
+				BLOB
 			} Molecule_t;
 
 			static std::string Moltype2String (Molecule_t);
@@ -227,6 +228,14 @@ namespace md_system {
 	typedef Molecule::Mol_it Mol_it;
 
 
+	class BlobMolecule : public Molecule {
+		public:
+			BlobMolecule ();
+			BlobMolecule (const Molecule& molecule);		// copy constructor for casting from a molecule
+			virtual VecR ReferencePoint () const { 
+				return this->CenterOfMass(); 
+			}
+	};
 
 	class Dihedral {
 
@@ -251,13 +260,20 @@ namespace md_system {
 		protected:
 			AtomPtr left, center, right;
 		public:
+			ThreeAtomGroup () { }
 			ThreeAtomGroup (AtomPtr l, AtomPtr c, AtomPtr r) : left(l), center(c), right(r) { }
 
 			double Angle () const;
 			VecR Bisector () const;
 			VecR Bond1() const { return left->Position() - center->Position(); }
 			VecR Bond2() const { return right->Position() - center->Position(); }
+			void SetAtoms (AtomPtr l, AtomPtr c, AtomPtr r) {
+				left = l; center = c; right = r;
+			}
 
+			AtomPtr Left () const { return left; }
+			AtomPtr Center () const { return center; }
+			AtomPtr Right () const { return right; }
 	};
 
 }	// namespace md system

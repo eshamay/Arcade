@@ -37,7 +37,7 @@ namespace md_system {
 
 		static int numChlorines;			// total number of waters in the system
 
-		void SetAtoms ();					// set the _oh bond vector
+		void SetAtoms ();
 		VecR ReferencePoint () const { return _cl->Position(); }
 	};
 }
