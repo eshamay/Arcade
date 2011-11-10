@@ -26,23 +26,11 @@ namespace molgraph {
 		}
 
 		// check for organics/alkanes
-		else if (C_count == 3 && O_count == 4) {
-			alkane::MalonicAcid * mal;
-			switch (H_count) {
-				case 4: 
-					mal = new alkane::MalonicAcid (Molecule::MALONIC);
-					break;
-				case 3: 
-					mal = new alkane::MalonicAcid (Molecule::MALONATE);
-					break;
-				case 2: 
-					mal = new alkane::MalonicAcid (Molecule::DIMALONATE);
-					break;
-				default:
-					mal = new alkane::MalonicAcid (Molecule::MALONIC);
-					std::cerr << "MolGraphFactory:: Something funny happening with the malonic acid protons." << std::endl;
+		else if (C_count == 3) {
+			newmol = new alkane::MalonicAcid (Molecule::MALONIC);
+			if (H_count > 4 || O_count != 4) {
+				//std::cerr << "----------- Right here --------------" << std::endl;
 			}
-			newmol = mal;
 		}
 
 		// parse out formaldehydes
@@ -95,12 +83,8 @@ namespace molgraph {
 			newmol->AddAtom(*at);
 		}
 
+		newmol->SetAtoms();
 		newmol->FixAtoms();
-
-		//if (newmol->MolType() == Molecule::MALONIC 
-				//|| newmol->MolType() == Molecule::MALONATE 
-				//|| newmol->MolType() == Molecule::DIMALONATE)
-		//SetMalonicAtoms (newmol);
 
 		return newmol;
 	}

@@ -42,8 +42,8 @@ namespace md_files {
 
 		// if we haven't already done so, let's clear out the previous atoms and resize things
 		if (!_initialized) {
-			rewind (_file);
-			fread (&(this->_size), sizeof(unsigned int), 1, _file);
+			rewind (this->_file);
+			fread (&(this->_size), sizeof(unsigned int), 1, this->_file);
 
 			for (Atom_it it = _atoms.begin(); it != _atoms.end(); it++) {
 				delete *it;
@@ -54,9 +54,9 @@ namespace md_files {
 			char name[5];
 			unsigned int len;
 			for (int i = 0; i < this->_size; i++) {
-				fread (&len, sizeof(unsigned int), 1, _file);
-				fread (name, sizeof(char), len+1, _file);
-				AtomPtr new_atom = new Atom (std::string(name), &_coords[3*i]);
+				fread (&len, sizeof(unsigned int), 1, this->_file);
+				fread (name, sizeof(char), len+1, this->_file);
+				AtomPtr new_atom = new Atom (std::string(name), &(this->_coords[3*i]));
 				_atoms.push_back (new_atom); 
 				new_atom->ID(i);
 				new_atom->SetAtomProperties();
@@ -65,7 +65,8 @@ namespace md_files {
 		}
 
 		for (int i = 0; i < this->_size; i++) {
-			fread (&_coords[3*i], sizeof(double), 3, _file);
+			fread (&(this->_coords[3*i]), sizeof(double), 3, this->_file);
+			//fread (&_coords[0], sizeof(double), 3*this->_size, _file);
 			// set the position of each atom for the timestep
 			//this->_coords[3*i] = pos[0];
 			//this->_coords[3*i+1] = pos[1];

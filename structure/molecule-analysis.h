@@ -70,7 +70,7 @@ namespace molecule_analysis {
 
 
 
-	//////////////// XYZ MOLECULE ANALYSIS ///////////////////
+	//////////////// AMBER MOLECULE ANALYSIS ///////////////////
 	//
 	//
 	template <typename T>

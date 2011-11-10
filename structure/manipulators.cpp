@@ -273,7 +273,7 @@ namespace so2_analysis {
 		so2s.clear();
 		// load all the system so2s into the container - in case
 		for (Mol_it it = WaterSystem::sys_mols.begin(); it != WaterSystem::sys_mols.end(); it++) {
-			if ((*it)->Name() == "so2") {
+			if ((*it)->MolType() == Molecule::SO2) {
 				SulfurDioxide * mol = new SulfurDioxide(*it);
 				mol->SetAtoms();
 				so2s.push_back(mol);

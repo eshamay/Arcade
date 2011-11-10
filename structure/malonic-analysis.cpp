@@ -2,6 +2,48 @@
 
 namespace malonic {
 
+	RDF::RDF (Analyzer * t) :
+		MalonicAnalysis (t,
+				std::string ("Malonic RDFs"),
+				std::string("")),
+		rdf (std::string("MalonicRDF.alcO-H.dat"), 
+				0.5, 7.0, 0.05) { }
+
+	void RDF::MoleculeCalculation () {
+		this->LoadWaters();
+		AtomPtr o1 = this->mol->OH1();
+		AtomPtr o2 = this->mol->OH2();
+		WaterPtr wat;
+		for (Mol_it it = this->begin_wats(); it != this->end_wats(); it++) {
+			wat = static_cast<WaterPtr>(*it);
+			distance = MDSystem::Distance (o1, wat->H1()).norm();
+			rdf(distance);
+			distance = MDSystem::Distance (o2, wat->H1()).norm();
+			rdf(distance);
+			distance = MDSystem::Distance (o1, wat->H2()).norm();
+			rdf(distance);
+			distance = MDSystem::Distance (o2, wat->H2()).norm();
+			rdf(distance);
+		}
+	}
+
+	MolecularDipole::MolecularDipole (Analyzer * t) :
+		MalonicAnalysis (t,
+				std::string ("Malonic molecular dipole"),
+				std::string("MalonicDipole.dat")) { }
+
+
+	void MolecularDipole::MoleculeCalculation () {
+		VecR dipole = MDSystem::CalcWannierDipole (this->mol);
+		//this->mol->Print();
+		//for (vector_map_it wan = this->mol->wanniers_begin(); wan != this->mol->wanniers_end(); wan++) {
+			//(*wan).Print();
+		//}
+		fprintf (this->output, "% 15.8f % 15.8f % 15.8f % 15.8f\n", dipole[x], dipole[y], dipole[z], dipole.norm());
+		fflush(this->output);
+	}
+
+
 	BondLengths::BondLengths (Analyzer * t) :
 		MalonicAnalysis (t,
 				std::string ("Malonic bondlengths"),
@@ -15,6 +57,8 @@ namespace malonic {
 			lengths[h2o1] = std::vector<double> (numsteps, 0.0);
 			lengths[h1oh1] = std::vector<double> (numsteps, 0.0);
 			lengths[h2oh2] = std::vector<double> (numsteps, 0.0);
+			lengths[o1waterh] = std::vector<double> (numsteps, 0.0);
+			lengths[o2waterh] = std::vector<double> (numsteps, 0.0);
 		}
 
 
@@ -24,7 +68,7 @@ namespace malonic {
 
 	void BondLengths::MoleculeCalculation () {
 		double distance;
-		this->mol->SetAtoms();
+		//this->mol->SetAtoms();
 
 		CalcDistance(this->mol->C1(), this->mol->O1(), c1o1);
 		CalcDistance(this->mol->C2(), this->mol->O2(), c2o2);
@@ -40,16 +84,28 @@ namespace malonic {
 			CalcDistance(this->mol->H2(), this->mol->OH2(), h2oh2);
 			CalcDistance(this->mol->H2(), this->mol->O1(), h2o1);
 		}
+
+		// now find the water H that's closest to the carbonyl oxygens
+		// sort the waters by distance to each oxygen
+		this->LoadWaters();
+		std::sort(this->begin_wats(), this->end_wats(), Analyzer::molecule_distance_cmp(this->mol->O1()));
+		(*this->begin_wats())->SetAtoms();
+		CalcDistance(this->mol->O1(), (*this->begin_wats())->GetAtom("O"), o1waterh);
+
+		std::sort(this->begin_wats(), this->end_wats(), Analyzer::molecule_distance_cmp(this->mol->O2()));
+		(*this->begin_wats())->SetAtoms();
+		CalcDistance(this->mol->O2(), (*this->begin_wats())->GetAtom("O"), o2waterh);
 	}
 
 	void BondLengths::OutputDataPoint (bond_t bond, int timestep) {
 		fprintf (this->output, " %6.4f", lengths[bond].operator[](timestep));
+		fflush(this->output);
 	}
 
 	void BondLengths::DataOutput () {
 		rewind (this->output);
 
-		fprintf (this->output, "c1o1 c2o2 c1oh1 c2oh2 h1oh1 h1o2 h2oh2 h2o1\n");
+		fprintf (this->output, "c1o1 c2o2 c1oh1 c2oh2 h1oh1 h1o2 h2oh2 h2o1 o1waterh o2waterh\n");
 		for (int i = 0; i < Analyzer::timesteps; i++) {
 			OutputDataPoint (c1o1, i);
 			OutputDataPoint (c2o2, i);
@@ -59,6 +115,8 @@ namespace malonic {
 			OutputDataPoint (h1o2, i);
 			OutputDataPoint (h2oh2, i);
 			OutputDataPoint (h2o1, i);
+			OutputDataPoint (o1waterh, i);
+			OutputDataPoint (o2waterh, i);
 			fprintf (this->output, "\n");
 		}
 	}
@@ -67,7 +125,7 @@ namespace malonic {
 
 
 		void MalonicTest::MoleculeCalculation () {
-			this->mol->SetAtoms();
+			//this->mol->SetAtoms();
 
 			AtomPtr h;
 			AtomPtr o;

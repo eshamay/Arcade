@@ -208,8 +208,10 @@ namespace md_analysis {
 		public:
 
 			virtual ~AnalysisSet () {
-				if (output != (FILE *)NULL)
+				if (output != (FILE *)NULL) {
+					fflush(output);
 					fclose(output);
+				}
 			}
 
 			AnalysisSet (Analyzer * sys, std::string desc, std::string fn) 

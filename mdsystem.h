@@ -53,11 +53,11 @@ namespace md_system {
 			// retrieves the coordinate array
 			const std::vector<double>& GetArray () const { return _coords; }
 
-			int size () 	const { return _size; }
+			unsigned int size () 	const { return _size; }
 
 			bool eof () 	const { return _eof; }
 			bool Loaded () const { return !_eof; }
-			int Frame () 	const { return _frame; }
+			unsigned int Frame () 	const { return _frame; }
 
 
 		protected:

@@ -271,15 +271,45 @@ parsed_ws.push_back (*wi);
 return;
 }	// Parse Wanniers
 
-void XYZSystem::AddWanniers (MolPtr mol, const int num) {
-	mol->SetAtoms();
-	mol->UpdateCenterOfMass();
-	// sort all the wannier centers by their distance to the given atom location
-	std::sort (_wanniers.begin(), _wanniers.end(), vecr_distance_cmp(mol->ReferencePoint()));
+void XYZSystem::AddWanniersToAtom (MolPtr mol, AtomPtr atom, unsigned int num) {
+	//printf ("<------------new atom!!--------------->\n");
+	for (vector_map_it it = _wanniers.begin(); it != _wanniers.end(); it++){
+		double distance = MDSystem::Distance(atom->Position(), *it).norm();
+		//printf ("distance = %f\n", distance);
+		//it->Print();
+		if (distance < 1.0) {
+			//printf ("----grabbed one!----\n");
+			mol->AddWannier(*it);
+			if (--num == 0)
+				break;
+		}
+	}
+}
 
-	// add in the given num of wannier centers to the molecule
-	for (vector_map_it it = _wanniers.begin(); it != _wanniers.begin() + num; it++)
-		mol->AddWannier(*it);
+void XYZSystem::AddWanniers (MolPtr mol, const int num) {
+	//mol->SetAtoms();
+	//mol->UpdateCenterOfMass();
+
+	mol->ClearWanniers();
+
+	if (mol->MolType() == Molecule::MALONIC || mol->MolType() == Molecule::MALONATE || mol->MolType() == Molecule::DIMALONATE) {
+		alkane::MalonicAcid * mal = static_cast<alkane::MalonicAcid *>(mol);
+		AddWanniersToAtom (mal, mal->O1(), 4);
+		AddWanniersToAtom (mal, mal->OH1(), 4);
+		AddWanniersToAtom (mal, mal->O2(), 4);
+		AddWanniersToAtom (mal, mal->OH2(), 4);
+		AddWanniersToAtom (mal, mal->CM(), 4);
+	}
+	else if (mol->MolType() == Molecule::H2O || mol->MolType() == Molecule::OH || mol->MolType() == Molecule::H3O)
+		AddWanniersToAtom (mol, mol->GetAtom("O"), 4);
+	// sort all the wannier centers by their distance to the given reference location
+	//else {
+		//std::sort (_wanniers.begin(), _wanniers.end(), vecr_distance_cmp(mol->ReferencePoint()));
+		// add in the given num of wannier centers to the molecule
+		//for (vector_map_it it = _wanniers.begin(); it != _wanniers.begin() + num; it++){
+			//mol->AddWannier(*it);
+		//}
+	//}
 }
 
 void XYZSystem::Rewind () {

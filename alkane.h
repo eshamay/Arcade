@@ -21,6 +21,23 @@ namespace alkane {
 			}
 			// Functions for analysis
 			//virtual void SetAtoms () = 0;
+			ThreeAtomGroup& COO1 () { return carbonyl_1; }
+			ThreeAtomGroup& COO2 () { return carbonyl_2; }
+			AtomPtr C1 () const { return c1; }
+			AtomPtr C2 () const { return c2; }
+			AtomPtr H1 () const { return h1; }
+			AtomPtr H2 () const { return h2; }
+			AtomPtr O1 () const { return o1; }
+			AtomPtr O2 () const { return o2; }
+			AtomPtr OH1 () const { return oh1; }
+			AtomPtr OH2 () const { return oh2; }
+			
+		protected:
+			ThreeAtomGroup carbonyl_1, carbonyl_2;
+			AtomPtr c1,  c2;		// carbonyl carbons and the middle carbon
+			AtomPtr oh1, oh2;		// alcohol oxygens
+			AtomPtr o1,  o2;		// carbonyl oxygens
+			AtomPtr h1,  h2;
 	};
 
 
@@ -29,11 +46,9 @@ namespace alkane {
 	class MalonicAcid : public Alkane {
 
 		private:
-			ThreeAtomGroup carbonyl_1, carbonyl_2;
-			AtomPtr c1,  c2;		// carbonyl carbons
-			AtomPtr oh1, oh2;		// alcohol oxygens
-			AtomPtr o1,  o2;		// carbonyl oxygens
-			AtomPtr h1,  h2;
+			// middle carbon and hydrogens
+			AtomPtr cm;
+			AtomPtr hc1,  hc2;
 
 		public:
 			MalonicAcid (Molecule_t moltype);
@@ -45,17 +60,7 @@ namespace alkane {
 
 			void SetAtoms ();
 
-			ThreeAtomGroup& COO1 () { return carbonyl_1; }
-			ThreeAtomGroup& COO2 () { return carbonyl_2; }
-			AtomPtr C1 () const { return c1; }
-			AtomPtr C2 () const { return c2; }
-			AtomPtr H1 () const { return h1; }
-			AtomPtr H2 () const { return h2; }
-			AtomPtr O1 () const { return o1; }
-			AtomPtr O2 () const { return o2; }
-			AtomPtr OH1 () const { return oh1; }
-			AtomPtr OH2 () const { return oh2; }
-
+			AtomPtr CM () const { return cm; }
 
 	}; // class malonic
 

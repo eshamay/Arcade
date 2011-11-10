@@ -75,13 +75,15 @@ namespace alkane {
 	}
 
 	void MalonicAcid::SetAtoms () {
+		std::vector<AtomPtr> parsed;
 		// clear everything out
-		c1 = c2 = oh1 = oh2 = o1 = o2 = h1 = h2 = (AtomPtr)NULL;
+		this->c1 = this->c2 = cm = this->oh1 = this->oh2 = this->o1 = this->o2 = this->h1 = this->h2 = hc1 = hc2 = (AtomPtr)NULL;
 		bool first = true;
 
 		// grab the carbons
 		Atom_ptr_vec cs;
 		algorithm_extra::copy_if (this->begin(), this->end(), std::back_inserter(cs), member_functional::mem_fun_eq (&Atom::Element, Atom::C));
+		algorithm_extra::copy_if (this->begin(), this->end(), std::back_inserter(parsed), member_functional::mem_fun_eq (&Atom::Element, Atom::C));
 
 		// also grab the oxygens
 		Atom_ptr_vec os;
@@ -99,7 +101,8 @@ namespace alkane {
 			for (Atom_it o = os.begin(); o != os.end(); o++) {
 				distance = ((*c)->Position() - (*o)->Position()).norm();
 				// establish the two oxygens in the carbonyl group
-				if (distance < 1.5) {
+				if (distance < 1.5) {	
+					parsed.push_back(*o);
 					if (oh == NULL) {
 						oh = *o;
 						continue;
@@ -120,14 +123,17 @@ namespace alkane {
 				AtomPtr ht = (AtomPtr)NULL;
 				for (Atom_it h = hs.begin(); h != hs.end(); h++) {
 					distance = ((*h)->Position() - oh->Position()).norm();
+					//printf ("distance = %f\n", distance);
 					// if the oh has the h, then fine
-					if (distance < 1.2) {
+					if (distance < 1.3) {
+						parsed.push_back(*h);
 						ht = *h;
 						break;
 					}
 					// otherwise swap the oh & oc
 					distance = ((*h)->Position() - oc->Position()).norm();
-					if (distance < 1.2) {
+					if (distance < 1.3) {
+						parsed.push_back(*h);
 						ht = *h;
 						AtomPtr t = oh;
 						oh = oc;
@@ -137,23 +143,72 @@ namespace alkane {
 				}
 
 				if (first) {
-					c1 = *c;
-					oh1 = oh;
-					o1 = oc;
-					h1 = ht;
-					carbonyl_1.SetAtoms(oh, *c, oc);
+					this->c1 = *c;
+					this->oh1 = oh;
+					this->o1 = oc;
+					this->h1 = ht;
+					this->carbonyl_1.SetAtoms(oh, *c, oc);
 					first = false;
 				}
 				else {
-					c2 = *c;
-					oh2 = oh;
-					o2 = oc;
-					h2 = ht;
-					carbonyl_2.SetAtoms(oh, *c, oc);
+					this->c2 = *c;
+					this->oh2 = oh;
+					this->o2 = oc;
+					this->h2 = ht;
+					this->carbonyl_2.SetAtoms(oh, *c, oc);
 					break;
 				}
 			}
 		}
+
+		// grab the middle carbon and hydrogens set it
+		for (Atom_it c = cs.begin(); c != cs.end(); c++) {
+			if (*c != c1 && *c != c2) {
+				cm = *c;
+				break;
+			}
+		}
+
+		hc1 = hc2 = (AtomPtr)NULL;
+		for (Atom_it hc = hs.begin(); hc != hs.end(); hc++) {
+			distance = ((*hc)->Position() - cm->Position()).norm();
+			if (distance < 1.5) {
+				parsed.push_back(*hc);
+				if (hc1 == (AtomPtr)NULL) {
+					hc1 = *hc;
+				}
+				else {
+					hc2 = *hc;
+					break;
+				}
+			}
+		}
+
+
+		// now remove from this molecule any atoms that are not in the list that was parsed earlier
+
+		if (parsed.size() != this->size()) {
+			std::sort (this->begin(), this->end(), Atom::id_cmp);
+			std::sort (parsed.begin(), parsed.end(), Atom::id_cmp);
+			std::vector<AtomPtr> difference;
+			std::set_difference (this->begin(), this->end(), parsed.begin(), parsed.end(), std::back_inserter(difference));
+
+			//printf("\ncurrent molecule = %d\n", this->size());
+			//std::for_each (this->begin(), this->end(), std::mem_fun(&Atom::Print));
+
+			//printf("parsed %zu\n", parsed.size());
+			//std::for_each (parsed.begin(), parsed.end(), std::mem_fun(&Atom::Print));
+
+			//printf ("difference = %zu\n", difference.size());
+			//std::for_each (difference.begin(), difference.end(), std::mem_fun(&Atom::Print));
+
+			this->_atoms.clear();
+			std::copy (parsed.begin(), parsed.end(), std::back_inserter(this->_atoms));
+			//printf("\ncurrent molecule = %d\n", this->size());
+			//std::for_each (this->begin(), this->end(), std::mem_fun(&Atom::Print));
+			//std::cout << std::endl;
+		}
+
 	}
 
 

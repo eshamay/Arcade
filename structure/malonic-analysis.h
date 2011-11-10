@@ -4,17 +4,40 @@
 #include "manipulators.h"
 #include "molecule-analysis.h"
 #include "histogram-analysis.h"
+#include "rdf-analysis.h"
 
 namespace malonic {
+
+	using namespace md_analysis;
 
 	typedef enum {
 		c1o1, c1oh1,
 		c2o2, c2oh2,
 		h1o2, h2o1,
-		h1oh1, h2oh2
+		h1oh1, h2oh2,
+		o1waterh, o2waterh
 	} bond_t;
 
-	using namespace md_analysis;
+
+	class RDF : public molecule_analysis::MalonicAnalysis {
+		protected:
+			RDFAgent	rdf;
+			double distance;
+		public:
+			RDF (Analyzer * t);
+			void MoleculeCalculation ();
+			void DataOutput () { rdf.OutputData(); }
+	};
+
+	class MolecularDipole : public molecule_analysis::MalonicAnalysis {
+		public:
+			MolecularDipole (Analyzer * t);
+
+			void MoleculeCalculation ();
+			void DataOutput () { }
+
+	};
+
 
 	class BondLengths : public molecule_analysis::MalonicAnalysis {
 
@@ -28,7 +51,7 @@ namespace malonic {
 		public:
 			BondLengths (Analyzer * t);
 
-			virtual void MoleculeCalculation ();
+			void MoleculeCalculation ();
 			void DataOutput ();
 
 	}; // malonic test class

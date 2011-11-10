@@ -139,6 +139,8 @@ namespace md_analysis {
 			analyses.push_back (new so2_analysis::SO2RDFAnalysis(analyzer));
 			analyses.push_back (new diacid::CarbonylThetaPhiAnalysis(analyzer));
 			analyses.push_back (new diacid::MethylThetaPhiAnalysis(analyzer));
+			analyses.push_back (new diacid::RDF(analyzer));
+			analyses.push_back (new diacid::Dimers(analyzer));
 
 		}
 
@@ -159,6 +161,8 @@ namespace md_analysis {
 			analyses.push_back(new cycle_analysis::SO2CycleCoordinateWriter(analyzer));
 			analyses.push_back(new malonic::MalonicTest(analyzer));
 			analyses.push_back(new malonic::BondLengths(analyzer));
+			analyses.push_back(new malonic::MolecularDipole(analyzer));
+			analyses.push_back(new malonic::RDF(analyzer));
 		}
 
 
