@@ -336,6 +336,37 @@ namespace angle_analysis {
 	};	// water orientation near so2
 
 
+	class ThetaThetaAgent {
+		protected:
+			double theta1, theta2;
+			Multi2DHistogramAgent	histos;
+			VecR axis, v1;
+
+		public:
+			ThetaThetaAgent (
+					std::string prefix,
+					std::string suffix,
+					float a, float b, float c, 
+					float d, float e, float f, 
+					float g, float h, float i) :
+				axis(VecR::UnitY()),
+				histos (
+						a,b,c,
+						d,e,f,
+						g,h,i,
+						prefix, suffix) { }
+
+			void operator() 
+				( VecR v1, VecR v2, 
+					h2o_analysis::surface_distance_t position);
+
+			void DataOutput () {
+				DivideByBothSineDegrees func;
+				histos.DataOutput(func);
+				//DoNothing2D func;
+				//histos.DataOutput(func);
+			}
+	};
 
 
 	class ThetaPhiAgent {
@@ -366,7 +397,37 @@ namespace angle_analysis {
 				DivideByLeftSineDegrees func;
 				histos.DataOutput(func);
 			}
+
+			void DataOutputBothDivided () {
+				DivideByBothSineDegrees func;
+				histos.DataOutput(func);
+			}
 	};
+
+	class PositionThetaAgent {
+		protected:
+			Histogram2DAgent histo;
+
+		public:
+			PositionThetaAgent (std::string filename,
+					double min1, double max1, double res1, 
+					double min2, double max2, double res2)
+				:	
+					histo (filename, min1, max1, res1, min2, max2, res2) { }
+
+			void operator() (const double position, const double theta) {
+				histo(position, theta);
+			}
+
+			void OutputData () {
+				histo.OutputData ();
+			}
+			void OutputData (DataOutput2DFunction& func) {
+				histo.OutputData (func);
+			}
+	};
+
+
 
 }	// namespace angle analysis
 

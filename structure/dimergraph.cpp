@@ -26,13 +26,16 @@ namespace diacid {
 	}
 
 	void DimerGraph::RecalculateBonds () {
+		// clear out the previous graph edges
 		this->_ClearBonds();
 
-		Vertex_it vi, vi_end, next;
-		tie(vi, vi_end) = vertices(_graph);
-		for (next = vi; vi != vi_end; vi = next) {
-			++next;
-			this->_AddBondsToOtherAcids (*vi);
+		// go through each pair of acids and find the bonds between them
+		Vertex_it vi, vj, vi_end;
+		
+		for (tie(vi, vi_end) = vertices(_graph); vi != vi_end-1; vi++) {
+			for (vj = vi+1; vj != vi_end; vj++) {
+				this->_AddBondsToOtherAcids (*vi, *vj);
+			}
 		}
 	}
 
@@ -62,26 +65,16 @@ namespace diacid {
 		// add the acid vertex into the data structure
 		Vertex v = add_vertex(_graph);
 		v_acid[v] = acid;
-		// now find the connections to each of the other acids in the graph
-		this->_AddBondsToOtherAcids (v);
 		return v;
 	}
 
-	void DimerGraph::_AddBondsToOtherAcids (Vertex v) {
+	void DimerGraph::_AddBondsToOtherAcids (Vertex left, Vertex right) {
 
-		// iterate through all the other acids in the graph finding the H-bonds formed between the incoming one
-		// and the rest
-		Vertex_it vi, vi_end, next;
-		tie(vi, vi_end) = vertices(_graph);
-		for (next = vi; vi != vi_end; vi = next) {
-			++next;
-			// skip the vertex matched to itself
-			if (*vi == v) continue;
-			// find all the bonds between hydrogens on the incoming acid and the oxygens on the other acids
-			_FindBondsBetweenAcids(v, *vi);
-			// then do the reverse
-			_FindBondsBetweenAcids(*vi, v);
-		}
+		if (left == right) return;
+		// find all the bonds between hydrogens on the incoming acid and the oxygens on the other acids
+		_FindBondsBetweenAcids(left, right);
+		// then do the reverse
+		_FindBondsBetweenAcids(right, left);
 	} // add dimer bonds
 
 
@@ -130,9 +123,7 @@ namespace diacid {
 
 	DimerGraph::Vertex_it DimerGraph::_FindVertex (const alkane::Diacid * acid) const {
 		Vertex_it vi, vi_end, next;
-		tie(vi, vi_end) = vertices(_graph);
-		for (next = vi; vi != vi_end; vi = next) {
-			++next;
+		for (tie(vi, vi_end) = vertices(_graph); vi != vi_end; vi++) {
 			if (v_acid[*vi] == acid)
 				break;
 		}
@@ -144,7 +135,7 @@ namespace diacid {
 	//		number of carbonyl-O -- methyl-H bonds
 	//		number of carb-carb bonds
 	//		number of other acids to which it's bound
-	DimerGraph::hbond_data_t DimerGraph::NumHBonds (alkane::Diacid * acid) {
+	DimerGraph::hbond_data_t DimerGraph::NumHBonds (alkane::Diacid * acid) const {
 		Vertex_it v = _FindVertex(acid);
 
 		std::set<alkane::Diacid *> acids;
@@ -154,14 +145,21 @@ namespace diacid {
 		dat.carbonyls = 0;
 		dat.acids = 0;
 
+		//std::cout << "\nAcid #" << acid->MolID() << std::endl;
 		out_edge_iterator out, end, next;
-		tie(out, end) = out_edges(*v, _graph);
-		for (next = out; out != end; out = next) {
-			++next;
-			if (b_type[*out] == METHYL_CARBONYL)
+		for (tie(out, end) = out_edges(*v, _graph); out != end; out++) {
+			if (b_type[*out] == METHYL_CARBONYL) {
+				//std::cout << "\nmethyl carbonyl between:\n" << std::endl;
+				//b_left_atom[*out]->Print();
+				//b_right_atom[*out]->Print();
 				++dat.methyls;
-			if (b_type[*out] == CARBONYL_CARBONYL)
+			}
+			if (b_type[*out] == CARBONYL_CARBONYL) {
+				//std::cout << "\ncarbonyl carbonyl between:\n" << std::endl;
+				//b_left_atom[*out]->Print();
+				//b_right_atom[*out]->Print();
 				++dat.carbonyls;
+			}
 			acids.insert(v_acid[target(*out, _graph)]);
 		}
 		dat.acids = acids.size();
@@ -169,4 +167,69 @@ namespace diacid {
 		return dat;
 	}
 
-}
+	// returns the same hbonding data as for NumHBonds, but for the entire system, not just for a single acid
+	DimerGraph::hbond_data_t DimerGraph::NumHBonds () const {
+
+		std::set<alkane::Diacid *> acids;
+
+		hbond_data_t dat;
+		dat.methyls = 0; // total number of methyl-carbo hbonds
+		dat.carbonyls = 0; // total number of carbo-carbo hbonds
+		dat.acids = 0;	// number of acids in the system taking part in dimerization -- h-bonding
+
+		//std::cout << "\nAcid #" << acid->MolID() << std::endl;
+		Edge_it ei, end;
+		for (tie(ei, end) = edges(_graph); ei != end; ei++) {
+			if (b_type[*ei] == METHYL_CARBONYL) {
+				//std::cout << "\nmethyl carbonyl between:\n" << std::endl;
+				//b_left_atom[*out]->Print();
+				//b_right_atom[*out]->Print();
+				++dat.methyls;
+				acids.insert(v_acid[target(*ei, _graph)]);
+				acids.insert(v_acid[source(*ei, _graph)]);
+			}
+			if (b_type[*ei] == CARBONYL_CARBONYL) {
+				//std::cout << "\ncarbonyl carbonyl between:\n" << std::endl;
+				//b_left_atom[*out]->Print();
+				//b_right_atom[*out]->Print();
+				acids.insert(v_acid[target(*ei, _graph)]);
+				acids.insert(v_acid[source(*ei, _graph)]);
+				++dat.carbonyls;
+			}
+		}
+		dat.acids = acids.size();
+
+		return dat;
+	}
+
+
+	// check if the two given acids are connected in any way
+	bool DimerGraph::_AcidsConnected (Vertex left, Vertex right) const {
+		Edge e;
+		bool b;
+		tie(e,b) = edge(left, right, _graph);
+		return b;
+	}	
+
+	// counts the number of bound acids. If any two acids are hbonded in some way, then that counts as a single connection. 
+	// Returned is: 
+	//		the total number of connections between acids
+	//	e.g. 3 acids with 2 connections means a chain of 3 acids. 
+	//	3 acids with 3 connections means a cyclic set of connections between the acids
+	int DimerGraph::InterAcidConnections () const {
+
+		Vertex_it vi, vj, end;
+		int num_connections = 0;
+		// iterate through every pair of acids
+		for (tie (vi,end) = vertices(_graph); vi != end-1; vi++) {
+			for (vj = vi+1; vj != end; vj++) {
+				if (_AcidsConnected(*vi,*vj)) 
+					++num_connections;
+			}
+		}
+
+		return num_connections;
+	}
+
+
+} // namespace diacid

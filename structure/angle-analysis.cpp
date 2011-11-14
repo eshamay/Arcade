@@ -324,6 +324,20 @@ namespace angle_analysis {
 	}	// analysis
 
 
+	void ThetaThetaAgent::operator() 
+		(VecR vec1, VecR vec2, h2o_analysis::surface_distance_t position) {
+			v1 = axis;// the reference axis - perp to the surface
+			if (!(position.first))
+				v1 = -v1;
+
+			theta1 = acos(vec1 < v1) * 180.0 / M_PI;
+			theta2 = acos(vec2 < v1) * 180.0 / M_PI;
+
+			//if (theta1 > theta2)
+				histos (position.second, theta1, theta2);
+			//else
+				//histos (position.second, theta2, theta1);
+		}
 
 	void ThetaPhiAgent::operator() 
 		( VecR bisector, VecR ref_bond, 

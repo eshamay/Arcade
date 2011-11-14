@@ -22,12 +22,12 @@ namespace diacid {
 	};
 
 
-	class CarbonylThetaPhiAnalysis : public molecule_analysis::DiacidAnalysis {
+	class CarboxylicThetaPhiAnalysis : public molecule_analysis::DiacidAnalysis {
 		protected:
 			angle_analysis::ThetaPhiAgent angles;
 
 		public:
-			CarbonylThetaPhiAnalysis (system_t * t) :
+			CarboxylicThetaPhiAnalysis (system_t * t) :
 				molecule_analysis::DiacidAnalysis (t,
 						std::string("Diacid carbonyl theta-phi angle depth-slice analysis"),
 						std::string ("temp")),
@@ -54,6 +54,7 @@ namespace diacid {
 
 			void PreCalculation ();
 			void MoleculeCalculation ();
+			void PostCalculation ();
 
 		protected:
 			DimerGraph	_graph;
@@ -93,6 +94,30 @@ namespace diacid {
 			RDF (Analyzer * t);
 			void MoleculeCalculation ();
 			void DataOutput () { rdf.OutputData(); }
+	};
+
+
+
+
+	class CarbonylThetaThetaAnalysis : public molecule_analysis::DiacidAnalysis {
+		protected:
+			angle_analysis::ThetaThetaAgent angles;
+
+		public:
+			CarbonylThetaThetaAnalysis (Analyzer * t) :
+				molecule_analysis::DiacidAnalysis (t,
+						std::string("carbonyl C=O theta1-theta2 angle depth-slice analysis"),
+						std::string ("temp")),
+				angles (
+						std::string ("./carbonyl-theta-theta/theta-theta."), // filename prefix
+						std::string (".dat"),	// suffix
+						-14.0, 4.0, 2.0, // depths
+						5.0, 175.0, 2.5, // theta range
+						5.0, 175.0, 2.5) // phi range
+		{ }
+
+			void MoleculeCalculation ();
+			void DataOutput () { angles.DataOutput(); }
 	};
 
 } // namespace 

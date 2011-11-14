@@ -70,15 +70,18 @@ namespace diacid {
 
 
 			typedef struct { int methyls, carbonyls, acids; } hbond_data_t;
-			hbond_data_t NumHBonds (alkane::Diacid * acid);
+			hbond_data_t NumHBonds (alkane::Diacid * acid) const;
+			hbond_data_t NumHBonds () const;
+			int InterAcidConnections () const;
 
 		private:
 			static graph_t	_graph;
 
 			Vertex _AddAcidToGraph (alkane::Diacid * const acid);
-			void _AddBondsToOtherAcids (Vertex v);
+			void _AddBondsToOtherAcids (Vertex left, Vertex right);
 			void  _FindBondsBetweenAcids (Vertex vleft, Vertex vright);
 			Vertex_it _FindVertex (const alkane::Diacid * acid) const;
+			bool _AcidsConnected (Vertex left, Vertex right) const;
 
 	}; // dimer graph
 
