@@ -28,50 +28,50 @@ namespace alkane {
 
 	MalonicAcid::MalonicAcid (Molecule_t moltype) : Alkane () {
 
-			this->_moltype = moltype;
+		this->_moltype = moltype;
 
-			switch (moltype) {
+		switch (moltype) {
 
-				case Molecule::MALONIC : 
-					this->Rename("malonic acid");
-					++numMalonicAcid;
-					break;
+			case Molecule::MALONIC : 
+				this->Rename("malonic acid");
+				++numMalonicAcid;
+				break;
 
-				case Molecule::MALONATE : 
-					this->Rename("malonate");
-					++numMalonate;
-					break;
+			case Molecule::MALONATE : 
+				this->Rename("malonate");
+				++numMalonate;
+				break;
 
-				case Molecule::DIMALONATE : 
-					this->Rename("dimalonate");
-					++numDimalonate;
-					break;
+			case Molecule::DIMALONATE : 
+				this->Rename("dimalonate");
+				++numDimalonate;
+				break;
 
-				default:
-					std::cerr << "Creating a malonic acid type but not using a valid molecule type" << std::endl;
-			}
-
+			default:
+				std::cerr << "Creating a malonic acid type but not using a valid molecule type" << std::endl;
 		}
 
+	}
+
 	MalonicAcid::~MalonicAcid () {
-			switch (this->_moltype) {
+		switch (this->_moltype) {
 
-				case Molecule::MALONIC : 
-					--numMalonicAcid;
-					break;
+			case Molecule::MALONIC : 
+				--numMalonicAcid;
+				break;
 
-				case Molecule::MALONATE : 
-					--numMalonate;
-					break;
+			case Molecule::MALONATE : 
+				--numMalonate;
+				break;
 
-				case Molecule::DIMALONATE : 
-					--numDimalonate;
-					break;
+			case Molecule::DIMALONATE : 
+				--numDimalonate;
+				break;
 
-				default:
-					std::cerr << "Something funny when killing a malonic acid" << std::endl;
-			}
-			return;
+			default:
+				std::cerr << "Something funny when killing a malonic acid" << std::endl;
+		}
+		return;
 	}
 
 	void MalonicAcid::SetAtoms () {
@@ -355,6 +355,43 @@ std::pair<AtomPtr,AtomPtr> Diacid::FindMethylHydrogens (AtomPtr carbon) {
 		}
 	}
 	return std::make_pair(first, second);
+}
+
+
+Atom_ptr_vec Diacid::methyl_hydrogens () const {
+	Atom_ptr_vec Hs;
+	for (std::list<ThreeAtomGroup>::const_iterator it = this->methyl_groups.begin(); it != this->methyl_groups.end(); it++) {
+		Hs.push_back(it->Left());
+		Hs.push_back(it->Right());
+	}
+
+	return Hs;
+}
+
+
+Atom_ptr_vec Diacid::carbonyl_oxygens () const {
+	Atom_ptr_vec Os;
+	for (std::list<ThreeAtomGroup>::const_iterator it = this->carbonyl_groups.begin(); it != this->carbonyl_groups.end(); it++) {
+		Os.push_back(it->Left());
+		Os.push_back(it->Right());
+	}
+
+	return Os;
+}
+
+Atom_ptr_vec Diacid::carbonyl_hydrogens () const {
+	Atom_ptr_vec Os = this->carbonyl_oxygens();
+	Atom_ptr_vec methyl_Hs = this->methyl_hydrogens();
+	std::sort(methyl_Hs.begin(), methyl_Hs.end());
+
+	Atom_ptr_vec all_Hs;
+	algorithm_extra::copy_if (this->begin(), this->end(), std::back_inserter(all_Hs), member_functional::mem_fun_eq (&Atom::Element, Atom::H));
+	std::sort(all_Hs.begin(), all_Hs.end());
+	
+	Atom_ptr_vec carbonyl_Hs;
+	std::set_difference(all_Hs.begin(), all_Hs.end(), methyl_Hs.begin(), methyl_Hs.end(), std::back_inserter(carbonyl_Hs));
+
+	return carbonyl_Hs;
 }
 
 

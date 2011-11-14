@@ -4,6 +4,7 @@
 #include "molecule-analysis.h"
 #include "angle-analysis.h"
 #include "rdf-analysis.h"
+#include "dimergraph.h"
 
 namespace diacid {
 
@@ -48,9 +49,15 @@ namespace diacid {
 			Dimers (system_t * t) :
 				molecule_analysis::DiacidAnalysis (t,
 						std::string("Look at the bonding between the dicarboxylic acids"),
-						std::string ("temp")) { }
+						std::string ("DiacidDimers.dat")),
+				initialized(false) { }
 
+			void PreCalculation ();
 			void MoleculeCalculation ();
+
+		protected:
+			DimerGraph	_graph;
+			bool initialized;
 	};
 
 

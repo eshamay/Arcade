@@ -141,6 +141,7 @@ namespace md_analysis {
 			analyses.push_back (new diacid::MethylThetaPhiAnalysis(analyzer));
 			analyses.push_back (new diacid::RDF(analyzer));
 			analyses.push_back (new diacid::Dimers(analyzer));
+			analyses.push_back (new diacid::Test(analyzer));
 
 		}
 

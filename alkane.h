@@ -132,11 +132,15 @@ namespace alkane {
 			void LoadAtomGroups () { LoadMethylGroups(); LoadCarbonylGroups(); }
 
 			typedef std::list<ThreeAtomGroup> atom_group_list;
-			atom_group_list::iterator methyls_begin () { return methyl_groups.begin(); }
-			atom_group_list::iterator methyls_end () { return methyl_groups.end(); }
+			atom_group_list::const_iterator methyls_begin () const { return methyl_groups.begin(); }
+			atom_group_list::const_iterator methyls_end () const { return methyl_groups.end(); }
 
-			atom_group_list::iterator carbonyls_begin () { return carbonyl_groups.begin(); }
-			atom_group_list::iterator carbonyls_end () { return carbonyl_groups.end(); }
+			atom_group_list::const_iterator carbonyls_begin () const { return carbonyl_groups.begin(); }
+			atom_group_list::const_iterator carbonyls_end () const { return carbonyl_groups.end(); }
+
+			Atom_ptr_vec methyl_hydrogens () const;
+			Atom_ptr_vec carbonyl_hydrogens () const;
+			Atom_ptr_vec carbonyl_oxygens () const;
 
 		protected:
 			void LoadMethylGroups ();
@@ -148,6 +152,8 @@ namespace alkane {
 
 			std::pair<AtomPtr,AtomPtr> FindMethylHydrogens (AtomPtr carbon);
 	};
+
+	typedef std::vector<Diacid *>::iterator Diacid_it;
 
 
 }

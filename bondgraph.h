@@ -1,5 +1,5 @@
-#ifndef GRAPH_H_
-#define GRAPH_H_
+#ifndef BONDGRAPH_H_
+#define BONDGRAPH_H_
 
 #include "mdsystem.h"
 #include "utility.h"
@@ -14,7 +14,7 @@
 //#include <boost/property_map/property_map.hpp>
 #include <boost/property_map/property_map.hpp>
 
-#include <exception>
+//#include <exception>
 
 //#define ANGLE_CRITERIA
 
@@ -105,6 +105,8 @@ namespace bondgraph {
 			typedef edge_descriptor Edge;
 			typedef graph_traits<graph_t>::edge_iterator edge_iterator;
 			typedef edge_iterator Edge_it;
+			typedef graph_traits<graph_t>::out_edge_iterator out_edge_iterator;
+			typedef out_edge_iterator Out_it;
 			typedef graph_traits<graph_t>::adjacency_iterator adjacency_iterator;
 			typedef adjacency_iterator Adj_it;
 
