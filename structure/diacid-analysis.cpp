@@ -140,12 +140,77 @@ namespace diacid {
 		}
 	}
 
-	void CarbonylThetaThetaAnalysis::MoleculeCalculation () {
+
+
+	void CarbonBackboneThetaCarboxylicDihedral::MoleculeCalculation () {
+		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
+		this->position = this->h2os.TopOrBottom(com);
+		this->mol->LoadAtomGroups();
+
+		v1 = axis;// the reference axis - perp to the surface
+		if (!(position.first))
+			v1 = -v1;
+
+		ccc.SetAtoms(this->mol->GetAtom("C1"), this->mol->GetAtom("C2"), this->mol->GetAtom("C3"));
+
+		theta = acos(ccc.Bisector() < v1) * 180.0 / M_PI;
+
+		psi = alkane::Diacid::MalonicDihedralAngle (this->mol);
+
+		//printf ("\ntheta = %f\nphi = %f\nposition = %f\n", theta, phi, position.second);
+		// bin the dihedral angles of both the carboxylic groups against the backbone tilt
+		angles.Override(this->position.second, theta, psi.first);
+		angles.Override(this->position.second, theta, psi.second);
+	}
+
+
+
+	void CarbonBackboneThetaPhi::MoleculeCalculation () {
+		// find the center of mass location of the succinic acid
+		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
+		this->position = this->h2os.TopOrBottom(com);
+		this->mol->LoadAtomGroups();
+
+		// find the bisector axis
+		// it's splits the two vectors C2->C1 and C2->C3
+		// This is specific to malonic acid
+		ccc.SetAtoms(this->mol->GetAtom("C1"), this->mol->GetAtom("C2"), this->mol->GetAtom("C3"));
+
+		// get the angles binned
+		angles (ccc.Bisector(), ccc.Bond1(), this->position);
+	}
+
+	void COTheta::MoleculeCalculation () {
 		this->mol->LoadAtomGroups();
 		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
 		this->position = this->h2os.TopOrBottom(com);
 
-		angles (this->mol->CO1(), this->mol->CO2(), this->position);
+		v1 = axis;// the reference axis - perp to the surface
+		if (!(this->position.first))
+			v1 = -v1;
+
+		double y1 = this->mol->CO1().y();
+		double y2 = this->mol->CO2().y();
+
+		double mag1 = this->mol->CO1().norm();
+		double mag2 = this->mol->CO2().norm();
+
+		double theta1 = acos(this->mol->CO1() < v1) * 180.0/M_PI;
+		double theta2 = acos(this->mol->CO2() < v1) * 180.0/M_PI;
+
+		angles (this->position.second, theta1);
+		angles (this->position.second, theta2);
+	}
+
+
+	void CarboxylicDihedralPsiPsi::MoleculeCalculation () {
+		this->mol->LoadAtomGroups();
+		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
+		this->position = this->h2os.TopOrBottom(com);
+
+		std::pair<double,double> psi = alkane::Diacid::MalonicDihedralAngle (this->mol);
+
+		angles.Override(this->position.second, fabs(psi.first), fabs(psi.second));
 
 		return;
 	}

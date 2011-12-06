@@ -336,14 +336,14 @@ namespace angle_analysis {
 	};	// water orientation near so2
 
 
-	class ThetaThetaAgent {
+	class PsiPsiAgent {
 		protected:
 			double theta1, theta2;
 			Multi2DHistogramAgent	histos;
 			VecR axis, v1;
 
 		public:
-			ThetaThetaAgent (
+			PsiPsiAgent (
 					std::string prefix,
 					std::string suffix,
 					float a, float b, float c, 
@@ -360,11 +360,14 @@ namespace angle_analysis {
 				( VecR v1, VecR v2, 
 					h2o_analysis::surface_distance_t position);
 
+			void Override (double position, double v1, double v2) {
+				histos (position, v1, v2);
+			}
+
 			void DataOutput () {
-				DivideByBothSineDegrees func;
+				//DivideByBothSineDegrees func;
+				DoNothing2D func;
 				histos.DataOutput(func);
-				//DoNothing2D func;
-				//histos.DataOutput(func);
 			}
 	};
 
@@ -392,6 +395,10 @@ namespace angle_analysis {
 			void operator() 
 				( VecR bisector, VecR ref_bond, 
 					h2o_analysis::surface_distance_t position);
+
+			void Override (double position, double v1, double v2) {
+				histos (position, v1, v2);
+			}
 
 			void DataOutput () {
 				DivideByLeftSineDegrees func;

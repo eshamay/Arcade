@@ -131,6 +131,9 @@ namespace alkane {
 
 			void LoadAtomGroups () { LoadMethylGroups(); LoadCarbonylGroups(); }
 
+			// returns the dihedral angle (see implementatin to get it!)
+			static std::pair<double,double> MalonicDihedralAngle (Diacid * acid);
+
 			typedef std::list<ThreeAtomGroup> atom_group_list;
 			atom_group_list::const_iterator methyls_begin () const { return methyl_groups.begin(); }
 			atom_group_list::const_iterator methyls_end () const { return methyl_groups.end(); }

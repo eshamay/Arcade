@@ -137,12 +137,14 @@ namespace md_analysis {
 			analyses.push_back (new so2_angle_analysis::SO2ThetaAnalyzer(analyzer));
 			analyses.push_back (new h2o_analysis::WaterThetaPhiAnalysis(analyzer));
 			analyses.push_back (new so2_analysis::SO2RDFAnalysis(analyzer));
-			analyses.push_back (new diacid::CarbonylThetaThetaAnalysis(analyzer));
+			analyses.push_back (new diacid::CarboxylicDihedralPsiPsi(analyzer));
+			analyses.push_back (new diacid::CarbonBackboneThetaCarboxylicDihedral(analyzer));
+			analyses.push_back (new diacid::CarbonBackboneThetaPhi(analyzer));
 			analyses.push_back (new diacid::MethylThetaPhiAnalysis(analyzer));
 			analyses.push_back (new diacid::RDF(analyzer));
 			analyses.push_back (new diacid::Dimers(analyzer));
 			analyses.push_back (new diacid::Test(analyzer));
-
+			analyses.push_back (new diacid::COTheta(analyzer));
 		}
 
 

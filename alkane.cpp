@@ -394,5 +394,30 @@ Atom_ptr_vec Diacid::carbonyl_hydrogens () const {
 	return carbonyl_Hs;
 }
 
+std::pair<double,double> Diacid::MalonicDihedralAngle (Diacid *acid) {
+
+		// first vector is the O=>C bond
+		VecR v1 = acid->CO1();
+		// but it points from the O to the C, not C->O
+		v1 = -v1;
+		// 2nd vector is C1->C2
+		VecR v2 = acid->GetAtom("C2")->Position() - acid->GetAtom("C1")->Position();
+		// 3rd is C2->C3
+		VecR v3 = acid->GetAtom("C3")->Position() - acid->GetAtom("C2")->Position();
+		// the dihedral is calculated from these 3 vectors
+		double psi1 = Dihedral::Angle(v1,v2,v3) * 180.0/M_PI;
+
+		
+		// repeat for the 2nd side of the molecule, but the atom chain is now O2=>C3->C2->C1
+		v1 = acid->CO2();
+		v1 = -v1;
+		v2 = acid->GetAtom("C2")->Position() - acid->GetAtom("C3")->Position();
+		// 3rd is C2->C3
+		v3 = acid->GetAtom("C1")->Position() - acid->GetAtom("C2")->Position();
+		// the dihedral is calculated from these 3 vectors
+		double psi2 = Dihedral::Angle(v1,v2,v3) * 180.0/M_PI;
+
+		return std::make_pair(psi1,psi2);
+}
 
 }	// namespace alkane

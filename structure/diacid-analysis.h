@@ -16,9 +16,32 @@ namespace diacid {
 			Test (system_t * t) :
 				molecule_analysis::DiacidAnalysis (t,
 						std::string("Diacid test"),
-						std::string ("temp")) { }
+						std::string ("")) { }
 
 			void MoleculeCalculation ();
+	};
+
+
+	class CarbonBackboneThetaPhi : public molecule_analysis::DiacidAnalysis {
+		protected:
+			angle_analysis::ThetaPhiAgent angles;
+			ThreeAtomGroup ccc;
+
+		public:
+			CarbonBackboneThetaPhi (system_t * t) :
+				molecule_analysis::DiacidAnalysis (t,
+						std::string("Diacid carbon C-C-C backbone theta-phi angle depth-slice analysis"),
+						std::string ("")),
+				angles (
+						std::string ("./carbonbackbone-theta-phi/theta-phi."), // filename prefix
+						std::string (".dat"),	// suffix
+						-8.0, 4.0, 2.0, // depths
+						1.0, 179.0, 2.5, // theta range
+						0.0, 90.0, 1.0) // phi range
+		{ }
+
+			void MoleculeCalculation ();
+			void DataOutput () { angles.DataOutput(); }
 	};
 
 
@@ -30,7 +53,7 @@ namespace diacid {
 			CarboxylicThetaPhiAnalysis (system_t * t) :
 				molecule_analysis::DiacidAnalysis (t,
 						std::string("Diacid carbonyl theta-phi angle depth-slice analysis"),
-						std::string ("temp")),
+						std::string ("")),
 				angles (
 						std::string ("./carbonyl-theta-phi/theta-phi."), // filename prefix
 						std::string (".dat"),	// suffix
@@ -72,7 +95,7 @@ namespace diacid {
 			MethylThetaPhiAnalysis (system_t * t) :
 				molecule_analysis::DiacidAnalysis (t,
 						std::string("Diacid methyl theta-phi angle depth-slice analysis"),
-						std::string ("temp")),
+						std::string ("")),
 				angles (
 						std::string ("./methyl-theta-phi/theta-phi."), // filename prefix
 						std::string (".dat"),	// suffix
@@ -97,23 +120,81 @@ namespace diacid {
 	};
 
 
+	class CarbonBackboneThetaCarboxylicDihedral : public molecule_analysis::DiacidAnalysis {
 
-
-	class CarbonylThetaThetaAnalysis : public molecule_analysis::DiacidAnalysis {
 		protected:
-			angle_analysis::ThetaThetaAgent angles;
+			angle_analysis::ThetaPhiAgent angles;
+			double theta;
+			ThreeAtomGroup ccc;
+			VecR v1, axis;
+			std::pair<double,double> psi;
+
 
 		public:
-			CarbonylThetaThetaAnalysis (Analyzer * t) :
+			CarbonBackboneThetaCarboxylicDihedral (Analyzer * t) :
 				molecule_analysis::DiacidAnalysis (t,
-						std::string("carbonyl C=O theta1-theta2 angle depth-slice analysis"),
-						std::string ("temp")),
+						std::string("Diacid O=C-C-C dihedral v C-C-C theta angle depth-slice analysis"),
+						std::string ("")),
 				angles (
-						std::string ("./carbonyl-theta-theta/theta-theta."), // filename prefix
+						std::string ("./carbonbackbone-theta-carbonyl-psi/theta-psi."), // filename prefix
 						std::string (".dat"),	// suffix
 						-14.0, 4.0, 2.0, // depths
 						5.0, 175.0, 2.5, // theta range
-						5.0, 175.0, 2.5) // phi range
+						-180.0, 180.0, 4.0), // dihedral range
+				axis(VecR::UnitY())
+		{ }
+
+			void MoleculeCalculation ();
+			void DataOutput () { angles.DataOutput(); }
+	};
+
+
+	class COTheta : public molecule_analysis::DiacidAnalysis {
+		private:
+			angle_analysis::PositionThetaAgent	angles;
+			VecR v1;
+			const VecR axis;
+			double theta1, theta2;
+
+		public:
+			COTheta (Analyzer * t) :
+				molecule_analysis::DiacidAnalysis (t,
+						std::string("Diacid Carbonyl C=O theta vs distance in water"),
+						std::string ("")),
+				angles (
+						std::string ("CarbonylDistanceTheta.dat"),	
+						-10.0, 4.0, 0.2, // depths
+						//5.0, 175.0, 2.5), // theta
+						5.0, 175.0, 2.0), // theta
+				axis(VecR::UnitY()) { }
+
+			void MoleculeCalculation ();
+
+			void DataOutput () {
+				DivideByRightSineDegrees func;
+				//DoNothing2D func;
+				angles.OutputData(func);
+			}
+	};
+
+	// looking at the two dihedrals of malonic acid
+	class CarboxylicDihedralPsiPsi : public molecule_analysis::DiacidAnalysis {
+		protected:
+			angle_analysis::PsiPsiAgent angles;
+			VecR v1,v2,v3;
+			double theta1, theta2;
+
+		public:
+			CarboxylicDihedralPsiPsi (Analyzer * t) :
+				molecule_analysis::DiacidAnalysis (t,
+						std::string("Diacid O=C-C-C psi1-psi2 dihedral angle depth-slice analysis"),
+						std::string ("")),
+				angles (
+						std::string ("./carboxylic-dihedral-psi-psi/psi-psi."), // filename prefix
+						std::string (".dat"),	// suffix
+						-8.0, 4.0, 2.0, // depths
+						0.0, 180.0, 2.5, // psi1
+						0.0, 180.0, 2.5) // psi2
 		{ }
 
 			void MoleculeCalculation ();
