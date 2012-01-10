@@ -15,18 +15,102 @@ namespace malonic {
 		c2o2, c2oh2,
 		h1o2, h2o1,
 		h1oh1, h2oh2,
+		h1oh2, h2oh1,
 		o1waterh, o2waterh
 	} bond_t;
 
 
+	class CarbonBackboneThetaPhi : public molecule_analysis::MalonicAnalysis {
+		protected:
+			Histogram2DAgent	angles;
+			ThreeAtomGroup ccc;
+			VecR axis, v1, bisector;
+			double theta, phi;
+
+		public:
+			CarbonBackboneThetaPhi (system_t * t) :
+				molecule_analysis::MalonicAnalysis (t,
+						std::string("Diacid carbon C-C-C backbone theta-phi angle analysis"),
+						std::string ("")),
+				angles (
+						std::string ("CarbonBackbone-Theta-Phi.dat"),	// filename
+						1.0, 179.0, 2.5, // theta range
+						0.0, 90.0, 1.0), // phi range
+				axis(VecR::UnitZ())
+		{ }
+
+			void MoleculeCalculation ();
+			void DataOutput () { 
+				DoNothing2D func;
+				//DivideByLeftSineDegrees func;
+				angles.OutputData(func); 
+			}
+	};
+
+	class COTheta : public molecule_analysis::MalonicAnalysis {
+		private:
+			Histogram1DAgent	angles;
+			VecR axis, co_bond;
+			double theta;
+
+		public:
+			COTheta (Analyzer * t) :
+				molecule_analysis::MalonicAnalysis (t,
+						std::string("Diacid Carbonyl C=O theta vs distance in water"),
+						std::string ("")),
+				angles (
+						std::string ("Carbonyl-DistanceTheta.dat"),	
+						5.0, 175.0, 2.0), // theta
+				axis(VecR::UnitZ()) { }
+
+			void MoleculeCalculation ();
+
+			void DataOutput () {
+				angles.OutputData();
+			}
+	};
+
+
+	// looking at the two dihedrals of malonic acid
+	class CarboxylicDihedralPsiPsi : public molecule_analysis::MalonicAnalysis {
+		protected:
+			Histogram2DAgent	angles;
+			ThreeAtomGroup ccc;
+			VecR axis, v1, bisector;
+			double psi1, psi2;
+
+		public:
+			CarboxylicDihedralPsiPsi (Analyzer * t) :
+				molecule_analysis::MalonicAnalysis (t,
+						std::string("Malonic O=C-C-C psi1-psi2 dihedral angle analysis"),
+						std::string ("")),
+				angles (
+						std::string ("Carboxylic-Psi-Psi.dat"), // filename 
+						0.0, 180.0, 2.5, // psi1
+						0.0, 180.0, 2.5), // psi2
+				axis(VecR::UnitZ())
+		{ }
+
+			void MoleculeCalculation ();
+			void DataOutput () {
+				DoNothing2D func;
+				//DivideByLeftSineDegrees func;
+				angles.OutputData(func); 
+			}
+	};
+
 	class RDF : public molecule_analysis::MalonicAnalysis {
 		protected:
-			RDFAgent	rdf;
+			RDFAgent	rdf_alc;
+			RDFAgent	rdf_carb;
 			double distance;
 		public:
 			RDF (Analyzer * t);
 			void MoleculeCalculation ();
-			void DataOutput () { rdf.OutputData(); }
+			void DataOutput () { 
+				rdf_alc.OutputData(); 
+				rdf_carb.OutputData();
+			}
 	};
 
 	class MolecularDipole : public molecule_analysis::MalonicAnalysis {

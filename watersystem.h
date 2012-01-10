@@ -237,6 +237,10 @@ namespace md_system {
 					std::cerr << "Couldn't find the xyz system parameters in the configuration file" << std::endl;
 					exit(EXIT_FAILURE);
 				}
+				//catch (std::exception &e) {
+					//std::cerr << "something else went wrong while starting the xyzsystem" << std::endl;
+				//}
+
 
 				return;
 			}

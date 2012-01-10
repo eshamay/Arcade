@@ -19,22 +19,25 @@ namespace alkane {
 			virtual VecR ReferencePoint () const { 
 				return this->CenterOfMass(); 
 			}
+
+			virtual void SetAtoms () { }
+
 			// Functions for analysis
 			//virtual void SetAtoms () = 0;
 			ThreeAtomGroup& COO1 () { return carbonyl_1; }
 			ThreeAtomGroup& COO2 () { return carbonyl_2; }
-			AtomPtr C1 () const { return c1; }
-			AtomPtr C2 () const { return c2; }
-			AtomPtr H1 () const { return h1; }
+			AtomPtr C1 () const { return c1; }	// first carbonyl
+			AtomPtr C2 () const { return c2; }	// second carbonyl 
+			AtomPtr H1 () const { return h1; }	// the two acid protons
 			AtomPtr H2 () const { return h2; }
-			AtomPtr O1 () const { return o1; }
+			AtomPtr O1 () const { return o1; }	// carbonyl oxy's
 			AtomPtr O2 () const { return o2; }
-			AtomPtr OH1 () const { return oh1; }
+			AtomPtr OH1 () const { return oh1; }	// alcohol oxys
 			AtomPtr OH2 () const { return oh2; }
 			
 		protected:
 			ThreeAtomGroup carbonyl_1, carbonyl_2;
-			AtomPtr c1,  c2;		// carbonyl carbons and the middle carbon
+			AtomPtr c1,  c2;		// carbonyl carbons
 			AtomPtr oh1, oh2;		// alcohol oxygens
 			AtomPtr o1,  o2;		// carbonyl oxygens
 			AtomPtr h1,  h2;
@@ -60,7 +63,8 @@ namespace alkane {
 
 			void SetAtoms ();
 
-			AtomPtr CM () const { return cm; }
+			AtomPtr CM () const { return cm; }	// methylene carbon
+			std::pair<double,double> DihedralAngle ();
 
 	}; // class malonic
 
@@ -129,6 +133,7 @@ namespace alkane {
 			VecR CO1 ();
 			VecR CO2 ();
 
+			void SetAtoms ();
 			void LoadAtomGroups () { LoadMethylGroups(); LoadCarbonylGroups(); }
 
 			// returns the dihedral angle (see implementatin to get it!)

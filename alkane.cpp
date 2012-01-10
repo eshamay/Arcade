@@ -211,6 +211,31 @@ namespace alkane {
 
 	}
 
+	std::pair<double,double> MalonicAcid::DihedralAngle () {
+		// the atom chain is now O1=>C1->CM->C2
+		// first vector is the O=>C bond
+		VecR v1 = this->C1()->Position() - this->O1()->Position();
+
+		// 2nd vector is C1->C2
+		VecR v2 = this->CM()->Position() - this->C1()->Position();
+		// 3rd is C2->C3
+		VecR v3 = this->C2()->Position() - this->CM()->Position(); 
+		// the dihedral is calculated from these 3 vectors
+		double psi1 = Dihedral::Angle(v1,v2,v3) * 180.0/M_PI;
+
+
+		// repeat for the 2nd side of the molecule, but the atom chain is now O2=>C2->CM->C1
+		v1 = this->C2()->Position() - this->O2()->Position();
+		v2 = this->CM()->Position() - this->C2()->Position();
+		v3 = this->C1()->Position() - this->CM()->Position(); 
+		// the dihedral is calculated from these 3 vectors
+		double psi2 = Dihedral::Angle(v1,v2,v3) * 180.0/M_PI;
+
+		return std::make_pair(psi1,psi2);
+	}
+
+
+
 
 	Formaldehyde::Formaldehyde ()
 		: Alkane () {
@@ -315,6 +340,19 @@ VecR Diacid::CarbonylBisector2 () { return carbonyl_groups.back().Bisector(); }
 VecR Diacid::CO1 () { return VecR (this->GetAtom("O1")->Position() - this->CarbonylCarbon1()->Position()); }
 VecR Diacid::CO2 () { return VecR (this->GetAtom("O2")->Position() - this->CarbonylCarbon2()->Position()); }
 
+// only for malonic!!
+void Diacid::SetAtoms () {
+	c1 = this->GetAtom("C1");
+	o1 = this->GetAtom("O1");
+	oh1 = this->GetAtom("O3");
+	h1 = this->GetAtom("H1");
+	c2 = this->GetAtom("C3");
+	o2 = this->GetAtom("O2");
+	oh2 = this->GetAtom("O4");
+	h2 = this->GetAtom("H4");
+	return;
+}
+
 void Diacid::LoadCarbonylGroups () {
 	carbonyl_groups.clear();
 	carbonyl_groups.push_back (ThreeAtomGroup(this->GetAtom("O3"), this->CarbonylCarbon1(), this->GetAtom("O1")));
@@ -387,7 +425,7 @@ Atom_ptr_vec Diacid::carbonyl_hydrogens () const {
 	Atom_ptr_vec all_Hs;
 	algorithm_extra::copy_if (this->begin(), this->end(), std::back_inserter(all_Hs), member_functional::mem_fun_eq (&Atom::Element, Atom::H));
 	std::sort(all_Hs.begin(), all_Hs.end());
-	
+
 	Atom_ptr_vec carbonyl_Hs;
 	std::set_difference(all_Hs.begin(), all_Hs.end(), methyl_Hs.begin(), methyl_Hs.end(), std::back_inserter(carbonyl_Hs));
 
@@ -396,28 +434,28 @@ Atom_ptr_vec Diacid::carbonyl_hydrogens () const {
 
 std::pair<double,double> Diacid::MalonicDihedralAngle (Diacid *acid) {
 
-		// first vector is the O=>C bond
-		VecR v1 = acid->CO1();
-		// but it points from the O to the C, not C->O
-		v1 = -v1;
-		// 2nd vector is C1->C2
-		VecR v2 = acid->GetAtom("C2")->Position() - acid->GetAtom("C1")->Position();
-		// 3rd is C2->C3
-		VecR v3 = acid->GetAtom("C3")->Position() - acid->GetAtom("C2")->Position();
-		// the dihedral is calculated from these 3 vectors
-		double psi1 = Dihedral::Angle(v1,v2,v3) * 180.0/M_PI;
+	// first vector is the O=>C bond
+	VecR v1 = acid->CO1();
+	// but it points from the O to the C, not C->O
+	v1 = -v1;
+	// 2nd vector is C1->C2
+	VecR v2 = acid->GetAtom("C2")->Position() - acid->GetAtom("C1")->Position();
+	// 3rd is C2->C3
+	VecR v3 = acid->GetAtom("C3")->Position() - acid->GetAtom("C2")->Position();
+	// the dihedral is calculated from these 3 vectors
+	double psi1 = Dihedral::Angle(v1,v2,v3) * 180.0/M_PI;
 
-		
-		// repeat for the 2nd side of the molecule, but the atom chain is now O2=>C3->C2->C1
-		v1 = acid->CO2();
-		v1 = -v1;
-		v2 = acid->GetAtom("C2")->Position() - acid->GetAtom("C3")->Position();
-		// 3rd is C2->C3
-		v3 = acid->GetAtom("C1")->Position() - acid->GetAtom("C2")->Position();
-		// the dihedral is calculated from these 3 vectors
-		double psi2 = Dihedral::Angle(v1,v2,v3) * 180.0/M_PI;
 
-		return std::make_pair(psi1,psi2);
+	// repeat for the 2nd side of the molecule, but the atom chain is now O2=>C3->C2->C1
+	v1 = acid->CO2();
+	v1 = -v1;
+	v2 = acid->GetAtom("C2")->Position() - acid->GetAtom("C3")->Position();
+	// 3rd is C2->C3
+	v3 = acid->GetAtom("C1")->Position() - acid->GetAtom("C2")->Position();
+	// the dihedral is calculated from these 3 vectors
+	double psi2 = Dihedral::Angle(v1,v2,v3) * 180.0/M_PI;
+
+	return std::make_pair(psi1,psi2);
 }
 
 }	// namespace alkane

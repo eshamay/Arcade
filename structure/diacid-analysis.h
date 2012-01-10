@@ -21,6 +21,33 @@ namespace diacid {
 			void MoleculeCalculation ();
 	};
 
+	typedef enum {
+		c1o1, c1oh1,
+		c2o2, c2oh2,
+		h1o2, h2o1,
+		h1oh1, h2oh2,
+		h1oh2, h2oh1,
+		o1waterh, o2waterh
+	} bond_t;
+
+	class BondLengths : public molecule_analysis::DiacidAnalysis {
+		private:
+			typedef std::map< bond_t, histogram_utilities::Histogram1D<double>* > bondlength_map;
+			bondlength_map lengths;
+			double min,max,res;
+			double distance;
+
+			void CalcDistance (AtomPtr atom1, AtomPtr atom2, bond_t bond);
+			void OutputDataPoint (bond_t bond, double position);
+
+		public:
+			BondLengths (Analyzer * t);
+
+			void MoleculeCalculation ();
+			void DataOutput ();
+	};
+
+
 
 	class CarbonBackboneThetaPhi : public molecule_analysis::DiacidAnalysis {
 		protected:
@@ -111,12 +138,16 @@ namespace diacid {
 
 	class RDF : public molecule_analysis::DiacidAnalysis {
 		protected:
-			RDFAgent	rdf;
+			RDFAgent	rdf_alc;
+			RDFAgent	rdf_carb;
 			double distance;
 		public:
 			RDF (Analyzer * t);
 			void MoleculeCalculation ();
-			void DataOutput () { rdf.OutputData(); }
+			void DataOutput () { 
+				rdf_alc.OutputData(); 
+				rdf_carb.OutputData();
+			}
 	};
 
 
@@ -183,6 +214,7 @@ namespace diacid {
 			angle_analysis::PsiPsiAgent angles;
 			VecR v1,v2,v3;
 			double theta1, theta2;
+			unsigned int molcount;
 
 		public:
 			CarboxylicDihedralPsiPsi (Analyzer * t) :
@@ -194,7 +226,8 @@ namespace diacid {
 						std::string (".dat"),	// suffix
 						-8.0, 4.0, 2.0, // depths
 						0.0, 180.0, 2.5, // psi1
-						0.0, 180.0, 2.5) // psi2
+						0.0, 180.0, 2.5), // psi2
+				molcount(0)
 		{ }
 
 			void MoleculeCalculation ();

@@ -65,20 +65,16 @@ namespace md_analysis {
 
 
 	template <typename T>
-	void StructureAnalyzer<T>::SystemAnalysis (AnalysisSet& an) {
+	void StructureAnalyzer<T>::SystemAnalysis (AnalysisSet& an) 
+	{
 		// do some initial setup
 		an.Setup();
 
 		// start the analysis - run through each timestep
-		for (Analyzer::timestep = 0; Analyzer::timestep < Analyzer::timesteps; Analyzer::timestep++) {
-
-			//try {
-				// Perform the main loop analysis that works on every timestep of the simulation
-				an.Analysis ();
-			//} catch (std::exception& ex) {
-				//std::cout << "Caught an exception during the system analysis at timestep " << Analyzer::timestep << "." << std::endl;
-				//throw;
-			//}
+		for (Analyzer::timestep = 0; Analyzer::timestep < Analyzer::timesteps; Analyzer::timestep++) 
+		{
+			// Perform the main loop analysis that works on every timestep of the simulation
+			an.Analysis ();
 
 			// output the status of the analysis (to the screen or somewhere useful)
 			analyzer->OutputStatus ();
@@ -86,12 +82,8 @@ namespace md_analysis {
 			if (analyzer->ReadyToOutputData())
 				an.DataOutput();
 
-			//try {
-				// load the next timestep
-				analyzer->LoadNext();
-			//} catch (std::exception& ex) {
-				//throw;
-			//}
+			// load the next timestep
+			analyzer->LoadNext();
 		}
 		// do one final data output to push out the finalized data set
 		an.DataOutput();
@@ -145,6 +137,7 @@ namespace md_analysis {
 			analyses.push_back (new diacid::Dimers(analyzer));
 			analyses.push_back (new diacid::Test(analyzer));
 			analyses.push_back (new diacid::COTheta(analyzer));
+			analyses.push_back (new diacid::BondLengths(analyzer));
 		}
 
 
@@ -166,6 +159,10 @@ namespace md_analysis {
 			analyses.push_back(new malonic::BondLengths(analyzer));
 			analyses.push_back(new malonic::MolecularDipole(analyzer));
 			analyses.push_back(new malonic::RDF(analyzer));
+			analyses.push_back(new malonic::CarbonBackboneThetaPhi(analyzer));
+			analyses.push_back(new malonic::CarboxylicDihedralPsiPsi(analyzer));
+			analyses.push_back(new malonic::COTheta(analyzer));
+
 		}
 
 

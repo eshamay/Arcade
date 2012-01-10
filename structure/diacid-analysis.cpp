@@ -2,6 +2,72 @@
 
 namespace diacid {
 
+	BondLengths::BondLengths (Analyzer * t) :
+		DiacidAnalysis (t,
+				std::string ("Malonic bondlengths"),
+				std::string("MalonicBondLengths.dat")),
+			min(0.0), max(7.0), res(0.005) {
+			lengths[c1o1] = new histogram_utilities::Histogram1D<double> (min, max, res);
+			lengths[c1oh1] = new histogram_utilities::Histogram1D<double> (min, max, res);
+			lengths[c2o2] = new histogram_utilities::Histogram1D<double> (min, max, res);
+			lengths[c2oh2] = new histogram_utilities::Histogram1D<double> (min, max, res);
+			lengths[h1o2] = new histogram_utilities::Histogram1D<double> (min, max, res);
+			lengths[h2o1] = new histogram_utilities::Histogram1D<double> (min, max, res);
+			lengths[h1oh1] = new histogram_utilities::Histogram1D<double> (min, max, res);
+			lengths[h2oh2] = new histogram_utilities::Histogram1D<double> (min, max, res);
+			lengths[h1oh2] = new histogram_utilities::Histogram1D<double> (min, max, res);
+			lengths[h2oh1] = new histogram_utilities::Histogram1D<double> (min, max, res);
+			lengths[o1waterh] = new histogram_utilities::Histogram1D<double> (min, max, res);
+			lengths[o2waterh] = new histogram_utilities::Histogram1D<double> (min, max, res);
+		}
+
+	void BondLengths::CalcDistance (AtomPtr atom1, AtomPtr atom2, bond_t bond) {
+		distance = MDSystem::Distance(atom1, atom2).norm();
+		lengths[bond]->operator()(distance);
+	}
+
+	void BondLengths::MoleculeCalculation () {
+		this->mol->SetAtoms();
+
+		CalcDistance(this->mol->C1(), this->mol->O1(), c1o1);
+		CalcDistance(this->mol->C2(), this->mol->O2(), c2o2);
+		CalcDistance(this->mol->C1(), this->mol->OH1(), c1oh1);
+		CalcDistance(this->mol->C2(), this->mol->OH2(), c2oh2);
+
+		CalcDistance(this->mol->H1(), this->mol->OH1(), h1oh1);
+		CalcDistance(this->mol->H1(), this->mol->OH2(), h1oh2);
+		CalcDistance(this->mol->H1(), this->mol->O2(), h1o2);
+
+		CalcDistance(this->mol->H2(), this->mol->OH2(), h2oh2);
+		CalcDistance(this->mol->H2(), this->mol->OH1(), h2oh1);
+		CalcDistance(this->mol->H2(), this->mol->O1(), h2o1);
+	}
+
+	void BondLengths::OutputDataPoint (bond_t bond, double position) {
+		fprintf (this->output, " %6.4f", lengths[bond]->Population(position));
+	}
+
+	void BondLengths::DataOutput () {
+		rewind (this->output);
+
+		fprintf (this->output, "position c1o1 c2o2 c1oh1 c2oh2 h1oh1 h1oh2 h1o2 h2oh2 h2oh1 h2o1\n");
+		for (double pos = min; pos < max; pos += res) {
+			fprintf (this->output, "% 8.5f ", pos);
+			OutputDataPoint (c1o1, pos);
+			OutputDataPoint (c2o2, pos);
+			OutputDataPoint (c1oh1, pos);
+			OutputDataPoint (c2oh2, pos);
+			OutputDataPoint (h1oh1, pos);
+			OutputDataPoint (h1oh2, pos);
+			OutputDataPoint (h1o2, pos);
+			OutputDataPoint (h2oh2, pos);
+			OutputDataPoint (h2oh1, pos);
+			OutputDataPoint (h2o1, pos);
+			fprintf (this->output, "\n");
+		}
+	}
+
+
 	void Dimers::PreCalculation () {
 		if (!initialized) {
 			molecule_analysis::SingleMoleculeAnalysis<alkane::Diacid>::PreCalculation ();
@@ -15,7 +81,7 @@ namespace diacid {
 			std::for_each(mols.begin(), mols.end(), std::mem_fun(&alkane::Diacid::LoadAtomGroups));
 			initialized = true;
 		} 
-		
+
 		else {
 			this->_graph.RecalculateBonds();
 
@@ -55,38 +121,38 @@ namespace diacid {
 	}
 
 
-
-
-
 	RDF::RDF (Analyzer * t) :
 		molecule_analysis::DiacidAnalysis (t,
 				std::string ("Malonic RDFs"),
 				std::string("")),
-		rdf (std::string("MalonicRDF.alcO-H.surface.dat"), 
-				0.5, 7.0, 0.05) { 
-			//rdf (std::string("MalonicRDF.carbO-H.surface.dat"), 
-		}
+		rdf_alc (std::string("MalonicRDF.alcO-H.surface.dat"), 
+				0.5, 10.0, 0.05),
+		rdf_carb (std::string("MalonicRDF.carbO-H.surface.dat"), 
+				0.5, 10.0, 0.05) { }
 
 	void RDF::MoleculeCalculation () {
 		this->mol->LoadAtomGroups();
 		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
 		this->position = this->h2os.TopOrBottom(com);
 
-		if (this->position.second > -12.0) {
+		WaterPtr wat;
+		AtomPtr o, oh;
+		for (alkane::Diacid::atom_group_list::const_iterator coo = this->mol->carbonyls_begin(); coo != this->mol->carbonyls_end(); coo++) {
+			o = coo->Right();	// carbonyl
+			oh = coo->Left();	// alcohol
 
-			WaterPtr wat;
-			AtomPtr o, oh;
-			for (alkane::Diacid::atom_group_list::const_iterator coo = this->mol->carbonyls_begin(); coo != this->mol->carbonyls_end(); coo++) {
-				o = coo->Right();	// carbonyl
-				oh = coo->Left();	// alcohol
+			for (Wat_it it = this->h2os.begin(); it != this->h2os.end(); it++) 
+			{
+				wat = *it;
+				distance = MDSystem::Distance (oh, wat->H1()).norm();
+				rdf_alc(distance);
+				distance = MDSystem::Distance (oh, wat->H2()).norm();
+				rdf_alc(distance);
 
-				for (Wat_it it = this->h2os.begin(); it != this->h2os.end(); it++) {
-					wat = *it;
-					distance = MDSystem::Distance (oh, wat->H1()).norm();
-					rdf(distance);
-					distance = MDSystem::Distance (oh, wat->H2()).norm();
-					rdf(distance);
-				}
+				distance = MDSystem::Distance (o, wat->H1()).norm();
+				rdf_carb(distance);
+				distance = MDSystem::Distance (o, wat->H2()).norm();
+				rdf_carb(distance);
 			}
 		}
 	}

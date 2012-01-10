@@ -38,10 +38,12 @@ namespace molecule_analysis {
 
 	template <typename T>
 		void SingleMoleculeAnalysis<T>::Analysis () {
+
 			// load up the molecules to be analyzed
 			// or do what needs to be done first
 			PreCalculation ();
 
+			fflush(stdout);
 			// run through the analysis
 			for (Mol_it it = analysis_mols.begin(); it != analysis_mols.end(); it++) {
 				mol = static_cast<T *>(*it);

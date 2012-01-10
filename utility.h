@@ -445,6 +445,7 @@ namespace histogram_utilities {
 			histo_element_t Population (const T t) const { 
 				if (!InBounds(t)) {
 					printf ("Population requested for a value outside of the histogram limits\n");
+					std::cout << "value: " << t << std::endl;
 					exit(1);
 				}
 				return _histogram[this->Bin(t)];
