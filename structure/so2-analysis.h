@@ -30,7 +30,7 @@ namespace so2_analysis {
 						std::string("SO2 - H2O RDF"),
 						std::string ("temp")),
 				//rdf (std::string ("rdf.so2-O.h2o-H.dat"), 0.5, 8.0, 0.05) { }
-				rdf (std::string ("rdf.so2-S.h2o-O.dat"), 0.5, 8.0, 0.05) { }
+				rdf (std::string ("rdf.so2-S.h2o-O.dat"), 0.5, 5.0, 0.05) { }
 
 			void MoleculeCalculation ();
 

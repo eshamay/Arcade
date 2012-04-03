@@ -404,4 +404,15 @@ namespace md_system {
 	BlobMolecule::BlobMolecule () : Molecule () { this->Rename("blob"); _moltype = Molecule::BLOB; }
 	BlobMolecule::BlobMolecule (const Molecule& molecule) : Molecule(molecule) { }
 
+	void ThreeAtomGroup::Print () const {
+
+		printf ("\nAtoms in group:\n");
+	 	printf ("left: "); this->left->Print();
+	 	printf ("center: "); this->center->Print();
+	 	printf ("right: "); this->right->Print();
+
+		printf ("Bond1: "); this->Bond1().Print();
+		printf ("Bond2: "); this->Bond2().Print();
+		printf ("Angle: %f", this->Angle());
+	}
 }	// namespace md system

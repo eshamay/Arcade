@@ -137,6 +137,7 @@ namespace md_analysis {
 			analyses.push_back (new diacid::Dimers(analyzer));
 			analyses.push_back (new diacid::Test(analyzer));
 			analyses.push_back (new diacid::COTheta(analyzer));
+			analyses.push_back (new diacid::CHTheta(analyzer));
 			analyses.push_back (new diacid::BondLengths(analyzer));
 		}
 
@@ -147,10 +148,13 @@ namespace md_analysis {
 			analyzer = new Analyzer (sys);
 			AnalysisSet * a;
 
-			analyses.push_back(new md_analysis::SystemDipoleAnalyzer<XYZSystem>(analyzer));
-			analyses.push_back(new bond_analysis::BondLengthAnalyzer (analyzer));
+			//analyses.push_back(new md_analysis::SystemDipoleAnalyzer<XYZSystem>(analyzer));
+			//analyses.push_back(new bond_analysis::BondLengthAnalyzer (analyzer));
 			analyses.push_back(new bond_analysis::SO2CoordinationAnalyzer(analyzer));
+			analyses.push_back(new cycle_analysis::SO2CycleCoordinationAnalyzer(analyzer));
+			analyses.push_back(new cycle_analysis::SO2CycleLifespanAnalyzer(analyzer));
 			analyses.push_back(new md_analysis::RDFAnalyzer(analyzer));
+			/*
 			analyses.push_back(new bond_analysis::SO2CoordinationAngleAnalyzer(analyzer));
 			analyses.push_back(new cycle_analysis::SO2CycleCoordinationAnalyzer(analyzer));
 			analyses.push_back(new cycle_analysis::SO2CycleLifespanAnalyzer(analyzer));
@@ -162,6 +166,7 @@ namespace md_analysis {
 			analyses.push_back(new malonic::CarbonBackboneThetaPhi(analyzer));
 			analyses.push_back(new malonic::CarboxylicDihedralPsiPsi(analyzer));
 			analyses.push_back(new malonic::COTheta(analyzer));
+			*/
 
 		}
 

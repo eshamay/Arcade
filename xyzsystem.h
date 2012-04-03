@@ -74,7 +74,6 @@ namespace md_files {
 			void AddWanniers (MolPtr mol, const int num);
 			void AddWanniersToAtom (MolPtr mol, AtomPtr atom, unsigned int num);
 
-
 			void _UpdateUnparsedList (Atom_ptr_vec& parsed);	// fixes the list of unparsed atoms
 			bool _Unparsed (const AtomPtr atom) const;
 			void _CheckForUnparsedAtoms () const;

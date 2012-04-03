@@ -13,8 +13,9 @@ namespace md_analysis {
 				RDFAnalyzer (system_t * t) :
 					AnalysisSet (t,
 						std::string("RDF Analysis"),
-						std::string("rdf.so2-O.wat-H.dat")),
-					histo(0.5, 6.0, 0.05) { }
+						//std::string("rdf.so2-O.wat-H.dat")),
+						std::string("rdf.so2-S.wat-O.dat")),
+					histo(0.5, 5.0, 0.05) { }
 
 				void Analysis ();
 				void DataOutput ();
@@ -23,6 +24,10 @@ namespace md_analysis {
 
 				histogram_utilities::Histogram1D<double> histo;
 		};
+
+
+
+
 
 		class RDFAgent {
 			protected:

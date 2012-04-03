@@ -4,8 +4,8 @@ namespace diacid {
 
 	BondLengths::BondLengths (Analyzer * t) :
 		DiacidAnalysis (t,
-				std::string ("Malonic bondlengths"),
-				std::string("MalonicBondLengths.dat")),
+				std::string ("Intramolecular Bondlengths"),
+				std::string("IntraMolecularBondLengths.dat")),
 			min(0.0), max(7.0), res(0.005) {
 			lengths[c1o1] = new histogram_utilities::Histogram1D<double> (min, max, res);
 			lengths[c1oh1] = new histogram_utilities::Histogram1D<double> (min, max, res);
@@ -17,8 +17,8 @@ namespace diacid {
 			lengths[h2oh2] = new histogram_utilities::Histogram1D<double> (min, max, res);
 			lengths[h1oh2] = new histogram_utilities::Histogram1D<double> (min, max, res);
 			lengths[h2oh1] = new histogram_utilities::Histogram1D<double> (min, max, res);
-			lengths[o1waterh] = new histogram_utilities::Histogram1D<double> (min, max, res);
-			lengths[o2waterh] = new histogram_utilities::Histogram1D<double> (min, max, res);
+			//lengths[o1waterh] = new histogram_utilities::Histogram1D<double> (min, max, res);
+			//lengths[o2waterh] = new histogram_utilities::Histogram1D<double> (min, max, res);
 		}
 
 	void BondLengths::CalcDistance (AtomPtr atom1, AtomPtr atom2, bond_t bond) {
@@ -78,7 +78,7 @@ namespace diacid {
 
 			this->_graph.Initialize(mols.begin(), mols.end());
 
-			std::for_each(mols.begin(), mols.end(), std::mem_fun(&alkane::Diacid::LoadAtomGroups));
+			std::for_each(mols.begin(), mols.end(), std::mem_fun(&alkane::Diacid::SetAtoms));
 			initialized = true;
 		} 
 
@@ -131,7 +131,8 @@ namespace diacid {
 				0.5, 10.0, 0.05) { }
 
 	void RDF::MoleculeCalculation () {
-		this->mol->LoadAtomGroups();
+		this->mol->SetAtoms();
+		//this->mol->LoadAtomGroups();
 		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
 		this->position = this->h2os.TopOrBottom(com);
 
@@ -160,7 +161,7 @@ namespace diacid {
 
 
 	void Test::MoleculeCalculation () {
-		this->mol->LoadAtomGroups();
+		this->mol->SetAtoms();
 		this->mol->Print();
 
 		std::cout << "methyl Hs" << std::endl;
@@ -184,7 +185,7 @@ namespace diacid {
 		// find the center of mass location of the succinic acid
 		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
 		this->position = this->h2os.TopOrBottom(com);
-		this->mol->LoadAtomGroups();
+		this->mol->SetAtoms();
 
 		// get the dihedral angle
 		angles (this->mol->CarbonylBisector1(), this->mol->CO1(), this->position);
@@ -194,12 +195,13 @@ namespace diacid {
 
 	void MethylThetaPhiAnalysis::MoleculeCalculation () {
 
+		this->mol->SetAtoms();
+
 		// find the center of mass location of the succinic acid
 		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
 		this->position = this->h2os.TopOrBottom(com);
 
 		// run through each methyl group and grab the angles needed
-		this->mol->LoadAtomGroups();
 		for (alkane::Diacid::atom_group_list::const_iterator it = this->mol->methyls_begin(); 
 				it != this->mol->methyls_end(); it++) {
 			angles (it->Bisector(), it->Bond1(), this->position);
@@ -211,7 +213,7 @@ namespace diacid {
 	void CarbonBackboneThetaCarboxylicDihedral::MoleculeCalculation () {
 		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
 		this->position = this->h2os.TopOrBottom(com);
-		this->mol->LoadAtomGroups();
+		this->mol->SetAtoms();
 
 		v1 = axis;// the reference axis - perp to the surface
 		if (!(position.first))
@@ -235,7 +237,7 @@ namespace diacid {
 		// find the center of mass location of the succinic acid
 		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
 		this->position = this->h2os.TopOrBottom(com);
-		this->mol->LoadAtomGroups();
+		this->mol->SetAtoms();
 
 		// find the bisector axis
 		// it's splits the two vectors C2->C1 and C2->C3
@@ -247,19 +249,13 @@ namespace diacid {
 	}
 
 	void COTheta::MoleculeCalculation () {
-		this->mol->LoadAtomGroups();
+		this->mol->SetAtoms();
 		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
 		this->position = this->h2os.TopOrBottom(com);
 
 		v1 = axis;// the reference axis - perp to the surface
 		if (!(this->position.first))
 			v1 = -v1;
-
-		double y1 = this->mol->CO1().y();
-		double y2 = this->mol->CO2().y();
-
-		double mag1 = this->mol->CO1().norm();
-		double mag2 = this->mol->CO2().norm();
 
 		double theta1 = acos(this->mol->CO1() < v1) * 180.0/M_PI;
 		double theta2 = acos(this->mol->CO2() < v1) * 180.0/M_PI;
@@ -268,9 +264,35 @@ namespace diacid {
 		angles (this->position.second, theta2);
 	}
 
+	void CHTheta::MoleculeCalculation () {
+		this->mol->SetAtoms();
+		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
+		this->position = this->h2os.TopOrBottom(com);
+
+		v1 = axis;// the reference axis - perp to the surface
+		if (!(this->position.first))
+			v1 = -v1;
+
+		VecR ch1, ch2;
+		// run through each methyl group and grab the angles needed
+		for (alkane::Diacid::atom_group_list::const_iterator it = this->mol->methyls_begin(); 
+				it != this->mol->methyls_end(); it++) {
+
+			ch1 = it->Bond1();
+			ch2 = it->Bond2();
+
+			double theta1 = acos(ch1 < v1) * 180.0/M_PI;
+			double theta2 = acos(ch2 < v1) * 180.0/M_PI;
+
+			angles (this->position.second, theta1);
+			angles (this->position.second, theta2);
+		}
+
+	}
 
 	void CarboxylicDihedralPsiPsi::MoleculeCalculation () {
-		this->mol->LoadAtomGroups();
+		this->mol->SetAtoms();
+		//this->mol->LoadAtomGroups();
 		this->com = this->mol->UpdateCenterOfMass() [WaterSystem::axis];
 		this->position = this->h2os.TopOrBottom(com);
 

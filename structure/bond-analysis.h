@@ -25,6 +25,10 @@ namespace bond_analysis {
 	};	 // bond length analyzer class
 
 
+
+
+
+
 	typedef struct {
 		AtomPtr atom;
 		double bondlength;
@@ -49,6 +53,7 @@ namespace bond_analysis {
 			SO2BondingAnalyzer (system_t * t, const std::string& desc, const std::string& fn) :
 				AnalysisSet (t, desc, fn),
 				so2s(t) {
+					//std::cout << "so2bondingnanalyzer init " << std::endl;
 					so2s.Initialize();
 				}
 			virtual ~SO2BondingAnalyzer () { }
@@ -74,6 +79,9 @@ namespace bond_analysis {
 			}
 	};
 
+
+
+
 	class SO2CoordinationAnalyzer : public SO2BondingAnalyzer {
 		public:
 
@@ -87,10 +95,16 @@ namespace bond_analysis {
 			SO2CoordinationAnalyzer (Analyzer * t) :
 				SO2BondingAnalyzer (t, 
 						std::string ("so2 Coordination analyzer"),
-						std::string ("so2-coordination.dat")) { }
+						std::string ("so2-coordination.dat")) { 
+					//std::cout << "so2coordinationanalyzer init" << std::endl;
+				}
 
 			void Analysis ();
 	};
+
+
+
+
 
 
 	class SO2CoordinationAngleAnalyzer : public SO2BondingAnalyzer {

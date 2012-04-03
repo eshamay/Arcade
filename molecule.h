@@ -274,6 +274,8 @@ namespace md_system {
 			AtomPtr Left () const { return left; }
 			AtomPtr Center () const { return center; }
 			AtomPtr Right () const { return right; }
+
+			void Print () const;
 	};
 
 }	// namespace md system

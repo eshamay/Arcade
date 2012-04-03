@@ -73,9 +73,23 @@ namespace molgraph {
 		else if (O_count == 2 && H_count == 5 && Total_count == 7) {
 			newmol = new Zundel ();
 		}
+		else if (O_count == 1 && H_count >= 2) {
+			Atom_ptr_vec temp;
+			std::copy (atoms.begin(), atoms.end(), std::back_inserter(temp));
+			atoms.clear();
+			std::copy (temp.begin(), temp.begin()+3, std::back_inserter(atoms));
+
+			newmol = new Water ();
+		}
 
 		// check for non-organics with an oxygen (i.e. so2)
-		else if (S_count == 1 && O_count == 2 && Total_count == 3) {
+		//else if (S_count == 1 && O_count == 2 && Total_count == 3) {
+		else if (S_count == 1) {
+			Atom_ptr_vec temp;
+			std::copy (atoms.begin(), atoms.end(), std::back_inserter(temp));
+			atoms.clear();
+			std::copy (temp.begin(), temp.begin()+3, std::back_inserter(atoms));
+
 			newmol = new SulfurDioxide ();
 		}
 

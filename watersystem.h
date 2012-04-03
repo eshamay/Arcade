@@ -231,6 +231,7 @@ namespace md_system {
 					printf ("system dimensions are: ");
 					dims.Print();
 
+					std::cout << "new xyz system" << std::endl;
 					this->sys = new XYZSystem(filepath, dims, wanniers);
 				}
 				catch (const libconfig::SettingNotFoundException &snfex) {

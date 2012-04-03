@@ -17,7 +17,7 @@ namespace neighbor_analysis {
 
 		// select the reference atom to use for determining h-bonding to the so2.
 		cm.SetReferenceAtom(so2s.O1());
-		cm.SetCycleSize (20);
+		cm.SetCycleSize (30);
 		cm.BuildGraph();
 		// output the number of bonds on the first oxygen
 		fprintf (this->output, " %5d ", cm.NumReferenceAtomHBonds());

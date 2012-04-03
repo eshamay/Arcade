@@ -42,7 +42,8 @@ namespace md_analysis {
 
 			typedef Analyzer system_t;
 
-			NeighborManipulator (system_t * sys) : SystemManipulator(sys) { }
+			NeighborManipulator (system_t * sys) : SystemManipulator(sys) { 
+			}
 			~NeighborManipulator() { }
 
 			// Order all the analysis atoms by distance starting with the closest to the given atom
@@ -69,6 +70,7 @@ namespace md_analysis {
 				return it;
 			}
 
+			Atom_it begin () { return this->analysis_atoms.begin(); }
 			Atom_it end () { return this->analysis_atoms.end(); }
 
 			// increment the iterator to the next occurrence of an atom with the specified element type
@@ -109,7 +111,8 @@ namespace md_analysis {
 			CycleManipulator (system_t * t) : 
 				SystemManipulator(t),
 				nm(t),
-				cycle_size(0), ref_atom((AtomPtr)NULL), cycle_type(NO_CYCLE) { }
+				cycle_size(0), ref_atom((AtomPtr)NULL), cycle_type(NO_CYCLE) { 
+				}
 
 
 			typedef enum {

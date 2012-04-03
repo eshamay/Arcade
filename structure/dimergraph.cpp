@@ -84,7 +84,7 @@ namespace diacid {
 		alkane::Diacid * right = v_acid[vright];
 
 		// grab all the Hs on the left molecule, and the Os on the right
-		left->LoadAtomGroups();
+		left->SetAtoms();
 		Atom_ptr_vec methyl_Hs = left->methyl_hydrogens();
 		Atom_ptr_vec carbonyl_Hs = left->carbonyl_hydrogens();
 		Atom_ptr_vec carbonyl_Os = right->carbonyl_oxygens();

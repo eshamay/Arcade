@@ -2,11 +2,13 @@
 #include <cstdio>
 #include <cstring>
 #include <string>
+#include <iostream>
 
 int main () {
 
 	FILE * fp = fopen("xyz", "r");
 	FILE * wp = fopen ("xyz.bin", "wb");
+	std::cout << "Covnerting file xyz to xyz.bin" << std::endl;
 
 	double d;
 	unsigned int N;
@@ -16,8 +18,20 @@ int main () {
 	char name[10];
 	double x, y, z;
 
+	bool set = false;
+	int num = 0;
 	while (!feof(fp)) {
 		fscanf (fp, " %d", &N);
+
+		if (!set) {
+			num = N;
+			std::cout << "Parsing " << N << " atoms from the frame" << std::endl;
+			set = true;
+		}
+
+		if (num != N) {
+			std::cout << "frame has " << N << " atoms instead of the expected " << num << " atoms" << std::endl;
+		}
 
 		// grab the header with the number of atoms to parse
 		if (!NSet) {

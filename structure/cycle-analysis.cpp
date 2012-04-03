@@ -133,10 +133,10 @@ namespace cycle_analysis {
 	void SO2CycleCoordinationAnalyzer::Analysis () {
 		this->FindCoordination ();
 
-		cm.SetReferenceAtom(so2->S());
-		cm.SetCycleSize (30);
-		cm.BuildGraph();
-		cm.ParseCycles();
+		this->cm.SetReferenceAtom(so2->S());
+		this->cm.SetCycleSize (20);
+		this->cm.BuildGraph();
+		this->cm.ParseCycles();
 
 		// check that we're in the right type of coordination for the so2
 		int num_o = this->coordination % 10;
@@ -397,11 +397,11 @@ namespace cycle_analysis {
 		int num_o = this->coordination % 10;
 		int num_s = this->coordination / 10;
 		//printf ("%d %d %d\n", this->coordination, num_o, num_s);
-		if (num_o >= 1 && num_s >= 1) {
+		//if (num_o >= 1 && num_s >= 1) {
 			// if the so2 is minimally an SO coordination (at least 1 S and 1 O bond)
 			//if (this->coordination / 10 >= 1 && this->coordination % 10 >= 1)
 			this->CheckCycles ();
-		}
+		//}
 
 		/*
 		// if we've formed or broken a cycle, reset the timeout

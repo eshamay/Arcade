@@ -324,6 +324,7 @@ Diacid::Diacid () : Alkane () { this->Rename("Diacid"); _moltype = Molecule::DIA
 Diacid::~Diacid () { } 
 Diacid::Diacid (const Molecule& molecule) : Alkane(molecule) { }
 
+/*
 AtomPtr Diacid::CarbonylCarbon2 () {
 	// second carbonyl carbon is always the last carbon (e.g. "C5" if there are 5 carbons)
 	// filter out only carbons, and then grab the last one
@@ -333,30 +334,34 @@ AtomPtr Diacid::CarbonylCarbon2 () {
 	//std::for_each (carbons.begin(), carbons.end(), std::mem_fun(&Atom::Print));
 	return carbons.back();
 }
+*/
 
 VecR Diacid::CarbonylBisector1 () { return carbonyl_groups.front().Bisector(); }
 VecR Diacid::CarbonylBisector2 () { return carbonyl_groups.back().Bisector(); }
 
-VecR Diacid::CO1 () { return VecR (this->GetAtom("O1")->Position() - this->CarbonylCarbon1()->Position()); }
-VecR Diacid::CO2 () { return VecR (this->GetAtom("O2")->Position() - this->CarbonylCarbon2()->Position()); }
+VecR Diacid::CO1 () { return VecR (this->o1->Position() - this->c1->Position()); }
+VecR Diacid::CO2 () { return VecR (this->o2->Position() - this->c2->Position()); }
 
-// only for malonic!!
+// only for succinic!!
 void Diacid::SetAtoms () {
 	c1 = this->GetAtom("C1");
 	o1 = this->GetAtom("O1");
 	oh1 = this->GetAtom("O3");
 	h1 = this->GetAtom("H1");
-	c2 = this->GetAtom("C3");
+	c2 = this->GetAtom("C5");
 	o2 = this->GetAtom("O2");
 	oh2 = this->GetAtom("O4");
-	h2 = this->GetAtom("H4");
+	h2 = this->GetAtom("H2");
+
+	this->LoadAtomGroups();
 	return;
 }
 
 void Diacid::LoadCarbonylGroups () {
 	carbonyl_groups.clear();
-	carbonyl_groups.push_back (ThreeAtomGroup(this->GetAtom("O3"), this->CarbonylCarbon1(), this->GetAtom("O1")));
-	carbonyl_groups.push_back (ThreeAtomGroup(this->GetAtom("O4"), this->CarbonylCarbon2(), this->GetAtom("O2")));
+	carbonyl_groups.push_back (ThreeAtomGroup(this->oh1, this->c1, this->o1));
+	carbonyl_groups.push_back (ThreeAtomGroup(this->oh2, this->c2, this->o2));
+	//carbonyl_groups.push_back (ThreeAtomGroup(this->GetAtom("O4"), this->CarbonylCarbon2(), this->GetAtom("O2")));
 }
 
 // loads the carbon-hydrogen map with the methyl group atoms
@@ -368,7 +373,7 @@ void Diacid::LoadMethylGroups () {
 	// now load all the methyl carbons (i.e. all but the carbonyl carbons)
 	methyl_groups.clear();
 	for (Atom_it it = this->begin(); it != this->end(); ++it) {
-		if ((*it)->Element() != Atom::C || *it == CarbonylCarbon1() || *it == CarbonylCarbon2()) continue;
+		if ((*it)->Element() != Atom::C || *it == this->c1 || *it == this->c2) continue;
 		// for each carbon, find the 2 closest hydrogens and store them in the hydrogen bond-map 
 		std::pair<AtomPtr,AtomPtr> hyds = FindMethylHydrogens(*it);
 		methyl_groups.push_back(ThreeAtomGroup(hyds.first, *it, hyds.second));

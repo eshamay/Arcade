@@ -12,10 +12,17 @@ namespace md_analysis {
 	}
 
 	void SystemManipulator::Reload () {
+		all_atoms.clear();
+		all_mols.clear();
+		std::copy(WaterSystem::sys_atoms.begin(), WaterSystem::sys_atoms.end(), std::back_inserter(all_atoms));
+		std::copy(WaterSystem::sys_mols.begin(), WaterSystem::sys_mols.end(), std::back_inserter(all_mols));
+
 		analysis_atoms.clear();
 		analysis_mols.clear();
-		std::copy(all_atoms.begin(), all_atoms.end(), std::back_inserter(analysis_atoms));
-		std::copy(all_mols.begin(), all_mols.end(), std::back_inserter(analysis_mols));
+		std::copy(WaterSystem::sys_atoms.begin(), WaterSystem::sys_atoms.end(), std::back_inserter(analysis_atoms));
+		std::copy(WaterSystem::sys_mols.begin(), WaterSystem::sys_mols.end(), std::back_inserter(analysis_mols));
+		//std::copy(all_atoms.begin(), all_atoms.end(), std::back_inserter(analysis_atoms));
+		//std::copy(all_mols.begin(), all_mols.end(), std::back_inserter(analysis_mols));
 	}
 
 } // namespace md_analysis
@@ -244,7 +251,7 @@ namespace so2_analysis {
 
 
 	void SO2SystemManipulator::Initialize () {
-		this->_system->LoadAll();
+		//this->_system->LoadAll();
 		this->FindSO2 ();
 		this->so2->SetAtoms();
 		//printf ("\nFound %zu Sulfur Dioxides in the system\n", so2s.size());
@@ -306,6 +313,7 @@ namespace so2_analysis {
 		this->ReferenceAtom();
 
 		// order the atoms in the system in closest to furthest from a particular reference point
+	
 		nm.OrderAtomsByDistance(ref_atom);
 
 		// grab only a certain number of the closest atoms for analysis

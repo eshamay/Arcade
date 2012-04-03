@@ -38,6 +38,7 @@ namespace bondgraph {
 
 	void BondGraph::_ParseAtoms (Atom_it first, Atom_it last) {
 		// set all the vertices to contain the proper info
+		//std::cout << "bondgraph::parseatoms " << last - first << std::endl;
 		Vertex v;
 		int i = 0;
 		for (Atom_it it = first; it != last; it++) {
@@ -47,6 +48,7 @@ namespace bondgraph {
 			v_elmt[v] = (*it)->Element();
 			i++;
 		}
+		//std::cout << "bondgraph::parseatoms " << last - first << std::endl;
 
 		return;
 	}
@@ -213,18 +215,28 @@ namespace bondgraph {
 
 	void BondGraph::UpdateGraph (const Atom_it first, const Atom_it last) {
 		// clear out the old graph info
+		//std::cout << "1 bondgraph::updategraph " << last - first << std::endl;
+
 		_graph.clear();
+		//std::cout << "2 bondgraph::updategraph " << last - first << std::endl;
+
 		// resize the graph with new vertices
-		for (Atom_it it = first; it != last; it++)
+		for (Atom_it it = first; it != last; it++) {
 			boost::add_vertex(_graph);
+		}
+		//std::cout << "3 bondgraph::updategraph " << last - first << std::endl;
+
 		// parse the atom info into the vertices
 		this->_ParseAtoms(first, last);
 		// then find all the needed bond information
+		
 		try {
 			this->_ParseBonds ();
 		} catch (graphex& ex) {
 			std::cout << "An exception was caught while determining the bonds between atoms in the system" << std::endl;
 		}
+
+		//std::cout << "4 bondgraph::updategraph " << last - first << std::endl;
 	}
 
 	void BondGraph::UpdateGraph (const Atom_ptr_vec& atoms) {

@@ -88,6 +88,7 @@ namespace md_files {
 			newmol->MolID((int)_mols.size());
 			newmol->FixAtoms();
 			_mols.push_back(newmol);
+
 			//newmol->SetAtoms();
 		}
 	}	// find molecules by molecule graph

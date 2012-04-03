@@ -122,8 +122,8 @@ namespace alkane {
 			Diacid (const Molecule& molecule);		// copy constructor for casting from a molecule
 
 			// refer to the carbonyl carbons
-			AtomPtr CarbonylCarbon1 () { return this->GetAtom("C1"); }
-			AtomPtr CarbonylCarbon2 ();
+			AtomPtr CarbonylCarbon1 () { return this->c1; }
+			AtomPtr CarbonylCarbon2 () { return this->c2; }
 
 			// bisector of the O-C-O of the carbonyl group
 			VecR CarbonylBisector1 ();
@@ -134,7 +134,6 @@ namespace alkane {
 			VecR CO2 ();
 
 			void SetAtoms ();
-			void LoadAtomGroups () { LoadMethylGroups(); LoadCarbonylGroups(); }
 
 			// returns the dihedral angle (see implementatin to get it!)
 			static std::pair<double,double> MalonicDihedralAngle (Diacid * acid);
@@ -151,6 +150,7 @@ namespace alkane {
 			Atom_ptr_vec carbonyl_oxygens () const;
 
 		protected:
+			void LoadAtomGroups () { LoadMethylGroups(); LoadCarbonylGroups(); }
 			void LoadMethylGroups ();
 			void LoadCarbonylGroups ();
 

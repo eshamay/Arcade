@@ -180,6 +180,34 @@ namespace diacid {
 	};
 
 
+	class CHTheta : public molecule_analysis::DiacidAnalysis {
+		private:
+			angle_analysis::PositionThetaAgent	angles;
+			VecR v1;
+			const VecR axis;
+			double theta1, theta2;
+
+		public:
+			CHTheta (Analyzer * t) :
+				molecule_analysis::DiacidAnalysis (t,
+						std::string("Diacid Methyl C-H theta vs distance in water"),
+						std::string ("")),
+				angles (
+						std::string ("MethylCHDistanceTheta.dat"),	
+						-10.0, 4.0, 0.2, // depths
+						5.0, 175.0, 2.0), // theta
+				axis(VecR::UnitY()) { }
+
+			void MoleculeCalculation ();
+
+			void DataOutput () {
+				DivideByRightSineDegrees func;
+				//DoNothing2D func;
+				angles.OutputData(func);
+			}
+	};
+
+
 	class COTheta : public molecule_analysis::DiacidAnalysis {
 		private:
 			angle_analysis::PositionThetaAgent	angles;

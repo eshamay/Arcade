@@ -222,6 +222,8 @@ namespace md_analysis {
 
 			// default setup
 			virtual void Setup () {
+				_system->LoadAll();
+				_system->LoadNext();
 				OpenDataOutputFile ();
 				_system->LoadAll();
 				return;

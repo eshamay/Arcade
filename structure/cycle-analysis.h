@@ -115,11 +115,13 @@ namespace cycle_analysis {
 
 		private:
 
-			bool CycleCheck ( CycleManipulator::cycle_type_it cycle_type, CycleManipulator::cycle_list_it cycle)
-			{ return this->IsSO_Cycle(cycle_type,cycle); }
+			bool CycleCheck ( CycleManipulator::cycle_type_it cycle_type, CycleManipulator::cycle_list_it cycle) {
+				return this->IsSO_Cycle(cycle_type,cycle);
+			}
 
 			// for when a cycle forms
 			void CycleCheckAction (CycleManipulator::cycle_list_it cycle) { fprintf(this->output, "1\n"); }
+
 			// for when a cycle is not found
 			void ACycleCheckAction (CycleManipulator::cycle_list_it cycle) { fprintf(this->output, "0\n"); }
 

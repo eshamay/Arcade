@@ -22,6 +22,11 @@ namespace md_analysis {
 				wat = static_cast<WaterPtr>(*mol);
 				//wat2 = static_cast<WaterPtr>(*mol2);
 
+				// get distances from so2-S to water-O
+				distance = MDSystem::Distance (so2->S(), wat->O()).Magnitude();
+				histo(distance);
+
+				/*
 				// grab the distances from the so2 sulfur to all the water oxygens
 				distance = MDSystem::Distance (so2->O1(), wat->H1()).Magnitude();
 				histo(distance);
@@ -31,6 +36,7 @@ namespace md_analysis {
 				histo(distance);
 				distance = MDSystem::Distance (so2->O2(), wat->H2()).Magnitude();
 				histo(distance);
+				*/
 			}//}
 
 	}

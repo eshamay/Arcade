@@ -90,9 +90,12 @@ namespace bond_analysis {
 
 	void SO2BondingAnalyzer::FindCoordination () {
 		this->LoadAll();
+
 		this->so2s.UpdateSO2();
+		//std::cout << "test3 size = " << end() - begin() << std::endl;
 
 		graph.UpdateGraph(this->begin(), this->end());
+		//std::cout << "test4 size = " << end() - begin() << std::endl;
 
 		this->so2 = so2s.SO2();
 

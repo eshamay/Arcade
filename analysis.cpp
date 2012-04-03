@@ -48,8 +48,10 @@ namespace md_analysis {
 
 	void Analyzer::_OutputHeader () const {
 
-		printf ("Analysis Parameters:\n\tScreen output frequency = 1/%d\n\n\tPosition extents for analysis:\n\t\tMin = % 8.3f\n\t\tMax = % 8.3f\n\t\tPosition Resolution = % 8.3f\n\n\tPrimary Axis = %d\nNumber of timesteps to be analyzed = %d\n",
-				output_freq, WaterSystem::posmin, WaterSystem::posmax, Analyzer::posres, int(WaterSystem::axis), Analyzer::timesteps);
+		//printf ("Analysis Parameters:\n\tScreen output frequency = 1/%d\n\n\tPosition extents for analysis:\n\t\tMin = % 8.3f\n\t\tMax = % 8.3f\n\t\tPosition Resolution = % 8.3f\n\n\tPrimary Axis = %d\nNumber of timesteps to be analyzed = %d\n",
+				//output_freq, WaterSystem::posmin, WaterSystem::posmax, Analyzer::posres, int(WaterSystem::axis), Analyzer::timesteps);
+		printf ("Analysis Parameters:\n\tScreen output frequency = 1/%d\n\n\tPrimary Axis = %d\n\tNumber of timesteps to be analyzed = %d\n",
+				output_freq, int(WaterSystem::axis), Analyzer::timesteps);
 
 #ifdef ANALYZER_SURFACE_AVG
 		printf ("\n\nThe analysis is averaging about the two interfaces located as:\n\tLow  = % 8.3f\n\tHigh = % 8.3f\n\n", int_low, int_high);
